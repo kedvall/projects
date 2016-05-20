@@ -7,7 +7,8 @@
 *                                                                     *
 **********************************************************************/
 //Pins:
-const int CS = 4; //Chip Select for SD cards (Default is pin 4 for Wireless SD Shield)
+#define CS = 4; //Chip Select for SD cards (Default is pin 4 for Wireless SD Shield)
+#define LEDPIN = 13; //Build in LED for status display
 
 //Set up pins for sensor reading
 const uint8_t clockPin1 = 2;
@@ -30,6 +31,16 @@ float dewpoint2;
 float temperature3;
 float humidity3;
 float dewpoint3;
+
+//Other variables:
+//Potentiometer variables
+int L1;
+int L2;
+int L3;
+int L4;
+int L5;
+long unsigned int lastRead; 
+DateTime now;
 
 //Initializations:
 //Initialize variables to reference three Sensirion sensors
