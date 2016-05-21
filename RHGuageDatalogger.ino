@@ -37,7 +37,7 @@ void error(char *str)
 //   Starts serial communication at 9600 baud (default for Xbees)    //
 //   Set columns for output text file                                //
 ///////////////////////////////////////////////////////////////////////
-void setup () 
+void setup ()
 { 
   //Check RTC started correctly, display error if not
   if (!rtc.begin() && ENABLEDEBUG)
