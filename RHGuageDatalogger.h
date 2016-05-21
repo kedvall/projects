@@ -19,26 +19,30 @@ const uint8_t dataPin1 = 3;
 const uint8_t dataPin2 = 5;
 const uint8_t dataPin3 = 7;
 
-//Sensirion variable setup:
-float temperature1;
-float humidity1;
-float dewpoint1;
+//Create struct to store data to be transmitted
+struct dataPacket {
+	//Sensirion variable setup:
+	float temperature1;
+	float humidity1;
+	float dewpoint1;
 
-float temperature2;
-float humidity2;
-float dewpoint2;
+	float temperature2;
+	float humidity2;
+	float dewpoint2;
 
-float temperature3;
-float humidity3;
-float dewpoint3;
+	float temperature3;
+	float humidity3;
+	float dewpoint3;
+
+	//Potentiometer variables
+	int L1;
+	int L2;
+	int L3;
+	int L4;
+	int L5;
+} sensor;
 
 //Other variables:
-//Potentiometer variables
-int L1;
-int L2;
-int L3;
-int L4;
-int L5;
 long unsigned int lastRead; 
 DateTime now;
 

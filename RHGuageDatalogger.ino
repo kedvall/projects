@@ -74,7 +74,7 @@ void setup ()
 ///////////////////////////////////////////////////////////////////////
 // Main Loop:                                                        //
 //   Reads temperature and humidity from sensors                     //
-//   Saves readings to SD card and transmits it wirelessly           //               //
+//   Saves readings to SD card and transmits it wirelessly           //
 ///////////////////////////////////////////////////////////////////////
 void loop () 
 {
@@ -87,113 +87,42 @@ void loop ()
     //Record measurements:
     RecordData();
 
+    //Transmit sensor data over serial
+    Serial.print(packet);
     
-      
+    //Reset variables for sensors
+    //Are you sure this is necessary?
+    temperature1 = -40;
+    temperature2 = -40;
+    temperature3 = -40;
 
+    humidity1 = 0;
+    humidity2 = 0;
+    humidity3 = 0;
 
+    Serial.println ("Sleeping"); 
+    Serial.println ("------------");      
 
-
-      Serial.println();
-
-      
-      
-
-
-
-
-      Serial.print(L1);
-      Serial.print(',');
-      Serial.print(L2);
-      Serial.print(',');
-      Serial.print(L3);
-      Serial.print(',');
-      Serial.print(L4);
-      Serial.print(',');
-      Serial.print(L5);
-      Serial.println();
-     
-      Serial.println();
-      
-    
-    Serial.println("=======================================");
-    Serial.print("Temperature 1: ");
-    Serial.print(temperature1);
-    Serial.print(" C, Humidity 1: ");
-    Serial.print(humidity1);
-    Serial.print(" %, Dewpoint 1: ");
-    Serial.print(dewpoint1);
-    Serial.println(" C");
-    delay (500);
-  Serial.println("-------------------------------------");
-    Serial.print("Temperature 2: ");
-    Serial.print(temperature2);
-    Serial.print(" C, Humidity 2: ");
-    Serial.print(humidity2);
-    Serial.print(" %, Dewpoint 2: ");
-    Serial.print(dewpoint2);
-    Serial.println(" C");
-
-  delay (500);
-  Serial.println("-------------------------------------");
-    Serial.print("Temperature 3: ");
-    Serial.print(temperature3);
-    Serial.print(" C, Humidity 3: ");
-    Serial.print(humidity3);
-    Serial.print(" %, Dewpoint 3: ");
-    Serial.print(dewpoint3);
-    Serial.println(" C");
-    
-    Serial.println("=======================================");
-      
-    delay(2500);  
-
-  temperature1 = -40;
-  temperature2 = -40;
-  temperature3 = -40;
-
-  humidity1 = 0;
-  humidity2 = 0;
-  humidity3 = 0;
-  //RH gauge END
-
-
-
-
-
-      
-      delay(900);
-    
-    
-    } // if sdCard wala loop
-
-  delay (3000);
-   i = 0;
-  Serial.println ("Sleeping"); 
-  Serial.println ("------------");      
-
-  digitalWrite(13,LOW);
-  delay (1000);
-  digitalWrite (13, HIGH);
-  delay (1000);
-  digitalWrite(13,LOW);
-  delay (1000);
-  digitalWrite (13, HIGH);
-  delay (1000);
-  digitalWrite(13,LOW);
-  delay (1000);
-  digitalWrite (13, HIGH);
-  delay (1000);
-  digitalWrite(13,LOW);
-  delay (1000);
-   }
-   else {
-          i++;
-   //Enter power down state for 8 s with ADC and BOD module disabled
-  LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);  
+    digitalWrite(13,LOW);
+    delay (1000);
+    digitalWrite (13, HIGH);
+    delay (1000);
+    digitalWrite(13,LOW);
+    delay (1000);
+    digitalWrite (13, HIGH);
+    delay (1000);
+    digitalWrite(13,LOW);
+    delay (1000);
+    digitalWrite (13, HIGH);
+    delay (1000);
+    digitalWrite(13,LOW);
+    delay (1000);
+     //Enter power down state for 8 s with ADC and BOD module disabled
+    LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);  
   }// SLEEP Loop
 
   
-  } // void loops
+}// void loops
 
 ///////////////////////////////////////////////////////////////////////
 // Function: InitColSetup                                            //
@@ -261,18 +190,18 @@ void ReadData()
   now = rtc.now();
 
   //Read from potentiometers
-  L1 = digitalRead(A0);
-  L2 = digitalRead(A1);
-  L3 = digitalRead(A2);
-  L4 = digitalRead(A3);
-  L5 = digitalRead(A4);
+  sensor.L1 = digitalRead(A0);
+  sensor.L2 = digitalRead(A1);
+  sensor.L3 = digitalRead(A2);
+  sensor.L4 = digitalRead(A3);
+  sensor.L5 = digitalRead(A4);
 
   //Read RH guages with 1s delay in between each read
-  tempSensor1.measure(&temperature1, &humidity1, &dewpoint1);
+  tempSensor1.measure(&sensor.temperature1, &sensor.humidity1, &sensor.dewpoint1);
   delay (1000);
-  tempSensor2.measure(&temperature2, &humidity2, &dewpoint2);
+  tempSensor2.measure(&sensor.temperature2, &sensor.humidity2, &sensor.dewpoint2);
   delay (1000);
-  tempSensor3.measure(&temperature3, &humidity3, &dewpoint3);
+  tempSensor3.measure(&sensor.temperature3, &sensor.humidity3, &sensor.dewpoint3);
   delay (1000);
 } //End of ReadData Function
 
@@ -303,32 +232,32 @@ void RecordData()
     sdCard.print(",");
 
     //Record potentiometers
-    sdCard.print(L1);
+    sdCard.print(sensor.L1);
     sdCard.print(",");
-    sdCard.print(L2);
+    sdCard.print(sensor.L2);
     sdCard.print(",");
-    sdCard.print(L3);
+    sdCard.print(sensor.L3);
     sdCard.print(",");
-    sdCard.print(L4);
+    sdCard.print(sensor.L4);
     sdCard.print(",");
-    sdCard.print(L5);
+    sdCard.print(sensor.L5);
     sdCard.print(",");
 
     //Record RH guage measurements
-    sdCard.print(temperature1);
+    sdCard.print(sensor.temperature1);
     sdCard.print(",");
-    sdCard.print(temperature2);
+    sdCard.print(sensor.temperature2);
     sdCard.print(",");
-    sdCard.print(temperature3);
+    sdCard.print(sensor.temperature3);
     sdCard.print(",");
-    sdCard.print(humidity1);
+    sdCard.print(sensor.humidity1);
     sdCard.print(",");
-    sdCard.print(humidity2);
+    sdCard.print(sensor.humidity2);
     sdCard.print(",");
-    sdCard.print(humidity3);
+    sdCard.print(sensor.humidity3);
     sdCard.println();
 
-    //Wait to ensure corrent write
+    //Wait to ensure correct write
     delay(250);
 
     //Close SD card
@@ -338,23 +267,53 @@ void RecordData()
     Serial.println("Error opening SD card");
 } //End of RecordData function
 
-///////////////////////////////////////////////////////////////////////
-// Function: TransmitData                                            //
-// Transmit all recorded data wirelessly using XBee                  //
-///////////////////////////////////////////////////////////////////////
-void TransmitData()
-{
-  Serial.print(now.year(), DEC);
-  Serial.print('/');
-  Serial.print(now.month(), DEC);
-  Serial.print('/');
-  Serial.print(now.day(), DEC);
-  Serial.print(' ');
-  Serial.print(now.hour(), DEC);
-  Serial.print(':');
-  Serial.print(now.minute(), DEC);
-  Serial.print(':');
-  Serial.print(now.second(), DEC);
+
+/* These print statements should no longer be needed:
   Serial.println();
 
-}
+  Serial.print(L1);
+  Serial.print(',');
+  Serial.print(L2);
+  Serial.print(',');
+  Serial.print(L3);
+  Serial.print(',');
+  Serial.print(L4);
+  Serial.print(',');
+  Serial.print(L5);
+  Serial.println(); 
+  Serial.println();
+      
+  Serial.println("=======================================");
+  Serial.print("Temperature 1: ");
+  Serial.print(temperature1);
+  Serial.print(" C, Humidity 1: ");
+  Serial.print(humidity1);
+  Serial.print(" %, Dewpoint 1: ");
+  Serial.print(dewpoint1); 
+  Serial.println(" C");
+  delay (500);
+
+  Serial.println("-------------------------------------");
+  Serial.print("Temperature 2: ");
+  Serial.print(temperature2);
+  Serial.print(" C, Humidity 2: ");
+  Serial.print(humidity2);
+  Serial.print(" %, Dewpoint 2: ");
+  Serial.print(dewpoint2);
+  Serial.println(" C");
+  delay (500);
+
+  Serial.println("-------------------------------------");
+  Serial.print("Temperature 3: ");
+  Serial.print(temperature3);
+  Serial.print(" C, Humidity 3: ");
+  Serial.print(humidity3);
+  Serial.print(" %, Dewpoint 3: ");
+  Serial.print(dewpoint3);
+  Serial.println(" C");
+  
+  Serial.println("=======================================");
+    
+  delay(2500);  
+  delay(900);
+  */
