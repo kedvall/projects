@@ -19,7 +19,10 @@
 #include <SPI.h>
 #include "LowPower.h"
 
-//Not sure the point of this, check and reformat latter
+//Serial Debugging (Note that XBee uses serial print statements to communicate)
+#define ENABLEDEBUG 0 //Default is 0, set 1 to enable
+
+//Not sure the point of this?
 void error(char *str)
 {
   Serial.print("error: ");
@@ -27,9 +30,6 @@ void error(char *str)
 
   while(1);
 }
-
-//Also not sure this variable's function
-int i = 0;
 
 ///////////////////////////////////////////////////////////////////////
 // Initial Setup:                                                    //
@@ -41,7 +41,8 @@ void setup ()
 { 
   //Check RTC started correctly, display error if not
   if (!rtc.begin())
-    Serial.println("Couldn't find RTC");
+    if (ENABLEDEBUG)
+      Serial.println("Couldn't find RTC");
  
   //Pin mode for potentiometers
   pinMode(A0, INPUT_PULLUP);
@@ -62,7 +63,7 @@ void setup ()
 
   //Set RTC to date & time this sketch was compiled
   rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-  lastRead = now.unixtime();
+  lastRead = now.unixtime() - 900;
 
   //Initialize SD card
   SD.begin(CS);
@@ -78,9 +79,9 @@ void setup ()
 ///////////////////////////////////////////////////////////////////////
 void loop () 
 {
-  if ( (now.unixtime() - lastRead) >= 900) { 
-    //15+ minutes have elasped, read sensors
-
+  if ( (now.unixtime() - lastRead) >= 900)
+  //15+ minutes have elasped, read sensors
+  {
     //Read from sensors:
     ReadData();
 
@@ -88,7 +89,10 @@ void loop ()
     RecordData();
 
     //Transmit sensor data over serial
-    Serial.print(packet);
+    if (ENABLEDEBUG)
+      PrintDebug();
+    else
+      Serial.print(packet);
     
     //Reset variables for sensors
     //Are you sure this is necessary?
@@ -100,29 +104,12 @@ void loop ()
     humidity2 = 0;
     humidity3 = 0;
 
-    Serial.println ("Sleeping"); 
-    Serial.println ("------------");      
-
-    digitalWrite(13,LOW);
-    delay (1000);
-    digitalWrite (13, HIGH);
-    delay (1000);
-    digitalWrite(13,LOW);
-    delay (1000);
-    digitalWrite (13, HIGH);
-    delay (1000);
-    digitalWrite(13,LOW);
-    delay (1000);
-    digitalWrite (13, HIGH);
-    delay (1000);
-    digitalWrite(13,LOW);
-    delay (1000);
-     //Enter power down state for 8 s with ADC and BOD module disabled
+    //Enter power down state for 8s with ADC and BOD module disabled
+    if (ENABLEDEBUG)
+      Serial.println ("Sleeping");     
     LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);  
-  }// SLEEP Loop
-
-  
-}// void loops
+  }  
+} //End of main loop
 
 ///////////////////////////////////////////////////////////////////////
 // Function: InitColSetup                                            //
@@ -263,14 +250,19 @@ void RecordData()
     //Close SD card
     sdCard.close();
   }
-  else
+  else if (ENABLEDEBUG)
     Serial.println("Error opening SD card");
 } //End of RecordData function
 
-
-/* These print statements should no longer be needed:
+///////////////////////////////////////////////////////////////////////
+// Function: PrintDebug                                              //
+// Optional debug statements over serial. Set on/off flag above      //
+///////////////////////////////////////////////////////////////////////
+void PrintDebug()
+{
+  //These print statements should no longer be needed, just for debugging
   Serial.println();
-
+  Serial.print("=======================================");
   Serial.print(L1);
   Serial.print(',');
   Serial.print(L2);
@@ -280,40 +272,35 @@ void RecordData()
   Serial.print(L4);
   Serial.print(',');
   Serial.print(L5);
+
   Serial.println(); 
-  Serial.println();
-      
-  Serial.println("=======================================");
   Serial.print("Temperature 1: ");
   Serial.print(temperature1);
   Serial.print(" C, Humidity 1: ");
   Serial.print(humidity1);
   Serial.print(" %, Dewpoint 1: ");
   Serial.print(dewpoint1); 
-  Serial.println(" C");
-  delay (500);
+  Serial.print(" C");
 
-  Serial.println("-------------------------------------");
+  Serial.println();
+  Serial.print("-------------------------------------");
   Serial.print("Temperature 2: ");
   Serial.print(temperature2);
   Serial.print(" C, Humidity 2: ");
   Serial.print(humidity2);
   Serial.print(" %, Dewpoint 2: ");
   Serial.print(dewpoint2);
-  Serial.println(" C");
-  delay (500);
+  Serial.print(" C");
 
-  Serial.println("-------------------------------------");
+  Serial.println();
+  Serial.print("-------------------------------------");
   Serial.print("Temperature 3: ");
   Serial.print(temperature3);
   Serial.print(" C, Humidity 3: ");
   Serial.print(humidity3);
   Serial.print(" %, Dewpoint 3: ");
   Serial.print(dewpoint3);
-  Serial.println(" C");
+  Serial.print(" C");
   
   Serial.println("=======================================");
-    
-  delay(2500);  
-  delay(900);
-  */
+} //End of PrintDebug function
