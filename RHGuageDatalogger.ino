@@ -40,9 +40,8 @@ void error(char *str)
 void setup () 
 { 
   //Check RTC started correctly, display error if not
-  if (!rtc.begin())
-    if (ENABLEDEBUG)
-      Serial.println("Couldn't find RTC");
+  if (!rtc.begin() && ENABLEDEBUG)
+    Serial.println("Couldn't find RTC");
  
   //Pin mode for potentiometers
   pinMode(A0, INPUT_PULLUP);
@@ -108,7 +107,7 @@ void loop ()
     if (ENABLEDEBUG)
       Serial.println ("Sleeping");     
     LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);  
-  }  
+  }
 } //End of main loop
 
 ///////////////////////////////////////////////////////////////////////
