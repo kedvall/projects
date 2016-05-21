@@ -20,7 +20,7 @@
 #include "LowPower.h"
 
 //Serial Debugging (Note that XBee uses serial print statements to communicate)
-#define ENABLEDEBUG 0 //Default is 0, set 1 to enable
+#define ENABLEDEBUG 0 //Default is 0, set 1 to enable (Disables XBee communication)
 
 //Not sure the point of this?
 void error(char *str)
@@ -159,7 +159,7 @@ void InitColSetup()
     //Close SD card
     sdCard.close();
   }
-  else 
+  else if (ENABLEDEBUG)
     Serial.println("Error opening SD card");
 } //End of InitColSetup function
 
