@@ -56,10 +56,10 @@ void loop() {
       //Read oldest byte in the serial buffer and store it as int (ASCII is converted)
       serialData = Serial.read();
       //If it's an H, turn on the LED:
-      if (incomingByte == 'H' || incomingByte == 'h')
+      if (serialData == 'H' || serialData == 'h')
         digitalWrite(ledPin, HIGH);
       //If it's an L, turn off the LED:
-      if (incomingByte == 'L' || incomingByte == 'l')
+      if (serialData == 'L' || serialData == 'l')
         digitalWrite(ledPin, LOW);
     }
   }
