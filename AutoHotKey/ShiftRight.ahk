@@ -1,2 +1,2 @@
 +SPACE::
-	Send, {RIGHT}
+	Send, {END}
