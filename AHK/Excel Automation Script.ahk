@@ -1,4 +1,4 @@
-!`::
+^+s::
 Send, ^s
 
 SetTitleMatchMode, 3
