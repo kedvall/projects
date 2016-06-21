@@ -1,0 +1,17 @@
+1.	[] represents the creation of a list
+2.	spam[2] = 'hello'
+3.	'd' (it evaluates to 3)
+4.	'd' (last index)
+5.	'a', 'b', 'c' (index 0 to index 2)
+6.	1 (the 1st occurence in the list)
+7.	[3.14, 'cat', 11, 'cat', True, 99]
+8.	[3.14, 11, 'cat', True, 99]
+9.	Concatenation = +, replication = *
+10.	append() adds the value to the end of the list, instert() adds the value to the index specified
+11.	del (if you know the index of the value), and remove() if you know the index
+12.	List values and string values can both be referenced by index and a string is like a list of indivdual characters
+13.	Lists are mutable, tuples are inmutable
+14.	eggs = (42,)
+15.	tuple() and list(), like int(), float(), and str()
+16.	They contain references to the address at which the list is stored
+17.	copy.copy() is used for a list, copy.deepcopy() is used when a list is within a list and needs to be copied as well
