@@ -6,7 +6,7 @@ def listToString(incommingList):
 	outputString += 'and ' + incommingList[len(incommingList) - 1]
 	return outputString
 
-
 spam = ['apples', 'bananas', 'tofu', 'cats', 'dogs', 'mice', 123, 456,789, 'done!']
+
 returnVal = listToString(spam)
 print(returnVal)
