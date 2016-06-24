@@ -37,7 +37,7 @@ void error(char *str)
 //   Starts serial communication at 9600 baud (default for Xbees)    //
 //   Set columns for output text file                                //
 ///////////////////////////////////////////////////////////////////////
-void setup ()
+void setup()
 { 
   //Check RTC started correctly, display error if not
   if (!rtc.begin() && ENABLEDEBUG)
@@ -76,7 +76,7 @@ void setup ()
 //   Reads temperature and humidity from sensors                     //
 //   Saves readings to SD card and transmits it wirelessly           //
 ///////////////////////////////////////////////////////////////////////
-void loop () 
+void loop() 
 {
   if ( (now.unixtime() - lastRead) >= 900)
   //15+ minutes have elasped, read sensors
