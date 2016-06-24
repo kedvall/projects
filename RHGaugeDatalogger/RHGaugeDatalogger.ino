@@ -10,26 +10,10 @@
 * A real time clock module is used to timestamp all recorded data     *
 *                                                                     *
 **********************************************************************/
-//Includes:
-#include <Arduino.h>
-#include <Sensirion.h>
-#include <Wire.h> //RTClib depends on this
-#include "RTClib.h"
-#include "SD.h"
-#include <SPI.h>
-#include "LowPower.h"
+#include "RHGaugeDatalogger.h"
 
 //Serial Debugging (Note that XBee uses serial print statements to communicate)
 #define ENABLEDEBUG 0 //Default is 0, set 1 to enable (Disables XBee communication)
-
-//Not sure the point of this?
-void error(char *str)
-{
-  Serial.print("error: ");
-  Serial.println(str);
-
-  while(1);
-}
 
 ///////////////////////////////////////////////////////////////////////
 // Initial Setup:                                                    //
@@ -39,6 +23,12 @@ void error(char *str)
 ///////////////////////////////////////////////////////////////////////
 void setup()
 { 
+  //Setup pinout (all disabled temporarily)
+  DDRD &= B00000011;
+  DDRB = B00000000;
+  PORTD |= B11111100;
+  PORTB |= B11111111;
+
   //Check RTC started correctly, display error if not
   if (!rtc.begin() && ENABLEDEBUG)
     Serial.println("Couldn't find RTC");
@@ -108,6 +98,8 @@ void loop()
       Serial.println ("Sleeping");     
     LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);  
   }
+
+  sleepNow(); //Power down Arduino
 } //End of main loop
 
 ///////////////////////////////////////////////////////////////////////
@@ -252,6 +244,40 @@ void RecordData()
   else if (ENABLEDEBUG)
     Serial.println("Error opening SD card");
 } //End of RecordData function
+
+///////////////////////////////////////////////////////////////////////
+// Function: sleepNow                                                //
+// Forces Arduino to enter low power state                           //
+///////////////////////////////////////////////////////////////////////
+void sleepNow(void)
+{
+  // Set pin 2 as interrupt and attach handler:
+  attachInterrupt(0, pinInterrupt, LOW);
+  delay(100);
+
+  // Choose our preferred sleep mode:
+  set_sleep_mode(SLEEP_MODE_IDLE);
+
+  // Set sleep enable (SE) bit:
+  sleep_enable();
+
+  // Put the device to sleep:
+  digitalWrite(13,LOW);   // turn LED off to indicate sleep
+  sleep_mode();
+
+  // Upon waking up, sketch continues from this point.
+  sleep_disable();
+  digitalWrite(13,HIGH);   // turn LED on to indicate awake
+}
+
+///////////////////////////////////////////////////////////////////////
+// Function: pinInterrupt                                            //
+// Disables interrupt to prevent accidental firing                   //
+///////////////////////////////////////////////////////////////////////
+void pinInterrupt(void)
+{
+    detachInterrupt(0);
+}
 
 ///////////////////////////////////////////////////////////////////////
 // Function: PrintDebug                                              //

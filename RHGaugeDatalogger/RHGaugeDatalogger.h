@@ -6,6 +6,20 @@
 * This header file cleans up variable declaration for the main sketch *
 *                                                                     *
 **********************************************************************/
+//Includes
+#include <Arduino.h>
+#include <Sensirion.h>
+#include <Wire.h> //RTClib depends on this
+#include "RTClib.h"
+#include "SD.h"
+#include <SPI.h>
+#include "LowPower.h"
+
+#include <avr/interrupt.h>
+#include <avr/power.h>
+#include <avr/sleep.h>
+#include <avr/io.h>
+
 //Pins:
 #define CS = 4; //Chip Select for SD cards (Default is pin 4 for Wireless SD Shield)
 #define LEDPIN = 13; //Build in LED for status display
