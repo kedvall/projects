@@ -1,3 +1,5 @@
+//From: http://www.engblaze.com/we-interrupt-this-program-to-bring-you-a-tutorial-on-arduino-interrupts/
+
 #include <avr/interrupt.h>
 volatile int myInterruptVar;
 
