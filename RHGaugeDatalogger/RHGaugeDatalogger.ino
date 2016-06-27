@@ -42,10 +42,22 @@ void setup()
   //For LED
   pinMode(LEDPIN, OUTPUT);
 
-  /* Shouldn't be needed, try without this
-  pinMode(dataPin1, INPUT_PULLUP);
-  pinMode(dataPin2, INPUT_PULLUP);
-  pinMode(dataPin3, INPUT_PULLUP); */
+  // initialize Timer1
+  cli();          // disable global interrupts
+  TCCR1A = 0;     // set entire TCCR1A register to 0
+  TCCR1B = 0;     // same for TCCR1B
+
+  // set compare match register to desired timer count:
+  OCR1A = 15624;
+  // turn on CTC mode:
+  TCCR1B |= (1 << WGM12);
+  // Set CS10 and CS12 bits for 1024 prescaler:
+  TCCR1B |= (1 << CS10);
+  TCCR1B |= (1 << CS12);
+  // enable timer compare interrupt:
+  TIMSK1 |= (1 << OCIE1A);
+  // enable global interrupts:
+  sei();
   
   //Start serial communication at 9600 baud
   Serial.begin(9600);
@@ -68,37 +80,31 @@ void setup()
 ///////////////////////////////////////////////////////////////////////
 void loop() 
 {
-  if ( (now.unixtime() - lastRead) >= 900)
-  //15+ minutes have elasped, read sensors
-  {
-    //Read from sensors:
-    ReadData();
+  //Read from sensors:
+  ReadData();
 
-    //Record measurements:
-    RecordData();
+  //Record measurements:
+  RecordData();
 
-    //Transmit sensor data over serial
-    if (ENABLEDEBUG)
-      PrintDebug();
-    else
-      Serial.print(packet);
-    
-    //Reset variables for sensors
-    //Are you sure this is necessary?
-    temperature1 = -40;
-    temperature2 = -40;
-    temperature3 = -40;
+  //Transmit sensor data over serial
+  if (ENABLEDEBUG)
+    PrintDebug();
+  else
+    PrintVars();
+  
+  //Reset variables for sensors
+  //Are you sure this is necessary?
+  packet.temperature1 = -40;
+  packet.temperature2 = -40;
+  packet.temperature3 = -40;
 
-    humidity1 = 0;
-    humidity2 = 0;
-    humidity3 = 0;
+  packet.humidity1 = 0;
+  packet.humidity2 = 0;
+  packet.humidity3 = 0;
 
-    //Enter power down state for 8s with ADC and BOD module disabled
-    if (ENABLEDEBUG)
-      Serial.println ("Sleeping");     
-    LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);  
-  }
-
+  //Power down
+  if (ENABLEDEBUG)
+    Serial.println ("Sleeping");
   sleepNow(); //Power down Arduino
 } //End of main loop
 
@@ -168,18 +174,18 @@ void ReadData()
   now = rtc.now();
 
   //Read from potentiometers
-  sensor.L1 = digitalRead(A0);
-  sensor.L2 = digitalRead(A1);
-  sensor.L3 = digitalRead(A2);
-  sensor.L4 = digitalRead(A3);
-  sensor.L5 = digitalRead(A4);
+  packet.L1 = digitalRead(A0);
+  packet.L2 = digitalRead(A1);
+  packet.L3 = digitalRead(A2);
+  packet.L4 = digitalRead(A3);
+  packet.L5 = digitalRead(A4);
 
   //Read RH guages with 1s delay in between each read
-  tempSensor1.measure(&sensor.temperature1, &sensor.humidity1, &sensor.dewpoint1);
+  tempSensor1.measure(&packet.temperature1, &packet.humidity1, &packet.dewpoint1);
   delay (1000);
-  tempSensor2.measure(&sensor.temperature2, &sensor.humidity2, &sensor.dewpoint2);
+  tempSensor2.measure(&packet.temperature2, &packet.humidity2, &packet.dewpoint2);
   delay (1000);
-  tempSensor3.measure(&sensor.temperature3, &sensor.humidity3, &sensor.dewpoint3);
+  tempSensor3.measure(&packet.temperature3, &packet.humidity3, &packet.dewpoint3);
   delay (1000);
 } //End of ReadData Function
 
@@ -210,29 +216,29 @@ void RecordData()
     sdCard.print(",");
 
     //Record potentiometers
-    sdCard.print(sensor.L1);
+    sdCard.print(packet.L1);
     sdCard.print(",");
-    sdCard.print(sensor.L2);
+    sdCard.print(packet.L2);
     sdCard.print(",");
-    sdCard.print(sensor.L3);
+    sdCard.print(packet.L3);
     sdCard.print(",");
-    sdCard.print(sensor.L4);
+    sdCard.print(packet.L4);
     sdCard.print(",");
-    sdCard.print(sensor.L5);
+    sdCard.print(packet.L5);
     sdCard.print(",");
 
     //Record RH guage measurements
-    sdCard.print(sensor.temperature1);
+    sdCard.print(packet.temperature1);
     sdCard.print(",");
-    sdCard.print(sensor.temperature2);
+    sdCard.print(packet.temperature2);
     sdCard.print(",");
-    sdCard.print(sensor.temperature3);
+    sdCard.print(packet.temperature3);
     sdCard.print(",");
-    sdCard.print(sensor.humidity1);
+    sdCard.print(packet.humidity1);
     sdCard.print(",");
-    sdCard.print(sensor.humidity2);
+    sdCard.print(packet.humidity2);
     sdCard.print(",");
-    sdCard.print(sensor.humidity3);
+    sdCard.print(packet.humidity3);
     sdCard.println();
 
     //Wait to ensure correct write
@@ -245,6 +251,23 @@ void RecordData()
     Serial.println("Error opening SD card");
 } //End of RecordData function
 
+///////////////////////////////////////////////////////////////////////
+// Function: PrintVars                                               //
+// Transmits packet over serial                                      //
+///////////////////////////////////////////////////////////////////////
+void PrintVars()
+{
+  unsigned long uBufSize = sizeof(packet);
+  char pBuffer[uBufSize];
+
+  memcpy(pBuffer, &packet, uBufSize);
+
+  for(int i = 0; i < uBufSize; i++)
+    Serial.print(pBuffer[i]);
+    
+  Serial.println();
+} //End of PrintVars function
+ 
 ///////////////////////////////////////////////////////////////////////
 // Function: sleepNow                                                //
 // Forces Arduino to enter low power state                           //
@@ -276,7 +299,7 @@ void sleepNow(void)
 ///////////////////////////////////////////////////////////////////////
 void pinInterrupt(void)
 {
-    detachInterrupt(0);
+  detachInterrupt(0);
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -288,44 +311,58 @@ void PrintDebug()
   //These print statements should no longer be needed, just for debugging
   Serial.println();
   Serial.print("=======================================");
-  Serial.print(L1);
+  Serial.print(packet.L1);
   Serial.print(',');
-  Serial.print(L2);
+  Serial.print(packet.L2);
   Serial.print(',');
-  Serial.print(L3);
+  Serial.print(packet.L3);
   Serial.print(',');
-  Serial.print(L4);
+  Serial.print(packet.L4);
   Serial.print(',');
-  Serial.print(L5);
+  Serial.print(packet.L5);
 
   Serial.println(); 
   Serial.print("Temperature 1: ");
-  Serial.print(temperature1);
+  Serial.print(packet.temperature1);
   Serial.print(" C, Humidity 1: ");
-  Serial.print(humidity1);
+  Serial.print(packet.humidity1);
   Serial.print(" %, Dewpoint 1: ");
-  Serial.print(dewpoint1); 
+  Serial.print(packet.dewpoint1); 
   Serial.print(" C");
 
   Serial.println();
   Serial.print("-------------------------------------");
   Serial.print("Temperature 2: ");
-  Serial.print(temperature2);
+  Serial.print(packet.temperature2);
   Serial.print(" C, Humidity 2: ");
-  Serial.print(humidity2);
+  Serial.print(packet.humidity2);
   Serial.print(" %, Dewpoint 2: ");
-  Serial.print(dewpoint2);
+  Serial.print(packet.dewpoint2);
   Serial.print(" C");
 
   Serial.println();
   Serial.print("-------------------------------------");
   Serial.print("Temperature 3: ");
-  Serial.print(temperature3);
+  Serial.print(packet.temperature3);
   Serial.print(" C, Humidity 3: ");
-  Serial.print(humidity3);
+  Serial.print(packet.humidity3);
   Serial.print(" %, Dewpoint 3: ");
-  Serial.print(dewpoint3);
+  Serial.print(packet.dewpoint3);
   Serial.print(" C");
   
   Serial.println("=======================================");
 } //End of PrintDebug function
+
+///////////////////////////////////////////////////////////////////////
+// Interrupt Service Routine: TIMER1_COMPA_vect                      //
+// Increment number of seconds each timer overflow until 15 minutes  //
+///////////////////////////////////////////////////////////////////////
+ISR(TIMER1_COMPA_vect)
+{
+  seconds++;
+  if (seconds >= 900)
+  {
+      seconds = 0;
+      loop();
+  }
+}
