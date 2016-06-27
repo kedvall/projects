@@ -54,7 +54,7 @@ struct dataPacket {
 	int L3;
 	int L4;
 	int L5;
-} packet;
+} sensor;
 
 //Other variables:
 volatile byte seconds;

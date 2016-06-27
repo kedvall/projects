@@ -94,13 +94,13 @@ void loop()
   
   //Reset variables for sensors
   //Are you sure this is necessary?
-  packet.temperature1 = -40;
-  packet.temperature2 = -40;
-  packet.temperature3 = -40;
+  sensor.temperature1 = -40;
+  sensor.temperature2 = -40;
+  sensor.temperature3 = -40;
 
-  packet.humidity1 = 0;
-  packet.humidity2 = 0;
-  packet.humidity3 = 0;
+  sensor.humidity1 = 0;
+  sensor.humidity2 = 0;
+  sensor.humidity3 = 0;
 
   //Power down
   if (ENABLEDEBUG)
@@ -174,18 +174,18 @@ void ReadData()
   now = rtc.now();
 
   //Read from potentiometers
-  packet.L1 = digitalRead(A0);
-  packet.L2 = digitalRead(A1);
-  packet.L3 = digitalRead(A2);
-  packet.L4 = digitalRead(A3);
-  packet.L5 = digitalRead(A4);
+  sensor.L1 = digitalRead(A0);
+  sensor.L2 = digitalRead(A1);
+  sensor.L3 = digitalRead(A2);
+  sensor.L4 = digitalRead(A3);
+  sensor.L5 = digitalRead(A4);
 
   //Read RH guages with 1s delay in between each read
-  tempSensor1.measure(&packet.temperature1, &packet.humidity1, &packet.dewpoint1);
+  tempSensor1.measure(&sensor.temperature1, &sensor.humidity1, &sensor.dewpoint1);
   delay (1000);
-  tempSensor2.measure(&packet.temperature2, &packet.humidity2, &packet.dewpoint2);
+  tempSensor2.measure(&sensor.temperature2, &sensor.humidity2, &sensor.dewpoint2);
   delay (1000);
-  tempSensor3.measure(&packet.temperature3, &packet.humidity3, &packet.dewpoint3);
+  tempSensor3.measure(&sensor.temperature3, &sensor.humidity3, &sensor.dewpoint3);
   delay (1000);
 } //End of ReadData Function
 
@@ -216,29 +216,29 @@ void RecordData()
     sdCard.print(",");
 
     //Record potentiometers
-    sdCard.print(packet.L1);
+    sdCard.print(sensor.L1);
     sdCard.print(",");
-    sdCard.print(packet.L2);
+    sdCard.print(sensor.L2);
     sdCard.print(",");
-    sdCard.print(packet.L3);
+    sdCard.print(sensor.L3);
     sdCard.print(",");
-    sdCard.print(packet.L4);
+    sdCard.print(sensor.L4);
     sdCard.print(",");
-    sdCard.print(packet.L5);
+    sdCard.print(sensor.L5);
     sdCard.print(",");
 
     //Record RH guage measurements
-    sdCard.print(packet.temperature1);
+    sdCard.print(sensor.temperature1);
     sdCard.print(",");
-    sdCard.print(packet.temperature2);
+    sdCard.print(sensor.temperature2);
     sdCard.print(",");
-    sdCard.print(packet.temperature3);
+    sdCard.print(sensor.temperature3);
     sdCard.print(",");
-    sdCard.print(packet.humidity1);
+    sdCard.print(sensor.humidity1);
     sdCard.print(",");
-    sdCard.print(packet.humidity2);
+    sdCard.print(sensor.humidity2);
     sdCard.print(",");
-    sdCard.print(packet.humidity3);
+    sdCard.print(sensor.humidity3);
     sdCard.println();
 
     //Wait to ensure correct write
@@ -257,10 +257,10 @@ void RecordData()
 ///////////////////////////////////////////////////////////////////////
 void PrintVars()
 {
-  unsigned long uBufSize = sizeof(packet);
+  unsigned long uBufSize = sizeof(sensor);
   char pBuffer[uBufSize];
 
-  memcpy(pBuffer, &packet, uBufSize);
+  memcpy(pBuffer, &sensor, uBufSize);
 
   for(int i = 0; i < uBufSize; i++)
     Serial.print(pBuffer[i]);
@@ -311,43 +311,43 @@ void PrintDebug()
   //These print statements should no longer be needed, just for debugging
   Serial.println();
   Serial.print("=======================================");
-  Serial.print(packet.L1);
+  Serial.print(sensor.L1);
   Serial.print(',');
-  Serial.print(packet.L2);
+  Serial.print(sensor.L2);
   Serial.print(',');
-  Serial.print(packet.L3);
+  Serial.print(sensor.L3);
   Serial.print(',');
-  Serial.print(packet.L4);
+  Serial.print(sensor.L4);
   Serial.print(',');
-  Serial.print(packet.L5);
+  Serial.print(sensor.L5);
 
   Serial.println(); 
   Serial.print("Temperature 1: ");
-  Serial.print(packet.temperature1);
+  Serial.print(sensor.temperature1);
   Serial.print(" C, Humidity 1: ");
-  Serial.print(packet.humidity1);
+  Serial.print(sensor.humidity1);
   Serial.print(" %, Dewpoint 1: ");
-  Serial.print(packet.dewpoint1); 
+  Serial.print(sensor.dewpoint1); 
   Serial.print(" C");
 
   Serial.println();
   Serial.print("-------------------------------------");
   Serial.print("Temperature 2: ");
-  Serial.print(packet.temperature2);
+  Serial.print(sensor.temperature2);
   Serial.print(" C, Humidity 2: ");
-  Serial.print(packet.humidity2);
+  Serial.print(sensor.humidity2);
   Serial.print(" %, Dewpoint 2: ");
-  Serial.print(packet.dewpoint2);
+  Serial.print(sensor.dewpoint2);
   Serial.print(" C");
 
   Serial.println();
   Serial.print("-------------------------------------");
   Serial.print("Temperature 3: ");
-  Serial.print(packet.temperature3);
+  Serial.print(sensor.temperature3);
   Serial.print(" C, Humidity 3: ");
-  Serial.print(packet.humidity3);
+  Serial.print(sensor.humidity3);
   Serial.print(" %, Dewpoint 3: ");
-  Serial.print(packet.dewpoint3);
+  Serial.print(sensor.dewpoint3);
   Serial.print(" C");
   
   Serial.println("=======================================");
