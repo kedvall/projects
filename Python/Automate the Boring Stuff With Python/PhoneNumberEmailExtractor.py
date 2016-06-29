@@ -19,7 +19,17 @@ emailRegex = re.compile(r'''(
 	(\.[a-zA-z]{2,4})		# Dot-something
 	)''', re.VERBOSE)
 
+# Find matches in clipbaord text
+text = str(pyperclip.paste())
+matches = []
+
+for groups in phoneRegex.findall(text):
+	phoneNum = '-'.join([groups[1], groups[3], groups[5]])
+	if groups[8] != '':
+		matches.append(phoneNum)
+
+for groups in emailRegex.findall(text):
+	matches.append(groups[0])
 
 
-# TODO: Find matches in clipbaord text
 # TODO: Copy results to the clipboard
