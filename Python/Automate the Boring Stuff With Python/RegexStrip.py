@@ -8,8 +8,8 @@ import re
 
 def Strip(text, stripChar=' '):
 	stripRegex = re.compile(r'^(' + re.escape(stripChar) + r')+|(' + re.escape(stripChar) + r')+$' )
-	print(stripRegex)
-	stripTest = stripRegex.findall(text)
+	stripTest = stripRegex.sub('',text)
 	print(stripTest)
 
-Strip('HELLOTestingHELLOHELLO', 'HELLO')
+text = 'OMITTHISOMITTHISTest123OMITTHIS'
+Strip(text, 'OMITTHIS')
