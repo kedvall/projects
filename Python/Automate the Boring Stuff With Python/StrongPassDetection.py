@@ -15,8 +15,7 @@ def StrengthCheck(password):
 A strong password:\n
 - Has at least 8 characters\n
 - Contains upper and lowercase letters\n
-- Has at least one digit
-			''')
+- Has at least one digit''')
 		return False
 
 	spaceRegex = re.compile(r'\s+')
