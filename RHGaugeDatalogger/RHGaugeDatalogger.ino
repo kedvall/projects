@@ -120,7 +120,7 @@ void InitColSetup()
     sdCard.print(",");
     sdCard.print("Hum 1");
     sdCard.print(",");
-    sdCard.print("Hum 2");
+    sdCard.print("Hum 2"); 
     sdCard.print(",");
     sdCard.print("Hum 3");
     sdCard.println(); 
