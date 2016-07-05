@@ -1,3 +1,5 @@
+//From: http://www.engblaze.com/hush-little-microprocessor-avr-and-arduino-sleep-mode-basics/
+
 #include <avr/interrupt.h>
 #include <avr/power.h>
 #include <avr/sleep.h>
