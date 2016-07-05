@@ -1,7 +1,7 @@
 /**********************************************************************
 *                                                                     *
 * Data Logging Software for Illinois Tollway Concrete Testing         *
-* Written by Kanyon Edvall and Sachindra Dahal                        *
+* Written by Kanyon Edvall                                            *
 *                                                                     *
 * This program uses the Sensirion library to record temperature and   *
 *   humidity of concrete at three heights. Each recording is written  *
@@ -23,25 +23,6 @@
 ///////////////////////////////////////////////////////////////////////
 void setup()
 { 
-  //Setup pinout (all disabled temporarily)
-  DDRD &= B00000011;
-  DDRB = B00000000;
-  PORTD |= B11111100;
-  PORTB |= B11111111;
-
-  //Check RTC started correctly, display error if not
-  if (!rtc.begin() && ENABLEDEBUG)
-    Serial.println("Couldn't find RTC");
- 
-  //Pin mode for potentiometers
-  pinMode(A0, INPUT_PULLUP);
-  pinMode(A1, INPUT_PULLUP);
-  pinMode(A2, INPUT_PULLUP);
-  pinMode(A3, INPUT_PULLUP);
-  pinMode(A4, INPUT_PULLUP);
-  //For LED
-  pinMode(LEDPIN, OUTPUT);
-
   // initialize Timer1
   cli();          // disable global interrupts
   TCCR1A = 0;     // set entire TCCR1A register to 0
@@ -58,6 +39,19 @@ void setup()
   TIMSK1 |= (1 << OCIE1A);
   // enable global interrupts:
   sei();
+
+  //Check RTC started correctly, display error if not
+  if (!rtc.begin() && ENABLEDEBUG)
+    Serial.println("Couldn't find RTC");
+ 
+  //Pin mode for potentiometers
+  pinMode(A0, INPUT_PULLUP);
+  pinMode(A1, INPUT_PULLUP);
+  pinMode(A2, INPUT_PULLUP);
+  pinMode(A3, INPUT_PULLUP);
+  pinMode(A4, INPUT_PULLUP);
+  //For LED
+  pinMode(LEDPIN, OUTPUT);
   
   //Start serial communication at 9600 baud
   Serial.begin(9600);
