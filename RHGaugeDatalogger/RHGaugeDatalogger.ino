@@ -13,7 +13,7 @@
 #include "RHGaugeDatalogger.h"
 
 //Serial Debugging (Note that XBee uses serial print statements to communicate)
-#define ENABLEDEBUG 0 //Default is 0, set 1 to enable (Disables XBee communication)
+#define ENABLEDEBUG 1 //Default is 0, set 1 to enable (Disables XBee communication)
 
 ///////////////////////////////////////////////////////////////////////
 // Initial Setup:                                                    //
@@ -23,23 +23,6 @@
 ///////////////////////////////////////////////////////////////////////
 void setup()
 { 
-  // initialize Timer1
-  cli();          // disable global interrupts
-  TCCR1A = 0;     // set entire TCCR1A register to 0
-  TCCR1B = 0;     // same for TCCR1B
-
-  // set compare match register to desired timer count:
-  OCR1A = 15624;
-  // turn on CTC mode:
-  TCCR1B |= (1 << WGM12);
-  // Set CS10 and CS12 bits for 1024 prescaler:
-  TCCR1B |= (1 << CS10);
-  TCCR1B |= (1 << CS12);
-  // enable timer compare interrupt:
-  TIMSK1 |= (1 << OCIE1A);
-  // enable global interrupts:
-  sei();
-
   //Check RTC started correctly, display error if not
   if (!rtc.begin() && ENABLEDEBUG)
     Serial.println("Couldn't find RTC");
@@ -87,19 +70,13 @@ void loop()
     PrintVars();
   
   //Reset variables for sensors
-  //Are you sure this is necessary?
   sensor.temperature1 = -40;
   sensor.temperature2 = -40;
   sensor.temperature3 = -40;
 
-  sensor.humidity1 = 0;
-  sensor.humidity2 = 0;
-  sensor.humidity3 = 0;
-
-  //Power down
-  if (ENABLEDEBUG)
-    Serial.println ("Sleeping");
-  sleepNow(); //Power down Arduino
+  sensor.humidity1 = -1;
+  sensor.humidity2 = -1;
+  sensor.humidity3 = -1;
 } //End of main loop
 
 ///////////////////////////////////////////////////////////////////////
@@ -176,11 +153,11 @@ void ReadData()
 
   //Read RH guages with 1s delay in between each read
   tempSensor1.measure(&sensor.temperature1, &sensor.humidity1, &sensor.dewpoint1);
-  delay (1000);
+  delay(1000);
   tempSensor2.measure(&sensor.temperature2, &sensor.humidity2, &sensor.dewpoint2);
-  delay (1000);
+  delay(1000);
   tempSensor3.measure(&sensor.temperature3, &sensor.humidity3, &sensor.dewpoint3);
-  delay (1000);
+  delay(1000);
 } //End of ReadData Function
 
 ///////////////////////////////////////////////////////////////////////
@@ -261,40 +238,6 @@ void PrintVars()
     
   Serial.println();
 } //End of PrintVars function
- 
-///////////////////////////////////////////////////////////////////////
-// Function: sleepNow                                                //
-// Forces Arduino to enter low power state                           //
-///////////////////////////////////////////////////////////////////////
-void sleepNow(void)
-{
-  // Set pin 2 as interrupt and attach handler:
-  attachInterrupt(0, pinInterrupt, LOW);
-  delay(100);
-
-  // Choose our preferred sleep mode:
-  set_sleep_mode(SLEEP_MODE_IDLE);
-
-  // Set sleep enable (SE) bit:
-  sleep_enable();
-
-  // Put the device to sleep:
-  digitalWrite(13,LOW);   // turn LED off to indicate sleep
-  sleep_mode();
-
-  // Upon waking up, sketch continues from this point.
-  sleep_disable();
-  digitalWrite(13,HIGH);   // turn LED on to indicate awake
-}
-
-///////////////////////////////////////////////////////////////////////
-// Function: pinInterrupt                                            //
-// Disables interrupt to prevent accidental firing                   //
-///////////////////////////////////////////////////////////////////////
-void pinInterrupt(void)
-{
-  detachInterrupt(0);
-}
 
 ///////////////////////////////////////////////////////////////////////
 // Function: PrintDebug                                              //
@@ -346,17 +289,3 @@ void PrintDebug()
   
   Serial.println("=======================================");
 } //End of PrintDebug function
-
-///////////////////////////////////////////////////////////////////////
-// Interrupt Service Routine: TIMER1_COMPA_vect                      //
-// Increment number of seconds each timer overflow until 15 minutes  //
-///////////////////////////////////////////////////////////////////////
-ISR(TIMER1_COMPA_vect)
-{
-  seconds++;
-  if (seconds >= 900)
-  {
-      seconds = 0;
-      loop();
-  }
-}
