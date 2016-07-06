@@ -58,6 +58,8 @@ void setup()
 ///////////////////////////////////////////////////////////////////////
 void loop() 
 {
+  digitalWrite(LEDPIN, HIGH); //Turn on status LED
+
   ReadData(); //Read from sensors
 
   RecordData(); //Record measurements
@@ -247,6 +249,7 @@ void enterSleep(void)
 
   sleep_enable(); //Allow Arduino to enter sleep mode
 
+  digitalWrite(LEDPIN, LOW); //Turn off status LED
   sleep_mode(); //Actually enter sleep mode
 } //End of enterSleep function
 
