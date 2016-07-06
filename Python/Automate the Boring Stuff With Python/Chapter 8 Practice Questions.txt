@@ -1,0 +1,10 @@
+1.	The current working directory
+2.	C:\ for Windows or / for Linux and OSX
+3.	os.getcwd() returns the current working directory as a string
+	os.chdir() changes the current working directory to the specified string
+4.	. is a shortcut for the current folder, and .. is a shortcut for the parent directory
+5.	C:\bacon\eggs\ is the dir name, and spam.txt is the base name
+6.	open() can be 'r', 'w', or 'a'. Read, write, and append
+7.	The file is overwritten
+8. 	read() returns the entire contents of the file as a single string. readlines() returns a list of strings divided by \n
+9.	The shelf value resembles a dictionary
