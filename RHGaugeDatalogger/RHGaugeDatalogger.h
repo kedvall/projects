@@ -20,7 +20,7 @@
 
 //Pins:
 #define CS 4 //Chip Select for SD cards (Default is pin 4 for Wireless SD Shield)
-#define LEDPIN 13 //Build in LED for status display
+#define LEDPIN 13 //Built in LED for status display
 
 //Set up pins for sensor reading
 const uint8_t clockPin1 = 2;
@@ -32,7 +32,8 @@ const uint8_t dataPin2 = 5;
 const uint8_t dataPin3 = 7;
 
 //Create struct to store data to be transmitted
-struct dataPacket {
+struct dataPacket
+{
 	//Sensirion variable setup:
 	float temperature1;
 	float humidity1;

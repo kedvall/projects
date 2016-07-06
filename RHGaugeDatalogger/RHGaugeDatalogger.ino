@@ -67,9 +67,15 @@ void loop()
 
   //Transmit sensor data over serial
   if (ENABLEDEBUG)
+  {
     PrintDebug();
+    delay(1000);
+  }
   else
+  {
     PrintVars();
+    delay(1000);
+  }
   
   //Reset variables for sensors
   sensor.temperature1 = -40;
@@ -252,7 +258,7 @@ void enterSleep(void)
 
   if (ENABLEDEBUG)
     digitalWrite(LEDPIN, LOW); //Turn off status LED
-    
+
   sleep_mode(); //Actually enter sleep mode
 } //End of enterSleep function
 
