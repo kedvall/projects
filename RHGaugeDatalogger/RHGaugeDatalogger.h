@@ -13,12 +13,10 @@
 #include <RTClib.h>
 #include "SD.h"
 #include <SPI.h>
-//#include "LowPower.h"
 
-#include <avr/interrupt.h>
-#include <avr/power.h>
 #include <avr/sleep.h>
-#include <avr/io.h>
+#include <avr/power.h>
+#include <avr/wdt.h>
 
 //Pins:
 #define CS 4 //Chip Select for SD cards (Default is pin 4 for Wireless SD Shield)
@@ -57,8 +55,7 @@ struct dataPacket {
 } sensor;
 
 //Other variables:
-volatile byte seconds;
-long unsigned int lastRead; 
+volatile byte wakeTimer = 0;
 DateTime now;
 
 //Initializations:

@@ -22,11 +22,13 @@
 //   Set columns for output text file                                //
 ///////////////////////////////////////////////////////////////////////
 void setup()
-{ 
-  //Check RTC started correctly, display error if not
-  if (!rtc.begin() && ENABLEDEBUG)
-    Serial.println("Couldn't find RTC");
- 
+{  
+  //Setup the Watchdog Timer
+  MCUSR &= ~(1<<WDRF); //Clear the reset flag
+  WDTCSR |= (1<<WDCE) | (1<<WDE); //To change WDE or prescaler, need to set WDCE (This will allow updates for 4 clock cycles)
+  WDTCSR = 1<<WDP0 | 1<<WDP3; //Set new watchdog timeout prescaler value (8.0 seconds timeout)
+  WDTCSR |= _BV(WDIE); //Enable the WD interrupt (note no reset)
+
   //Pin mode for potentiometers
   pinMode(A0, INPUT_PULLUP);
   pinMode(A1, INPUT_PULLUP);
@@ -36,18 +38,17 @@ void setup()
   //For LED
   pinMode(LEDPIN, OUTPUT);
   
-  //Start serial communication at 9600 baud
-  Serial.begin(9600);
+  Serial.begin(9600); //Start serial communication at 9600 baud
 
-  //Set RTC to date & time this sketch was compiled
-  rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-  lastRead = now.unixtime() - 900;
+  //Check RTC started correctly, display error if not
+  if (!rtc.begin() && ENABLEDEBUG)
+    Serial.println("Couldn't find RTC");
 
-  //Initialize SD card
-  SD.begin(CS);
+  rtc.adjust(DateTime(F(__DATE__), F(__TIME__))); //Set RTC to date & time this sketch was compiled
 
-  //Set up columns for output text file
-  InitColSetup();
+  SD.begin(CS); //Initialize SD card
+
+  InitColSetup(); //Set up columns for output text file
 } //End of setup function
 
 ///////////////////////////////////////////////////////////////////////
@@ -57,11 +58,9 @@ void setup()
 ///////////////////////////////////////////////////////////////////////
 void loop() 
 {
-  //Read from sensors:
-  ReadData();
+  ReadData(); //Read from sensors
 
-  //Record measurements:
-  RecordData();
+  RecordData(); //Record measurements
 
   //Transmit sensor data over serial
   if (ENABLEDEBUG)
@@ -77,6 +76,8 @@ void loop()
   sensor.humidity1 = -1;
   sensor.humidity2 = -1;
   sensor.humidity3 = -1;
+
+  enterSleep(); //Enter sleep mode
 } //End of main loop
 
 ///////////////////////////////////////////////////////////////////////
@@ -138,9 +139,6 @@ void InitColSetup()
 ///////////////////////////////////////////////////////////////////////
 void ReadData()
 {
-  //Reset read counter
-  lastRead = now.unixtime();
-
   //Get current time from system
   now = rtc.now();
 
@@ -238,6 +236,36 @@ void PrintVars()
     
   Serial.println();
 } //End of PrintVars function
+
+///////////////////////////////////////////////////////////////////////
+// Function: enterSleep                                              //
+// Configures Arduino to enter and exist sleep mode                  //
+///////////////////////////////////////////////////////////////////////
+void enterSleep(void)
+{
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN); //Set sleep mode to Power Down (lowest power consumption)
+
+  sleep_enable(); //Allow Arduino to enter sleep mode
+
+  sleep_mode(); //Actually enter sleep mode
+} //End of enterSleep function
+
+///////////////////////////////////////////////////////////////////////
+// Function: ISR(WDT_vect                                            //
+// Watchdog Interrupt Service Routine. Executed on watchdog timeout  //
+///////////////////////////////////////////////////////////////////////
+ISR(WDT_vect)
+{
+  if (wakeTimer < 112)
+    wakeTimer++; //Increment wake counter
+  else
+  {
+    wakeTimer = 0; //Reset wake counter
+
+    sleep_disable(); //The program will continue from here after WDT timeout
+    power_all_enable(); //Re-enable all peripherals
+  }
+} //End of ISR(WDT_vect)
 
 ///////////////////////////////////////////////////////////////////////
 // Function: PrintDebug                                              //
