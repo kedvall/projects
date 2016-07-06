@@ -269,7 +269,10 @@ void enterSleep(void)
 ISR(WDT_vect)
 {
   if (wakeTimer < 112)
+  {
     wakeTimer++; //Increment wake counter
+    enterSleep();
+  }
   else
   {
     wakeTimer = 0; //Reset wake counter
