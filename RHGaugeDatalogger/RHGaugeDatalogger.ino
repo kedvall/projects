@@ -61,23 +61,7 @@ void loop()
   if (ENABLEDEBUG)
     digitalWrite(LEDPIN, HIGH); //Turn on status LED
 
-  ReadData(); //Read from sensors
-
-  RecordData(); //Record measurements
-
-  //Transmit sensor data over serial
-  if (ENABLEDEBUG)
-  {
-    PrintDebug();
-    delay(1000);
-  }
-  else
-  {
-    PrintVars();
-    delay(1000);
-  }
-  
-  //Reset variables for sensors
+  //Reset variables for sensors 
   sensor.temperature1 = -40;
   sensor.temperature2 = -40;
   sensor.temperature3 = -40;
@@ -85,6 +69,16 @@ void loop()
   sensor.humidity1 = -1;
   sensor.humidity2 = -1;
   sensor.humidity3 = -1;
+
+  ReadData(); //Read from sensors
+
+  RecordData(); //Record measurements
+
+  //Transmit sensor data over serial
+  if (ENABLEDEBUG)
+    PrintDebug();
+  else
+    PrintVars();
 
   enterSleep(); //Enter sleep mode
 } //End of main loop
@@ -276,7 +270,6 @@ ISR(WDT_vect)
   else
   {
     wakeTimer = 0; //Reset wake counter
-
     sleep_disable(); //The program will continue from here after WDT timeout
     power_all_enable(); //Re-enable all peripherals
   }
