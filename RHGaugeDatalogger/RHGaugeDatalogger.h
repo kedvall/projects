@@ -15,12 +15,13 @@
 #include <RTClib.h>
 #include "SD.h"
 #include <SPI.h>
+#include <Sleep_n0m1.h>
 
 #include <avr/sleep.h>
 #include <avr/power.h>
 #include <avr/wdt.h>
 
-//Pins:
+//Defines
 #define CS 4 //Chip Select for SD cards (Default is pin 4 for Wireless SD Shield)
 #define LEDPIN 13 //Built in LED for status display
 
@@ -34,6 +35,12 @@ const uint8_t clockPin3 = 6;
 const uint8_t dataPin1 = 3;
 const uint8_t dataPin2 = 5;
 const uint8_t dataPin3 = 7;
+
+Sleep sleep;
+
+//Other variables:
+unsigned long sleepTime;
+DateTime now;
 
 //Create struct to store data to be transmitted
 struct dataPacket
@@ -58,10 +65,6 @@ struct dataPacket
 	int L4;
 	int L5;
 } sensor;
-
-//Other variables:
-int sleepCount;
-DateTime now;
 
 //Initializations:
 //Initialize variables to reference three Sensirion sensors

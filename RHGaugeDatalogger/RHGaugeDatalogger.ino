@@ -23,13 +23,7 @@
 ///////////////////////////////////////////////////////////////////////
 void setup()
 {  
-  /*
-  //Setup the Watchdog Timer
-  MCUSR &= ~(1<<WDRF); //Clear the reset flag
-  WDTCSR |= (1<<WDCE) | (1<<WDE); //To change WDE or prescaler, need to set WDCE (This will allow updates for 4 clock cycles)
-  WDTCSR = 1<<WDP0 | 1<<WDP3; //Set new watchdog timeout prescaler value (8.0 seconds timeout)
-  WDTCSR |= _BV(WDIE); //Enable the WD interrupt (note no reset)
-  */
+   sleepTime = 60000; //Time to sleep in MS DEFAULT 900000 (15min), for to testing
 
   //Pin mode for potentiometers
   pinMode(A0, INPUT_PULLUP);
@@ -60,6 +54,8 @@ void setup()
 ///////////////////////////////////////////////////////////////////////
 void loop() 
 {
+  delay(100); //Delay to allow serial output to be ready after wake up
+
   if (ENABLEDEBUG)
     digitalWrite(LEDPIN, HIGH); //Turn on status LED
 
@@ -81,10 +77,13 @@ void loop()
     PrintDebug();
   else
     PrintVars();
+  delay(1000); //Wait 1 second for serial print to complete
 
-  //Sleep for 15 minutes 
-  for (sleepCount = 0; sleepCount < 16; sleepCount++) //DEFAULT: < 113, changed to test!
-    watchdogEnable(TIME); //8 second interval
+  //Enter low power state for sleepTime
+  if (ENABLEDEBUG)
+    digitalWrite(LEDPIN, LOW); //Turn off status LED
+  sleep.pwrDownMode(); //Set sleep mode
+  sleep.sleepDelay(sleepTime); //Sleep for specified time
 } //End of main loop
 
 ///////////////////////////////////////////////////////////////////////
@@ -241,30 +240,6 @@ void PrintVars()
     
   Serial.println();
 } //End of PrintVars function
-
-///////////////////////////////////////////////////////////////////////
-// Function: watchdogEnable                                          //
-// Configures Watchdog timer for sleeping                            //
-///////////////////////////////////////////////////////////////////////
-void watchdogEnable(const byte interval)
-{
-  MCUSR = 0; //Reset flags
-  WDTCSR |= 0b00011000; //See docs, set WDCE, WDE
-  WDTCSR = 0b01000000 | interval; //Set WDIE and appropriate delay
-
-  wdt_reset();
-  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-  sleep_mode(); //Go to sleep and wait for interrupt
-} //End of watchdogEnable function
-
-///////////////////////////////////////////////////////////////////////
-// Function: ISR(WDT_vect                                            //
-// Watchdog Interrupt Service Routine. Executed on watchdog timeout  //
-///////////////////////////////////////////////////////////////////////
-ISR(WDT_vect)
-{
-  wdt_disable(); //Disable watchdog
-} //End of ISR(WDT_vect)
 
 ///////////////////////////////////////////////////////////////////////
 // Function: PrintDebug                                              //
