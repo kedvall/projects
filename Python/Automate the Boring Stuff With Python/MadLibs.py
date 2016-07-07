@@ -12,9 +12,9 @@ def keywordSwap(word):
 	else:
 		print('Enter a ' + word.lower() + ':')
 		userText = input()
-	return userText
+	return libsContent.replace(word, userText, 1)
 
-keywords = {'ADJECTIVE', 'NOUN', 'ADVERB', 'VERB', 'ADJECTIVE.', 'NOUN.', 'ADVERB.', 'VERB.'}
+keywords = ['ADJECTIVE', 'NOUN', 'ADVERB', 'VERB']
 
 # Start program
 print('Welcome to Mad Libs! Loading from file MadLibsStart.txt...')
@@ -23,20 +23,21 @@ print()
 
 # Find Mad Libs start file and read the content as a string separated by delimiter ' '
 libsFile = open(os.path.abspath('.') + os.path.sep + 'MadLibsStart.txt')
-libsContent = libsFile.read().split()
+libsContent = libsFile.read()
 libsFile.close()
 
 # Loop through all items and get user input for keywords
-for index in range(len(libsContent)):
-	if libsContent[index] in keywords:
-		libsContent[index] = keywordSwap(libsContent[index])
-
-# Rejoin words for export
-libOutput = ' '.join(libsContent)
+while True:
+	if any(keyword in libsContent for keyword in keywords):
+		for index in keywords:
+			if (libsContent.find(index)) != -1:
+				libsContent = keywordSwap(index)
+	else:
+		break
 
 # Print and export new Mad Libs to text file
-print(libOutput)
+print(libsContent)
 
 newLibs = open(os.path.abspath('.') + os.path.sep + 'NewMadLibs.txt', 'w')
-newLibs.write(libOutput + '\n')
+newLibs.write(libsContent + '\n')
 newLibs.close()
