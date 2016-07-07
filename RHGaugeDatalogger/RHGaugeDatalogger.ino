@@ -5,9 +5,9 @@
 *                                                                     *
 * This program uses the Sensirion library to record temperature and   *
 *   humidity of concrete at three heights. Each recording is written  *
-*   to an onboard SD card and transmitted wirelessly over serial.     *
+*   to an on board SD card and transmitted wirelessly over serial.    *
 *                                                                     *
-* A real time clock module is used to timestamp all recorded data     *
+* A real time clock module is used to time stamp all recorded data    *
 *                                                                     *
 **********************************************************************/
 #include "RHGaugeDatalogger.h"
@@ -93,10 +93,9 @@ void loop()
 ///////////////////////////////////////////////////////////////////////
 void InitColSetup()
 {
-  //Open SD card for writing
-  sdCard = SD.open("DataLog.txt", FILE_WRITE);
-  //Check for correct open before attempting to write
-  if (sdCard)
+  sdCard = SD.open("DataLog.txt", FILE_WRITE); //Open SD card for writing
+  
+  if (sdCard) //Check for correct open before attempting to write
   {
     sdCard.print("Year");
     sdCard.print(",");
@@ -133,8 +132,7 @@ void InitColSetup()
     sdCard.print("Hum 3");
     sdCard.println(); 
 
-    //Close SD card
-    sdCard.close();
+    sdCard.close(); //Close SD card
   }
   else if (ENABLEDEBUG)
     Serial.println("Error opening SD card");
@@ -218,7 +216,7 @@ void RecordData()
     sdCard.println();
 
     //Wait to ensure correct write
-    delay(250);
+    delay(500);
 
     //Close SD card
     sdCard.close();

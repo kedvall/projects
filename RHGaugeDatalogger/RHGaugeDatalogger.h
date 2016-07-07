@@ -6,6 +6,8 @@
 * This header file cleans up variable declaration for the main sketch *
 *                                                                     *
 **********************************************************************/
+//Explore possibility of using https://github.com/n0m1/Sleep_n0m1 library for sleeping
+
 //Includes
 #include <Arduino.h>
 #include <Sensirion.h>
