@@ -23,11 +23,13 @@
 ///////////////////////////////////////////////////////////////////////
 void setup()
 {  
+  /*
   //Setup the Watchdog Timer
   MCUSR &= ~(1<<WDRF); //Clear the reset flag
   WDTCSR |= (1<<WDCE) | (1<<WDE); //To change WDE or prescaler, need to set WDCE (This will allow updates for 4 clock cycles)
   WDTCSR = 1<<WDP0 | 1<<WDP3; //Set new watchdog timeout prescaler value (8.0 seconds timeout)
   WDTCSR |= _BV(WDIE); //Enable the WD interrupt (note no reset)
+  */
 
   //Pin mode for potentiometers
   pinMode(A0, INPUT_PULLUP);
@@ -80,7 +82,9 @@ void loop()
   else
     PrintVars();
 
-  enterSleep(); //Enter sleep mode
+  //Sleep for 15 minutes 
+  for (sleepCount = 0; sleepCount < 15; sleepCount++) //DEFAULT: < 113, changed to test!
+    watchdogEnable(TIME); //8 second interval
 } //End of main loop
 
 ///////////////////////////////////////////////////////////////////////
@@ -241,24 +245,19 @@ void PrintVars()
 } //End of PrintVars function
 
 ///////////////////////////////////////////////////////////////////////
-// Function: enterSleep                                              //
-// Configures Arduino to enter and exist sleep mode                  //
+// Function: watchdogEnable                                          //
+// Configures Watchdog timer for sleeping                            //
 ///////////////////////////////////////////////////////////////////////
-void enterSleep(void)
+void watchdogEnable(const byte interval)
 {
-  set_sleep_mode(SLEEP_MODE_PWR_DOWN); //Set sleep mode to Power Down (lowest power consumption)
+  MCUSR = 0; //Reset flags
+  WDTCSR |= 0b00011000; //See docs, set WDCE, WDE
+  WDTCSR = 0b01000000 | interval; //Set WDIE and appropriate delay
 
-  sleep_enable(); //Allow Arduino to enter sleep mode
-
-  if (ENABLEDEBUG)
-    digitalWrite(LEDPIN, LOW); //Turn off status LED
-
-  sleep_mode(); //Actually enter sleep mode
-
-  sleep_disable(); //The program will continue from here after WDT timeout
-  
-  power_all_enable(); //Re-enable all peripherals
-} //End of enterSleep function
+  wdt_reset();
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  sleep_mode(); //Go to sleep and wait for interrupt
+} //End of watchdogEnable function
 
 ///////////////////////////////////////////////////////////////////////
 // Function: ISR(WDT_vect                                            //
@@ -266,17 +265,7 @@ void enterSleep(void)
 ///////////////////////////////////////////////////////////////////////
 ISR(WDT_vect)
 {
-  if (wakeTimer < 15) //DEFAULT VALUE: 112 (15 minutes)
-  {
-    wakeTimer++; //Increment wake counter
-    enterSleep();
-  }
-  else
-  {
-    wakeTimer = 0; //Reset wake counter
-    sleep_disable(); //The program will continue from here after WDT timeout
-    power_all_enable(); //Re-enable all peripherals
-  }
+  wdt_disable(); //Disable watchdog
 } //End of ISR(WDT_vect)
 
 ///////////////////////////////////////////////////////////////////////

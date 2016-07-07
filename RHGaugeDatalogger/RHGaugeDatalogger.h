@@ -22,6 +22,8 @@
 #define CS 4 //Chip Select for SD cards (Default is pin 4 for Wireless SD Shield)
 #define LEDPIN 13 //Built in LED for status display
 
+#define TIME 0b100001 //Time 
+
 //Set up pins for sensor reading
 const uint8_t clockPin1 = 2;
 const uint8_t clockPin2 = 4;
@@ -56,7 +58,7 @@ struct dataPacket
 } sensor;
 
 //Other variables:
-volatile byte wakeTimer = 0;
+int sleepCount;
 DateTime now;
 
 //Initializations:
