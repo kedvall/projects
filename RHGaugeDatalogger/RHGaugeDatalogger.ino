@@ -254,6 +254,10 @@ void enterSleep(void)
     digitalWrite(LEDPIN, LOW); //Turn off status LED
 
   sleep_mode(); //Actually enter sleep mode
+
+  sleep_disable(); //The program will continue from here after WDT timeout
+  
+  power_all_enable(); //Re-enable all peripherals
 } //End of enterSleep function
 
 ///////////////////////////////////////////////////////////////////////
@@ -262,7 +266,7 @@ void enterSleep(void)
 ///////////////////////////////////////////////////////////////////////
 ISR(WDT_vect)
 {
-  if (wakeTimer < 112)
+  if (wakeTimer < 15) //DEFAULT VALUE: 112 (15 minutes)
   {
     wakeTimer++; //Increment wake counter
     enterSleep();
