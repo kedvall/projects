@@ -83,7 +83,7 @@ void loop()
     PrintVars();
 
   //Sleep for 15 minutes 
-  for (sleepCount = 0; sleepCount < 15; sleepCount++) //DEFAULT: < 113, changed to test!
+  for (sleepCount = 0; sleepCount < 16; sleepCount++) //DEFAULT: < 113, changed to test!
     watchdogEnable(TIME); //8 second interval
 } //End of main loop
 
