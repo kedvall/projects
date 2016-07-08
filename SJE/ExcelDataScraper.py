@@ -20,7 +20,7 @@
 # + Have user select file
 # + Have user select sheet
 # + Have user select search column, data retrieval column, and column to paste data
-# - Verify columns
+# + Verify columns
 # - Have user select search mode (keyword)
 # - Ask user for text they want to search
 # - Generate broad Regex using text
@@ -76,7 +76,7 @@ def getCol(colType):
 validExt = ('.xlsx', '.xlsm', '.xltx', '.xltm')
 cols = {'search':'', 'copy':'', 'paste':''}
 
-# Import necessary libraries and greet user
+# Import necessary modules and greet user
 import openpyxl, os, re, pyperclip, sys
 from openpyxl.cell import get_column_letter, column_index_from_string
 clear()
@@ -153,6 +153,7 @@ getCol('search')
 getCol('copy')
 getCol('paste')
 
+# Step four, verify user selected columns
 while True:
 	clear()
 	print('Column selection: ')
