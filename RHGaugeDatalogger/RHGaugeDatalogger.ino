@@ -23,7 +23,7 @@
 ///////////////////////////////////////////////////////////////////////
 void setup()
 {  
-   sleepTime = 60000; //Time to sleep in MS DEFAULT 900000 (15min), for to testing
+  sleepTime = 60000; //Time to sleep in MS DEFAULT 900000 (15min), for to testing
 
   //Pin mode for potentiometers
   pinMode(A0, INPUT_PULLUP);
@@ -31,10 +31,20 @@ void setup()
   pinMode(A2, INPUT_PULLUP);
   pinMode(A3, INPUT_PULLUP);
   pinMode(A4, INPUT_PULLUP);
-  //For LED
+  //LED pin
   pinMode(LEDPIN, OUTPUT);
-  
+ 
   Serial.begin(9600); //Start serial communication at 9600 baud
+
+  //Radio setup
+  pinMode(XBEE_SLEEP, OUTPUT);
+  digitalWrite(XBEE_SLEEP, LOW); //Set pin LOW to keep radio awake (HIGH puts radio to sleep)
+  radio.setSerial(Serial); //Sets which serial the radio should use
+
+  if (atCommand("D7", 1) && ENABLEDEBUG) 
+    Serial.println('atCommand D7 failed with parameter 1'); //Set XBee (NOT Arduino) pin 7 off
+  if (atCommand("SM", 1) && ENABLEDEBUG)
+    Serial.println('atCommand SM (Sleep Mode) failed with parameter 1'); //Set XBee sleep mode controlled by XBee (NOT Arduino) pin 9
 
   //Check RTC started correctly, display error if not
   if (!rtc.begin() && ENABLEDEBUG)
@@ -54,10 +64,10 @@ void setup()
 ///////////////////////////////////////////////////////////////////////
 void loop() 
 {
-  delay(100); //Delay to allow serial output to be ready after wake up
-
   if (ENABLEDEBUG)
     digitalWrite(LEDPIN, HIGH); //Turn on status LED
+  digitalWrite(XBEE_SLEEP, LOW); //Set pin LOW to wake radio
+  delay(1000); //Delay to allow serial output and radio to initialize after wake up
 
   //Reset variables for sensors 
   sensor.temperature1 = -40;
@@ -82,6 +92,7 @@ void loop()
   //Enter low power state for sleepTime
   if (ENABLEDEBUG)
     digitalWrite(LEDPIN, LOW); //Turn off status LED
+  digitalWrite(XBEE_SLEEP, HIGH); //Set pin HIGH to sleep radio
   sleep.pwrDownMode(); //Set sleep mode
   sleep.sleepDelay(sleepTime); //Sleep for specified time
 } //End of main loop
@@ -153,7 +164,7 @@ void ReadData()
   sensor.L4 = digitalRead(A3);
   sensor.L5 = digitalRead(A4);
 
-  //Read RH guages with 1s delay in between each read
+  //Read RH gauges with 1s delay in between each read
   tempSensor1.measure(&sensor.temperature1, &sensor.humidity1, &sensor.dewpoint1);
   delay(1000);
   tempSensor2.measure(&sensor.temperature2, &sensor.humidity2, &sensor.dewpoint2);
@@ -200,7 +211,7 @@ void RecordData()
     sdCard.print(sensor.L5);
     sdCard.print(",");
 
-    //Record RH guage measurements
+    //Record RH gauge measurements
     sdCard.print(sensor.temperature1);
     sdCard.print(",");
     sdCard.print(sensor.temperature2);
@@ -240,6 +251,31 @@ void PrintVars()
     
   Serial.println();
 } //End of PrintVars function
+
+///////////////////////////////////////////////////////////////////////
+// Function: atCommand                                               //
+// Function to issue control commands to XBee Radio                  //
+///////////////////////////////////////////////////////////////////////
+int atCommand( char *command, uint8_t param ) 
+{
+  // send local AT command
+  AtCommandRequest req = AtCommandRequest((uint8_t *) command, (uint8_t *) &param, sizeof(uint8_t));
+  radio.send(req);
+
+  // receive response frame
+  AtCommandResponse res = AtCommandResponse();
+  if(radio.readPacket(500)) {                               // read packet from radio
+     if(radio.getResponse().getApiId() == AT_RESPONSE) {    // right type?
+       radio.getResponse().getAtCommandResponse(res);
+       if(res.isOk()) {                                     // not an error?
+         return 0;
+       }
+     }
+  }
+
+  // if we get here, return a failure
+  return 1;
+} //End of atCommand function
 
 ///////////////////////////////////////////////////////////////////////
 // Function: PrintDebug                                              //
