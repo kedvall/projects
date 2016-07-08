@@ -1,2 +1,2 @@
-# SJE
-Various Software for SJE
+# Company Software
+Software written for various companies
