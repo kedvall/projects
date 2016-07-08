@@ -6,3 +6,6 @@
 ; Shift + space to emulate END button
 +SPACE::
 	Send, {END}
+
+; Expanding text for testing file path entry
+::pth::C:\Users\intern\Documents\test.xlsx
