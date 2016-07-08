@@ -181,3 +181,7 @@ while True:
 
 # So far so good!
 print('Done!')
+
+# TODO:
+# 1. Define search modes
+# 2. Implement Regex generation
