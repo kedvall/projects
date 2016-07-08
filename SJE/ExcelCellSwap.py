@@ -7,6 +7,9 @@
 # This program takes an Excel spreadsheet from accounting in horizontal	#
 # format and converts it to vertical format for import to IFS. 			#
 #########################################################################
+# Import necessary modules
+import openpyxl, os, re, pyperclip, sys
+from openpyxl.cell import get_column_letter, column_index_from_string
 
 # Functions
 def clear():
@@ -15,9 +18,24 @@ def clear():
 	print('Currently in Beta... will have nice GUI soon :)')
 	print()
 
+def getVal(mappedVal):
+	if mappedVal == None:
+		return None
+	elif mappedVal == 'yearVal':
+		return year
+	elif mappedVal == 'periodVal':
+		if budgetPeriod < 13:
+			return budgetPeriod
+		else:
+			print('Budged period 13 reached??? Report this error!')
+			sys.exit()
+	elif mappedVal == 'budgetMap':
+		return sheet.cell(row=rowNum, column=budgetMRule[str(budgetPeriod)]).value
+
+
 # Matching rules - This dictionary defines what the various columns map to
-mRule = {'A':'',
-		 'B':'',
+mRule = {'A':'yearVal',
+		 'B':'periodVal',
 		 'C':'A',
 		 'D':'B',
 		 'E':'C',
@@ -28,9 +46,23 @@ mRule = {'A':'',
 		 'J':None,
 		 'K':None,
 		 'L':None,
-		 'M':'',
+		 'M':'budgetMap',
 		 'N':None,
 		 'O':None}
+
+# Budget Period to Column matching rules - This dictionary defines what period corresponds with what column
+budgetMRule = {'1':column_index_from_string('G'),
+			   '2':column_index_from_string('H'),
+			   '3':column_index_from_string('I'),
+			   '4':column_index_from_string('J'),
+			   '5':column_index_from_string('K'),
+			   '6':column_index_from_string('L'),
+			   '7':column_index_from_string('M'),
+			   '8':column_index_from_string('N'),
+			   '9':column_index_from_string('O'),
+			   '10':column_index_from_string('P'),
+			   '11':column_index_from_string('Q'),
+			   '12':column_index_from_string('R')}
 
 # Headers - This dictionary defines what headers to user for the new Excel sheet
 headers = {'A':None,
@@ -53,9 +85,7 @@ headers = {'A':None,
 validExt = ('.xlsx', '.xlsm', '.xltx', '.xltm')
 startRow = 2
 
-# Import necessary modules and greet user
-import openpyxl, os, re, pyperclip, sys
-from openpyxl.cell import get_column_letter, column_index_from_string
+# Greet user
 clear()
 
 # First ask user for path to Excel file
@@ -177,20 +207,23 @@ while True:
 
 # Swap columns based on matching rules
 # Prep workbook and sheet
-wb = openpyxl.Workbook()
-sheet = wb.get_sheet_by_name('Sheet')
-sheet.title = 'Swapped Sheet'
+nWb = openpyxl.Workbook()
+nSheet = nWb.get_sheet_by_name('Sheet')
+nSheet.title = 'Swapped Sheet'
 
 # Format sheet with correct headers
 for key, value in sorted(headers.items()):
-	sheet.cell(row=startRow, column=column_index_from_string(key)).value = value
+	nSheet.cell(row=startRow, column=column_index_from_string(key)).value = value
 
 # Pull data from mRule defined place
-
+for rowNum in range(1, sheet.max_row):
+	for budgetPeriod in range(1, 13):
+		for key, value in sorted(mRule.items()):
+			nSheet.cell(row=rowNum, column=column_index_from_string(key)).value = getVal(value)
 
 
 # Save the new file
 print('Path: ' + filePath)
 print(os.path.dirname(filePath))
 print(os.path.basename(filePath))
-wb.save(os.path.dirname(filePath) + 'Swapped' + wbName)
+nWb.save('Swapped' + wbName)
