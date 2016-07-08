@@ -18,6 +18,7 @@
 
 # Program Needs (keyword first):
 # - Have user select file
+# - Have user select sheet
 # - Have user select search column, data retrieval column, and column to paste data
 # - Have user select search mode (keyword)
 # - Ask user for text they want to search
@@ -30,22 +31,30 @@
 # - Display current row of SEARCHOL / total (progress)
 # - Display message when data extraction is finished
 
-# TODO: Add functions
+# Functions
+def clear():
+	os.system('cls')
+	print(' Excel Data Scraper v1.0 '.center(50, '='))
+	print('Currently in Beta... will have nice GUI soon :)')
+	print()
+
+# Required dictionaries, lists, and tuples
+validExt = ('.xlsx', '.xlsm', '.xltx', '.xltm')
 
 # Import necessary libraries and greet user
 import openpyxl, os, re, pyperclip, sys
-print(' Excel Data Scraper v1.0 '.center(50, '='))
-print('Currently in Beta... will have nice GUI soon :)')
-print()
+from openpyxl.cell import get_column_letter, column_index_from_string
+clear()
 
 # First step, user enters path to Excel file to be scraped
 while True:
 	# Get file path from user
 	print('Enter path to Excel file including file extension')
 	print('\tEx. C:\\Users\\intern\\data.xlsx')
-	print('Path (Press Enter to quit): ', end='')
-	#filePath = r'C:\Users\intern\Documents\test.xlsx' # For quick testing
-	filePath = input()
+	#print('Path (Press Enter to quit): ', end='')
+	#filePath = input()
+	print(r'Path (Press Enter to quit): C:\Users\intern\Documents\test.xlsx')
+	filePath = r'C:\Users\intern\Documents\test.xlsx' # For quick testing
 
 	# Check if Enter is pressed and quit if true
 	if filePath == '':
@@ -58,13 +67,82 @@ while True:
 		if ans.lower().startswith('y'):
 			filePath += '.xlsx'
 
-	# Check that the file acutally exists
-	if not os.path.exists(filePath):
-		print('\tFile not found at ' + filePath + '!')
+	# Check that extension is valid and file actually exists
+	if not filePath.endswith(validExt):
+			clear()
+			print('File format not supported. Supported formats are: .xlsx, .xlsm, .xltx, and .xltm')
+			print()
+	else:
+		if not os.path.exists(filePath):
+			clear()
+			print('\tFile not found at ' + filePath + '. Please try again')
+			print()
+		else:			
+			wb = openpyxl.load_workbook(filePath)
+			wbName = os.path.basename(filePath)
+			break
+
+# Step two, user enters sheet name
+clear()
+print('\tFile found. Loading ' + wbName + '...')
+print()
+while True:
+	# Get sheet name from user
+	print('Enter the name of the Excel sheet (Type List Sheets to see all available sheets)')
+	print('Sheet Name (or press Enter for Active Sheet): ', end='')
+	userInput = input()
+
+	# Check input for errors or special phrases
+	if userInput.lower() == 'list sheets':
+		clear()
+		print('Available sheets for ' + wbName + ': ', end='')
+		print(', '.join(wb.get_sheet_names()))
 		print()
+	elif userInput == '':
+		sheet = wb.active
+		break
+	else:
+		try:
+			sheet = wb.get_sheet_by_name(userInput)
+			break
+		except KeyError:
+			clear()
+			print(userInput + ' not found in ' + wbName)
+			print()
+
+# Step three, user selects search column, data retrieval column, and column copied data
+clear()
+print('\t' + sheet.title + ' selected.')
+print()
+while True:
+	# Get search column from user
+
+	print('Which column would you like to search?')
+	print('Column: ', end='')
+	userInput = input().upper()
+
+	# Verify user actually input something correctly
+	if not userInput.isalpha():
+		clear()
+		print('Column must be a letter or letters (Ex C, or AB)')
 		print()
 	else:
-		print('\tSuccess! File found at ' + filePath)
-		break
+		try:
+			searchCol = column_index_from_string(userInput)
+			break
+		except ValueError:
+			clear()
+			print('Value out of range. Range is from A to XFD')
+			print()
 
-print('Exited loop!')
+clear()
+print('Column ' + userInput + ' selected.')
+print()
+while True:
+	# Get row (for testing)
+	print('Row: ', end='')
+	row = input()
+	break
+
+contents = sheet.cell(row=int(row), column=searchCol).value
+print(contents)
