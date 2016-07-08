@@ -138,11 +138,8 @@ while True:
 clear()
 print('Column ' + userInput + ' selected.')
 print()
-while True:
-	# Get row (for testing)
-	print('Row: ', end='')
-	row = input()
-	break
 
-contents = sheet.cell(row=int(row), column=searchCol).value
-print(contents)
+print()
+for row in range(1, sheet.max_row + 1):
+	print(sheet.cell(row=row, column=searchCol).value)
+print('Iteration complete')
