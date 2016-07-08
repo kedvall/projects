@@ -17,9 +17,10 @@
 # For now CLI only 
 
 # Program Needs (keyword first):
-# - Have user select file
-# - Have user select sheet
-# - Have user select search column, data retrieval column, and column to paste data
+# + Have user select file
+# + Have user select sheet
+# + Have user select search column, data retrieval column, and column to paste data
+# - Verify columns
 # - Have user select search mode (keyword)
 # - Ask user for text they want to search
 # - Generate broad Regex using text
@@ -38,8 +39,42 @@ def clear():
 	print('Currently in Beta... will have nice GUI soon :)')
 	print()
 
+def getCol(colType):
+	# Get column data from user
+	while True:
+		# Print custom prompt
+		if colType == 'search':
+			print('Which column would you like to search?')
+		elif colType == 'copy':
+			print('Which column would you like to copy from when given criteria is met?')
+		else:
+			print('Which column would you like to copy the selected data to?')
+
+		# Print generic prompt
+		print('Column: ', end='')
+		userInput = input().upper()
+
+		# Verify user actually input something correctly
+		if not userInput.isalpha():
+			clear()
+			print('Column must be a letter or letters (Ex C, or AB)')
+			print()
+		else:
+			try:
+				cols[colType] = column_index_from_string(userInput)
+				break
+			except ValueError:
+				clear()
+				print('Value out of range. Range is from A to XFD')
+				print()
+	# User input successful and verified, print selection
+	clear()
+	print('Column ' + userInput + ' selected as ' + colType + ' column.')
+	print()
+
 # Required dictionaries, lists, and tuples
 validExt = ('.xlsx', '.xlsm', '.xltx', '.xltm')
+cols = {'search':'', 'copy':'', 'paste':''}
 
 # Import necessary libraries and greet user
 import openpyxl, os, re, pyperclip, sys
@@ -63,8 +98,8 @@ while True:
 	# Cleanup user input... NEVER trust the user to do it right
 	elif not filePath.endswith('.xlsx'):
 		print('\tStandard Excel extension (.xlsx) not found, append it? (Y/N) ', end='')
-		ans = input()
-		if ans.lower().startswith('y'):
+		userInput = input()
+		if userInput.lower().startswith('y'):
 			filePath += '.xlsx'
 
 	# Check that extension is valid and file actually exists
@@ -81,11 +116,11 @@ while True:
 			wb = openpyxl.load_workbook(filePath)
 			wbName = os.path.basename(filePath)
 			break
-
-# Step two, user enters sheet name
 clear()
 print('\tFile found. Loading ' + wbName + '...')
 print()
+
+# Step two, user enters sheet name
 while True:
 	# Get sheet name from user
 	print('Enter the name of the Excel sheet (Type List Sheets to see all available sheets)')
@@ -109,37 +144,39 @@ while True:
 			clear()
 			print(userInput + ' not found in ' + wbName)
 			print()
-
-# Step three, user selects search column, data retrieval column, and column copied data
 clear()
 print('\t' + sheet.title + ' selected.')
 print()
+
+# Step three, user selects columns to use
+getCol('search')
+getCol('copy')
+getCol('paste')
+
 while True:
-	# Get search column from user
+	clear()
+	print('Column selection: ')
+	print('\tSearch column ' + get_column_letter(cols['search']) + ' for criteria (search).')
+	print('\tCopy data from column ' + get_column_letter(cols['copy']) + ' on successful match (copy).')
+	print('\tPaste copied data into column ' +  get_column_letter(cols['paste']) + ' (paste).')
+	print()
+	print('Are all columns correct? Enter yes or enter name of column you wish to change.')
+	print('Column names (search, copy, or paste): ', end='')
+	userInput = input().lower()
 
-	print('Which column would you like to search?')
-	print('Column: ', end='')
-	userInput = input().upper()
-
-	# Verify user actually input something correctly
-	if not userInput.isalpha():
-		clear()
-		print('Column must be a letter or letters (Ex C, or AB)')
+	if userInput == 'yes' or userInput == 'y':
+		break
+	elif userInput in cols.keys():
 		print()
+		getCol(userInput)
 	else:
-		try:
-			searchCol = column_index_from_string(userInput)
-			break
-		except ValueError:
-			clear()
-			print('Value out of range. Range is from A to XFD')
+		while userInput not in cols.keys():
 			print()
+			print('Column name ' + userInput + ' not found.')
+			print('Column names are search, copy, or paste: ', end='')
+			userInput = input().lower()
+		print()
+		getCol(userInput)
 
-clear()
-print('Column ' + userInput + ' selected.')
-print()
-
-print()
-for row in range(1, sheet.max_row + 1):
-	print(sheet.cell(row=row, column=searchCol).value)
-print('Iteration complete')
+# So far so good!
+print('Done!')
