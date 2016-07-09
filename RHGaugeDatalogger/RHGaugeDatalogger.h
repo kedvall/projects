@@ -32,8 +32,10 @@ const uint8_t dataPin2 = 5;
 const uint8_t dataPin3 = 7;
 
 //Other variables:
-unsigned long sleepTime;
-DateTime now;
+char xBeePin7[] = "D7";
+char xBeeSleepMode[] = "SM";
+unsigned long sleepTime; //Time in MS for Arduino to sleep
+DateTime now; //Var to store timestamp
 
 //Create struct to store data to be transmitted
 struct dataPacket

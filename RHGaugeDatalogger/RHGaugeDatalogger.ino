@@ -41,10 +41,10 @@ void setup()
   digitalWrite(XBEE_SLEEP, LOW); //Set pin LOW to keep radio awake (HIGH puts radio to sleep)
   radio.setSerial(Serial); //Sets which serial the radio should use
 
-  if (atCommand("D7", 1) && ENABLEDEBUG) 
-    Serial.println('atCommand D7 failed with parameter 1'); //Set XBee (NOT Arduino) pin 7 off
-  if (atCommand("SM", 1) && ENABLEDEBUG)
-    Serial.println('atCommand SM (Sleep Mode) failed with parameter 1'); //Set XBee sleep mode controlled by XBee (NOT Arduino) pin 9
+  if (atCommand(xBeePin7, 1) && ENABLEDEBUG) 
+    Serial.println("atCommand D7 failed with parameter 1"); //Set XBee (NOT Arduino) pin 7 off
+  if (atCommand(xBeeSleepMode, 1) && ENABLEDEBUG)
+    Serial.println("atCommand SM (Sleep Mode) failed with parameter 1"); //Set XBee sleep mode controlled by XBee (NOT Arduino) pin 9
 
   //Check RTC started correctly, display error if not
   if (!rtc.begin() && ENABLEDEBUG)
@@ -246,7 +246,7 @@ void PrintVars()
 
   memcpy(pBuffer, &sensor, uBufSize);
 
-  for(int i = 0; i < uBufSize; i++)
+  for(unsigned int i = 0; i < uBufSize; i++)
     Serial.print(pBuffer[i]);
     
   Serial.println();
