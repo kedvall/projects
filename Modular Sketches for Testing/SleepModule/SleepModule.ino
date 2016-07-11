@@ -1,5 +1,5 @@
 /************************************************************************
-* Module for testing sleep functionality of Arduino with XBee			*
+* Module for testing sleep functionality of Arduino (without XBee)		*
 ************************************************************************/
 
 #include <Sleep_m0m1.h>
