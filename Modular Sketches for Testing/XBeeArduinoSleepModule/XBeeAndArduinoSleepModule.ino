@@ -1,45 +1,73 @@
-/************************************************************************
-* Module for testing ability of Arduino to sent AT Commands to XBee		*
-************************************************************************/
+/********************************************************************
+* Module for testing sleep functionality of Arduino (WITH XBee) 	*
+********************************************************************/
 
+#include <Sleep_n0m1.h>
 #include <XBee.h>
 #include <SoftwareSerial.h>
 
 //Define SoftwareSerial TX/RX pins
-uint8_t ssRX = 8; //Connect pin 8 to TX of usb-serial device
-uint8_t ssTX = 9; //Connect pin 9 to RX of usb-serial device
+uint8_t ssRX = 7; //Connect pin 8 to TX of usb-serial device
+uint8_t ssTX = 8; //Connect pin 9 to RX of usb-serial device
 SoftwareSerial nss(ssRX, ssTX);
 
+uint8_t psCmd[] = {'D', '7'}; //Pin control
+uint8_t smCmd[] = {'S', 'M'}; //Sleep mode
+
+unsigned long sleepTime; //Amount of time in MS Arduino should sleep
+
+Sleep sleep;
 XBee xbee = XBee();
 
-uint8_t shCmd[] = {'S', 'H'}; //Serial high
-uint8_t slCmd[] = {'S', 'L'}; //Serial low
-uint8_t assocCmd[] = {'A', 'I'}; //Association status
-
-AtCommandRequest atRequest = AtCommandRequest(shCmd);
+AtCommandRequest atRequest = AtCommandRequest(psCmd);
 AtCommandResponse atResponse = AtCommandResponse();
 
 void setup()
 {
+	sleepTime = 30000; //Sleep for 30 seconds
+	pinMode(9, OUTPUT);
+	pinMode(13, OUTPUT);
+	digitalWrite(9, LOW); //Keep XBee awake
+
 	Serial.begin(9600);
 	xbee.begin(Serial);
 	nss.begin(9600)
+
+	Serial.print("XBee + Arduino Sleep module sketch starting...");
+
+	//Send XBee pin setup
+	sendAtCommand();
+
+	//Set command to sleep mode
+	atRequest.setCommand(smCmd);
+	sendAtCommand();
 }
 
 void loop()
 {
-	//Send SH
-	sendAtCommand();
+	delay(100); //Delay for Serial to resume after sleeping
+	Serial.println("Executing code routine...")
 
-	//Set command to SL
-	atRequest.setCommand(slCmd);
-	sendAtCommand();
+	//Blink LED 5 times
+	for (i = 0; i < 6; i++)
+	{
+		digitalWrite(13, HIGH);
+		delay(500);
+		digitalWrite(13, LOW);
+		delay(500);
+	}
 
-	//Set command to AI
-	atRequest.setCommand(assocCmd);
-	sendAtCommand();
+	//Go to sleep
+	Serial.print("Sleeping for ");
+	Serial.print(sleepTime / 1000);
+	Serial.print(" seconds...");
+	delay(100); //Ensure print completes before sleeping
 
-	delay(1000); //Wait a second and start over
+	//Power off XBee
+	digitalWrite(9, HIGH);
+	//Power off Arduino
+	sleep.pwrDownMode(); //Set sleep mode
+	sleep.sleepDelay(sleepTime); //Sleep for specified time
 }
 
 void sendAtCommand() {

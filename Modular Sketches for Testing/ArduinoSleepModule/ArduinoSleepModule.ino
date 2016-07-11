@@ -5,7 +5,7 @@
 #include <Sleep_m0m1.h>
 
 Sleep sleep;
-unsigned long sleepTime; //Var to stop amount of time in MS Arduino should sleep
+unsigned long sleepTime; //Amount of time in MS Arduino should sleep
 
 void setup()
 {
