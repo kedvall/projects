@@ -17,7 +17,7 @@
 #include <XBee.h>
 
 //Defines
-#define CS 4 //Chip Select for SD cards (Default is pin 4 for Wireless SD Shield)
+//#define CS 4 //Chip Select for SD cards (Default is pin 4 for Wireless SD Shield)
 #define LEDPIN 13 //Built in LED for status display
 #define XBEE_SLEEP 9 //Arduino (NOT XBee) pin to use for controlling XBee sleep
 #define TIME 0b100001 //Time 
@@ -41,35 +41,28 @@ DateTime now; //Var to store timestamp
 struct dataPacket
 {
 	//Sensirion variable setup:
-	float temperature1;
-	float humidity1;
-	float dewpoint1;
+	float temp1;
+	float humid1;
+	float dew1;
 
-	float temperature2;
-	float humidity2;
-	float dewpoint2;
+	float temp2;
+	float humid2;
+	float dew2;
 
-	float temperature3;
-	float humidity3;
-	float dewpoint3;
-
-	//Potentiometer variables
-	int L1;
-	int L2;
-	int L3;
-	int L4;
-	int L5;
+	float temp3;
+	float humid3;
+	float dew3;
 } sensor;
 
 //Initializations:
 //Variables to reference three Sensirion sensors
-Sensirion tempSensor1 = Sensirion(dataPin1, clockPin1);
-Sensirion tempSensor2 = Sensirion(dataPin2, clockPin2);
-Sensirion tempSensor3 = Sensirion(dataPin3, clockPin3);
+Sensirion Sensor1 = Sensirion(dataPin1, clockPin1);
+Sensirion Sensor2 = Sensirion(dataPin2, clockPin2);
+Sensirion Sensor3 = Sensirion(dataPin3, clockPin3);
 
 RTC_DS1307 rtc; //For real time clock module
 
-File sdCard; //To write recorded data to SD Card
+//File sdCard; //To write recorded data to SD Card
 
 Sleep sleep; //Sleep for Sleep_n0m1 library
 
