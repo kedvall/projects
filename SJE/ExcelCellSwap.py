@@ -8,13 +8,13 @@
 # format and converts it to vertical format for import to IFS. 			#
 #########################################################################
 # Import necessary modules
-import openpyxl, os, re, pyperclip, sys
+import openpyxl, os, sys
 from openpyxl.cell import get_column_letter, column_index_from_string
 
 # Functions
 def clear():
 	os.system('cls')
-	print(' Excel Cell Orientation Converter v1.0 '.center(50, '='))
+	print(' Excel Cell Orientation Converter v1.0 '.center(80, '='))
 	print('Currently in Beta... will have nice GUI soon :)')
 	print()
 
@@ -24,13 +24,11 @@ def getVal(mappedVal):
 	elif mappedVal == 'yearVal':
 		return year
 	elif mappedVal == 'periodVal':
-		if budgetPeriod < 13:
-			return budgetPeriod
-		else:
-			print('Budged period 13 reached??? Report this error!')
-			sys.exit()
+		return budgetPeriod
 	elif mappedVal == 'budgetMap':
 		return sheet.cell(row=rowNum, column=budgetMRule[str(budgetPeriod)]).value
+	else:
+		return sheet.cell(row=rowNum, column=column_index_from_string(mappedVal)).value
 
 
 # Matching rules - This dictionary defines what the various columns map to
@@ -42,7 +40,7 @@ mRule = {'A':'yearVal',
 		 'F':'D',
 		 'G':None,
 		 'H':None,
-		 'I':'F',
+		 'I':'E',
 		 'J':None,
 		 'K':None,
 		 'L':None,
@@ -84,6 +82,7 @@ headers = {'A':None,
 # Other settings
 validExt = ('.xlsx', '.xlsm', '.xltx', '.xltm')
 startRow = 2
+printRow = startRow
 
 # Greet user
 clear()
@@ -92,11 +91,11 @@ clear()
 while True:
 	# Get file path from user
 	print('Enter path to Excel file including file extension')
-	print('\tEx. C:\\Users\\intern\\data.xlsx')
-	#print('Path (Press Enter to quit): ', end='')
-	#filePath = input()
-	print(r'Path (Press Enter to quit): C:\Users\intern\Documents\test.xlsx')
-	filePath = r'C:\Users\intern\Documents\test.xlsx' # For quick testing
+	print('\tEx. C:\\Users\\YOURNAME\\data.xlsx')
+	print('Path (Press Enter to quit): ', end='')
+	filePath = input()
+	# print(r'Path (Press Enter to quit): C:\Users\intern\Documents\Excel\ConvertThis.xlsx')
+	# filePath = r'C:\Users\intern\Documents\Excel\ConvertThis.xlsx' # For quick testing
 
 	# Check if Enter is pressed and quit if true
 	if filePath == '':
@@ -178,13 +177,13 @@ print()
 
 # Ask user what they want to do
 while True:
-	print('Enter Swap to begin converting spreadsheet,')
-	print('\t  Header to see header settings for new Excel sheet, or ')
-	print('\t  Map to see column mapping: ', end='')
+	print('Press Enter or type Swap to begin converting spreadsheet,')
+	print('\ttype Header to see header settings for new Excel sheet, or ')
+	print('\ttype Map to see column mapping: ', end='')
 	userInput = input().lower()
 
 	# Check input for validity
-	if userInput == 'swap':
+	if userInput == 'swap' or userInput == '':
 		clear()
 		print('Preparing to convert sheet...')
 		break
@@ -218,12 +217,12 @@ for key, value in sorted(headers.items()):
 # Pull data from mRule defined place
 for rowNum in range(1, sheet.max_row):
 	for budgetPeriod in range(1, 13):
+		printRow += 1
 		for key, value in sorted(mRule.items()):
-			nSheet.cell(row=rowNum, column=column_index_from_string(key)).value = getVal(value)
-
+			# print(str(key) + ':' + str(value) + ' = ' + str(getVal(value)))
+			nSheet.cell(row=printRow, column=column_index_from_string(key)).value = getVal(value)
 
 # Save the new file
-print('Path: ' + filePath)
-print(os.path.dirname(filePath))
-print(os.path.basename(filePath))
-nWb.save('Swapped' + wbName)
+saveName = os.path.dirname(filePath) + os.sep + 'Swapped_' + wbName
+nWb.save(saveName)
+print('Done. Saved to ' + saveName)
