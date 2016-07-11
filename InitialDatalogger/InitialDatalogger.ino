@@ -1,6 +1,6 @@
 /************************************************************************
 * Basic sketch designed to ensure data is correctly recorded to SD card *
-* 	before a more advanced sketch is implemented						*
+* 	before a more advanced sketch is implemented						            *
 ************************************************************************/
 #include "RHGaugeDatalogger.h"
 
