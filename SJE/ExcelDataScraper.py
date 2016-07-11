@@ -48,9 +48,9 @@ def clear():
 def getTerm():
 	# Ask user for text they want to search for
 	print('Enter text to search for. Put a period (.) between letters to allow for variation matching')
-	print('Ex p.n may return: pn, PN, P/N, P-N, Pn, P N, etc. May be multiple words')
-	print('Search: ', end='')
-	searchTerms = input()
+	print('Ex: p.n may return pn, PN, P/N, P-N, Pn, P N, etc. May be multiple words')
+	print('Search Term: ', end='')
+	searchTerm = input()
 
 def getCol(colType):
 	# Get column data from user
@@ -88,7 +88,7 @@ def getCol(colType):
 # Required dictionaries, lists, tuples, and other variables
 validExt = ('.xlsx', '.xlsm', '.xltx', '.xltm')
 cols = {'search':'', 'copy':'', 'paste':''}
-searchMode, matchMode, searchTerms = ''
+searchMode = matchMode = searchTerm = ''
 
 # Import necessary modules and greet user
 import openpyxl, os, re, pyperclip, sys
@@ -169,14 +169,14 @@ while True:
 	userInput = input().lower()
 
 	if userInput == 'keyword':
-		seachMode = userInput
+		searchMode = 'keyword'
 		break
 	elif userInput == 'exact':
-		searchMode = userInput
+		searchMode = 'exact'
 		break
 	else:
 		clear()
-		print('Command not found: ' + userInput)
+		print('Search mode not found: ' + userInput)
 		print('Valid options are keyword or exact')
 		print()
 clear()
@@ -247,6 +247,8 @@ if searchMode == 'keyword':
 				print()
 				getCol(userInput)
 		clear()
+		# Finished getting user options
+		# keyword / colInRow
 
 	#############################################################
 	# keywordOffset - Copies data from the same row and column 	#
@@ -255,6 +257,7 @@ if searchMode == 'keyword':
 	else:
 		# Get search term
 		getTerm()
+		clear()
 
 		# Select offset or pattern mode
 		while True:
@@ -287,3 +290,100 @@ if searchMode == 'keyword':
 				clear()
 				print(userInput + ' is not a valid option')
 				print('Enter offset or pattern: ', end='')
+				print()
+	# Finished getting user options
+	# keyword / keywordOffset / ( offset OR pattern )
+
+#############################################################
+# EXACT - Searches for an exact match of the search term 	#
+#############################################################
+else:
+	print('Enter text to search for, may be multiple words')
+	print('Search Term: ', end='')
+	searchTerm = input()
+
+	#############################################
+	# colInRow - Pull data from another column 	#
+	#############################################
+	if matchMode == 'colInRow':
+		# Get search term
+		getTerm()
+		clear()
+
+		# Step one, user selects columns to use
+		getCol('search')
+		getCol('copy')
+		getCol('paste')
+
+		# Step two, verify user selected columns
+		while True:
+			clear()
+			print('Column selection: ')
+			print('\tSearch column ' + get_column_letter(cols['search']) + ' for criteria (search).')
+			print('\tCopy data from column ' + get_column_letter(cols['copy']) + ' on successful match (copy).')
+			print('\tPaste copied data into column ' +  get_column_letter(cols['paste']) + ' (paste).')
+			print()
+			print('Are all columns correct? Enter yes or enter name of column you wish to change.')
+			print('Column names (search, copy, or paste): ', end='')
+			userInput = input().lower()
+
+			if userInput == 'yes' or userInput == 'y':
+				break
+			elif userInput in cols.keys():
+				print()
+				getCol(userInput)
+			else:
+				while userInput not in cols.keys():
+					print()
+					print('Column name ' + userInput + ' not found.')
+					print('Column names are search, copy, or paste: ', end='')
+					userInput = input().lower()
+				print()
+				getCol(userInput)
+		clear()
+		# Finished getting user options
+		# exact / colInRow
+
+	#############################################################
+	# keywordOffset - Copies data from the same row and column 	#
+	#	based on an offset or pattern 							#
+	#############################################################
+	else:
+		# Get search term
+		getTerm()
+		clear()
+
+		# Select offset or pattern mode
+		while True:
+			print('Enumerate data based on static offset or custom pattern?')
+			print('Enter offset or pattern: ', end='')
+			userInput = input()
+
+			if userInput == 'offset':
+				while True:
+					clear()
+					print('How many characters after keyword should copy begin?')
+					print('Offset (spaces count): ', end='')
+					offset = input()
+					# Verify it's a number
+					if not offset.isdigit():
+						clear()
+						print('Offset must be a number (Ex 42)')
+						print()
+					else:
+						break
+				break
+
+			elif userInput == 'pattern':
+				clear()
+				print('Enter pattern as a Regex (sorry, no auto generation yet)')
+				pattern = input()
+				break
+
+			else:
+				clear()
+				print(userInput + ' is not a valid option')
+				print('Enter offset or pattern: ', end='')
+				print()
+	# Finished getting user options
+	# exact / keywordOffset / ( offset OR pattern )
