@@ -1,5 +1,4 @@
 # A class groups similar functions and variables together
-
 class Enemy:
 	life = 3
 
