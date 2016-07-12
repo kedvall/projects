@@ -1,5 +1,5 @@
 /************************************************************************
-* Module for testing ability of Arduino to sent AT Commands to XBee		*
+* Module for testing ability of Arduino to sent AT Commands to XBee		  *
 ************************************************************************/
 
 #include <XBee.h>
@@ -23,12 +23,14 @@ void setup()
 {
 	Serial.begin(9600);
 	xbee.begin(Serial);
-	nss.begin(9600)
+	nss.begin(9600);
+  nss.println("Hello word!");
 }
 
 void loop()
 {
 	//Send SH
+  atRequest.setCommand(shCmd);
 	sendAtCommand();
 
 	//Set command to SL
