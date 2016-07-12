@@ -6,6 +6,9 @@
 #include <XBee.h>
 #include <SoftwareSerial.h>
 
+#define LEDPIN 13
+#define XBEE_SLEEP 10
+
 //Define SoftwareSerial TX/RX pins
 uint8_t ssRX = 7; //Connect pin 8 to TX of usb-serial device
 uint8_t ssTX = 8; //Connect pin 9 to RX of usb-serial device
@@ -26,8 +29,8 @@ void setup()
 {
 	sleepTime = 30000; //Sleep for 30 seconds
 	pinMode(9, OUTPUT);
-	pinMode(13, OUTPUT);
-	digitalWrite(9, LOW); //Keep XBee awake
+	pinMode(LEDPIN, OUTPUT);
+	digitalWrite(XBEE_SLEEP, LOW); //Keep XBee awake
 
 	Serial.begin(9600);
 	xbee.begin(Serial);
@@ -45,15 +48,16 @@ void setup()
 
 void loop()
 {
+  digitalWrite(XBEE_SLEEP, LOW); //Wake XBee up
 	delay(100); //Delay for Serial to resume after sleeping
 	Serial.println("Executing code routine...");
 
 	//Blink LED 5 times
 	for (int i = 0; i < 6; i++)
 	{
-		digitalWrite(13, HIGH);
+		digitalWrite(LEDPIN, HIGH);
 		delay(500);
-		digitalWrite(13, LOW);
+		digitalWrite(LEDPIN, LOW);
 		delay(500);
 	}
 
@@ -64,7 +68,7 @@ void loop()
 	delay(100); //Ensure print completes before sleeping
 
 	//Power off XBee
-	digitalWrite(9, HIGH);
+	digitalWrite(XBEE_SLEEP, HIGH);
 	//Power off Arduino
 	sleep.pwrDownMode(); //Set sleep mode
 	sleep.sleepDelay(sleepTime); //Sleep for specified time
