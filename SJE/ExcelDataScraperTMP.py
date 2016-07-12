@@ -16,6 +16,28 @@
 # This program will have a GUI counterpart... Not done quite yet
 # For now CLI only 
 
+# Program Needs (keyword first):
+# + Have user select file
+# + Have user select sheet
+# + Have user select search mode (keyword or exact)
+#		Keyword generates a regex and finds many permutations
+#		Exact searches for an exact match of the search term
+# + Have user select colInRow or keywordOffset match mode
+#		colInRow pulls data from another column in the current row on successful match
+#		keyword offset copies data from the same row and column based on an offset or pattern
+# + Have user select offset or pattern
+# + Have user select search column, data retrieval column, and column to paste data
+# + Verify columns
+# + Ask user for text they want to search for
+# - Generate broad Regex using text
+# - Use above Regex to find context and possible permutations of keyword
+# - Ask user to select which results they want to include in their search
+# - Perform row by row search of SEARCHCOL
+# - Enumerate results as they occur, copying EXTRACTDATA to DESTIN
+# - Optionally write message in cells with no data
+# - Display current row of SEARCHOL / total (progress)
+# - Display message when data extraction is finished
+
 # Functions
 def clear():
 	os.system('cls')
