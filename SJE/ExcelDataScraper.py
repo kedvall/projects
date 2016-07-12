@@ -13,8 +13,31 @@
 #	Ex. Keyword: pn may return Context: pn, PN, P/N, P-N, Pn, P N, etc. 				#
 #########################################################################################
 
-# This program will have a GUI counterpart... Not done quite yet
+# This program will have a GUI counterpart... It's in the works!!!
 # For now CLI only 
+
+# Import Everything
+import sys, os, re, openpyxl
+from openpyxl.cell import get_column_letter, column_index_from_string
+from tkinter import *
+from tkinter import ttk
+import tkinter.messagebox
+
+
+# Set up basic GUI
+root = Tk() # Create blank window
+root.title("Excel Data Scraper") # Name it
+
+mainframe = ttk.Frame(root, padding="3 3 12 12") # Make a themed frame to hold objects
+mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
+mainframe.columnconfigure(0, weight=1)
+mainframe.columnconfigure(0, weight=1)
+
+root.mainloop()
+
+# Classes:
+class InputChk:
+	# Class to manage input verification... make sure the user doens't screw up
 
 # Functions
 def clear():
