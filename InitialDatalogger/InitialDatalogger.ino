@@ -40,6 +40,8 @@ struct dataPacket
   float temp3;
   float humid3;
   float dew3;
+
+  long unsigned int packets = 0;
 } sensor;
 
 ///////////////////////////////////////////////////////////////////////
@@ -56,6 +58,18 @@ void setup()
     ; // wait for serial port to connect. Needed for native USB port only
   }
 
+  //Check if RTC started
+  if (! rtc.begin()) {
+    Serial.println("Couldn't find RTC");
+    while(1);
+  }
+
+  //Ensure RTC is running and adjust time
+  if (! rtc.isrunning()) {
+    Serial.println("RTC is NOT running!");
+    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  }
+
   Serial.print ("Initializing SD card...");
 
   //Check if card is present and can be initialized
@@ -65,6 +79,9 @@ void setup()
     return;
   }
   Serial.println("Card successfully initialized");
+
+  Serial.println("");
+  Serial.println("Recording Data:");
 }
 
 void loop()
@@ -76,7 +93,6 @@ void loop()
 
   //Get current time from system
   now = rtc.now();
-  Serial.println("Got RTC");
 
   //Read RH gauges with 1s delay in between each read
   Sensor1.measure(&sensor.temp1, &sensor.humid1, &sensor.dew1);
@@ -84,13 +100,14 @@ void loop()
   Sensor2.measure(&sensor.temp2, &sensor.humid2, &sensor.dew2);
   delay(1000);
   Sensor3.measure(&sensor.temp3, &sensor.humid3, &sensor.dew3);
-  delay(1000);
+  delay(500);
+  //Increment packets
+  sensor.packets++;
 
   //Make string for assembling data to a log
   String dataString = "";
   //Append to string
   dataString += "Time: ";
-  dataString += "7/12/2016 PLACEHOLDER";
   dataString += String(now.month(), DEC);
   dataString += "/";
   dataString += String(now.day(), DEC);
@@ -114,6 +131,8 @@ void loop()
   dataString += String(sensor.humid2);
   dataString += ",";
   dataString += String(sensor.humid3);
+  dataString += "\nPackets Sent: ";
+  dataString += String(sensor.packets);
 
   //Write to card
   File dataFile = SD.open("datalog.txt", FILE_WRITE);

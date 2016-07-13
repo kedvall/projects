@@ -27,7 +27,7 @@ AtCommandResponse atResponse = AtCommandResponse();
 
 void setup()
 {
-	sleepTime = 30000; //Sleep for 30 seconds
+	sleepTime = 7000; //Sleep for 30 seconds
 	pinMode(9, OUTPUT);
 	pinMode(LEDPIN, OUTPUT);
 	digitalWrite(XBEE_SLEEP, LOW); //Keep XBee awake
