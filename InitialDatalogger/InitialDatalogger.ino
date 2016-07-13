@@ -107,31 +107,32 @@ void loop()
   //Make string for assembling data to a log
   String dataString = "";
   //Append to string
-  dataString += "Time: ";
+  dataString += String(now.unixtime());
+  dataString += "\t|\t";
   dataString += String(now.month(), DEC);
   dataString += "/";
   dataString += String(now.day(), DEC);
   dataString += "/";
   dataString += String(now.year(), DEC);
-  dataString += ", ";
+  dataString += "\t|\t";
   dataString += String(now.hour(), DEC);
   dataString += ":";
   dataString += String(now.minute(), DEC);
   dataString += ":";
   dataString += String(now.second(), DEC);
-  dataString += "\nTemperature: ";
+  dataString += "\t|\t";
   dataString += String(sensor.temp1);
-  dataString += ",";
+  dataString += "\t|\t";
   dataString += String(sensor.temp2);
-  dataString += ",";
+  dataString += "\t|\t";
   dataString += String(sensor.temp3);
-  dataString += "\nHumidity: ";
+  dataString += "\t|\t";
   dataString += String(sensor.humid1);
-  dataString += ",";
+  dataString += "\t|\t";
   dataString += String(sensor.humid2);
-  dataString += ",";
+  dataString += "\t|\t";
   dataString += String(sensor.humid3);
-  dataString += "\nPackets Sent: ";
+  dataString += "\t|\t";
   dataString += String(sensor.packets);
 
   //Write to card
@@ -149,4 +150,29 @@ void loop()
   } 
   else
     Serial.println("Error opening datalog.txt");
+}
+
+void setupCol()
+{
+  //Make string for assembling column text
+  String dataString = "";
+  //Append to string
+  dataString += "Unix Time: ";
+  dataString += "\t|\t";
+  dataString += "Standard Time ";
+  dataString += "\t|\t";
+  dataString += "S1 Temp: ";
+  dataString += "\t|\t";
+  dataString += "S2 Temp: ";
+  dataString += "\t|\t";
+  dataString += "S3 Temp: ";
+  dataString += "\t|\t";
+  dataString += "S1 Humid: ";
+  dataString += "\t|\t";
+  dataString += "S2 Humid: ";
+  dataString += "\t|\t";
+  dataString += "S3 Humid: ";
+  dataString += "\t|\t";
+  dataString += "Packets Sent: \n";
+  dataString += "---------------------------------------------------------------------\n";
 }
