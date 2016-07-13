@@ -5,6 +5,7 @@ import tkinter.messagebox
 # Variables
 search=''
 match=''
+offset=''
 
 # Set up GUI
 root = Tk() # Create blank window
@@ -17,8 +18,8 @@ class FileSelection:
 	# File Selection Frame (Upper left)
 	def __init__(self):
 		# Frame setup
-		fileFrame = ttk.Frame(root, padding='3 3 12 12') # Make a themed frame to hold objects
-		fileFrame.grid(columnspan=6, row=0)
+		fileFrame = ttk.LabelFrame(root, text='File Selection: ', padding='3 3 12 12') # Make a themed frame to hold objects
+		fileFrame.grid(columnspan=6, row=0, sticky='N W S E')
 
 		# Required variables
 		self.filePath = StringVar()
@@ -36,6 +37,8 @@ class FileSelection:
 		# Interface elements
 		self.fileBtn = ttk.Button(fileFrame, text='Select File:', style='fileBtn.TButton')
 		self.fileBtn.bind('<Button-1>', self.askDir)
+		root.bind('<Return>', self.askDir)
+		self.fileBtn.focus_set()
 		self.fileBtn.grid(columnspan=3, row=1, sticky=E)
 		self.fileEntry = ttk.Entry(fileFrame, width=50, textvariable=self.filePath)
 		self.fileEntry.grid(columnspan=3, column=4, row=1, sticky=W)
@@ -49,11 +52,14 @@ class FileSelection:
 
 		self.loadBtn = ttk.Button(fileFrame, text='Load File', style='loadBtn.TButton')
 		self.loadBtn.state(['disabled'])
-		self.loadBtn.bind('<Button-1>', self.loadFile)
 		self.loadBtn.grid(columnspan=3, row=3)
 		ttk.Label(fileFrame, textvariable=self.fileDisp).grid(columnspan=3, column=4, row=3, sticky=W)
 
-		for child in fileFrame.winfo_children(): child.grid_configure(padx=5, pady=15)
+		for child in fileFrame.winfo_children(): child.grid_configure(padx=5, pady=10)
+
+		dividerFrame = ttk.Frame(root, padding='3 3 12 12')
+		dividerFrame.grid(columnspan=6, row=1, sticky='N W S E')
+		ttk.Label(dividerFrame, text='').grid(columnspan=6, row=1, sticky=(W, E)) # Divider
 
 	def doSomething(self, event):
 		print('Box moved')
@@ -68,14 +74,17 @@ class FileSelection:
 			self.filePath.set(self.filename)
 		style.configure('fileBtn.TButton', relief=RAISED)
 		self.loadBtn.state(['!disabled'])
+		self.loadBtn.bind('<Button-1>', self.loadFile)
+		root.bind('<Return>', self.loadFile)
+		self.loadBtn.focus_set()
 
 
 class SearchSelection:
 	# Search Selection Frame (Lower left)
 	def __init__(self):
 		# Frame setup
-		searchFrame = ttk.Frame(root, padding='3 3 12 12')
-		searchFrame.grid(columnspan=6, row=1, sticky=W)
+		searchFrame = ttk.LabelFrame(root, text='Search Type: ', padding='3 3 12 12')
+		searchFrame.grid(columnspan=6, row=2, sticky='N W S E')
 		
 		# Required variables
 		self.searchMode = StringVar()
@@ -85,7 +94,6 @@ class SearchSelection:
 		self.radioSet()
 
 		# Interface elements
-		ttk.Label(searchFrame, text='').grid(column=0, row=0, sticky=(W, E)) # Divider
 		ttk.Label(searchFrame, text='Select Search Mode:').grid(columnspan=6, row=1, sticky=W)
 		self.keywordRBtn = ttk.Radiobutton(searchFrame, text='Keyword', variable=self.searchMode, value='keyword', command=self.radioSet)
 		self.keywordRBtn.grid(columnspan=3, row=2, sticky=W)
@@ -107,7 +115,70 @@ class SearchSelection:
 		print(search + match)
 	
 
+class ParamSelection:
+	# Parameter selection frame (Right side)
+	def __init__(self):
+		# Frame setup
+		paramFrame = ttk.LabelFrame(root, text='Search Options: ', padding='3 3 12 12')
+		paramFrame.grid(columnspan=6, column=7, row=0, sticky='N W S E')
+
+		# Required variables
+		self.searchCol = StringVar()
+		self.searchCol.set('Column: A to XFD')
+		self.pasteCol = StringVar()
+		self.pasteCol.set('Column: A to XFD')
+		self.offsetMode = StringVar()
+		self.offsetMode.set('pattern')
+		self.offsetPattern = StringVar()
+
+		# Interface elements
+		ttk.Label(paramFrame, text='Which column would you like to search?').grid(columnspan=3, row=0, sticky=E)
+		self.sColEntry = ttk.Entry(paramFrame, width=17, textvariable=self.searchCol, foreground='grey')
+		self.sColEntry.bind('<Button-1>', self.clearEntry)
+		self.sColEntry.bind('<FocusOut>', self.resetEntry)
+		self.sColEntry.grid(columnspan=2, column=4, row=0, sticky=W)
+
+		ttk.Label(paramFrame, text='Which column would you like to copy the selected data to?').grid(columnspan=3, row=1, sticky=E)
+		self.pColEntry = ttk.Entry(paramFrame, width=17, textvariable=self.pasteCol, foreground='grey')
+		self.pColEntry.bind('<Button-1>', self.clearEntry)
+		self.pColEntry.bind('<FocusOut>', self.resetEntry)
+		self.pColEntry.grid(columnspan=2, column=4, row=1, sticky=W)
+
+		ttk.Label(paramFrame, text='').grid(column=0, row=2, sticky=(W, E)) # Divider
+		ttk.Label(paramFrame, text='Select Offset Type:').grid(column=0, row=3, sticky=W)
+		self.patternRBtn = ttk.Radiobutton(paramFrame, text='Pattern', variable=self.offsetMode, value='pattern', command=self.radioSet)
+		self.patternRBtn.grid(row=4, sticky=W)
+		self.charRBtn = ttk.Radiobutton(paramFrame, text='Character Count', variable=self.offsetMode, value='char', command=self.radioSet)
+		self.charRBtn.grid(column=1, row=4, sticky=W)
+
+		for child in paramFrame.winfo_children(): child.grid_configure(padx=5, pady=5)
+
+	def clearEntry(self, event):
+		if event.widget is self.sColEntry:
+			if self.searchCol.get() == 'Column: A to XFD':
+				self.sColEntry.configure(foreground='black')
+				self.searchCol.set('')
+		elif event.widget is self.pColEntry:
+			if self.pasteCol.get() == 'Column: A to XFD':
+				self.pColEntry.configure(foreground='black')
+				self.pasteCol.set('')
+
+	def resetEntry(self, event):
+		if event.widget is self.sColEntry:
+			if self.searchCol.get() == '':
+				self.sColEntry.configure(foreground='grey')
+				self.searchCol.set('Column: A to XFD')
+		if event.widget is self.pColEntry:
+			if self.pasteCol.get() == '':
+				self.pColEntry.configure(foreground='grey')
+				self.pasteCol.set('Column: A to XFD')
+
+	def radioSet(self):
+		offset=self.offsetMode.get()
+		print(offset)
+
 filePane = FileSelection()
 searchPane = SearchSelection()
+paramPane = ParamSelection()
 
 root.mainloop()
