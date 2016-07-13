@@ -108,31 +108,31 @@ void loop()
   String dataString = "";
   //Append to string
   dataString += String(now.unixtime());
-  dataString += "\t|\t";
+  dataString += "|";
   dataString += String(now.month(), DEC);
   dataString += "/";
   dataString += String(now.day(), DEC);
   dataString += "/";
   dataString += String(now.year(), DEC);
-  dataString += "\t|\t";
+  dataString += "|";
   dataString += String(now.hour(), DEC);
   dataString += ":";
   dataString += String(now.minute(), DEC);
   dataString += ":";
   dataString += String(now.second(), DEC);
-  dataString += "\t|\t";
+  dataString += "|";
   dataString += String(sensor.temp1);
-  dataString += "\t|\t";
+  dataString += "|";
   dataString += String(sensor.temp2);
-  dataString += "\t|\t";
+  dataString += "|";
   dataString += String(sensor.temp3);
-  dataString += "\t|\t";
+  dataString += "|";
   dataString += String(sensor.humid1);
-  dataString += "\t|\t";
+  dataString += "|";
   dataString += String(sensor.humid2);
-  dataString += "\t|\t";
+  dataString += "|";
   dataString += String(sensor.humid3);
-  dataString += "\t|\t";
+  dataString += "|";
   dataString += String(sensor.packets);
 
   //Write to card
@@ -158,21 +158,21 @@ void setupCol()
   String dataString = "";
   //Append to string
   dataString += "Unix Time: ";
-  dataString += "\t|\t";
+  dataString += "|";
   dataString += "Standard Time ";
-  dataString += "\t|\t";
+  dataString += "|";
   dataString += "S1 Temp: ";
-  dataString += "\t|\t";
+  dataString += "|";
   dataString += "S2 Temp: ";
-  dataString += "\t|\t";
+  dataString += "|";
   dataString += "S3 Temp: ";
-  dataString += "\t|\t";
+  dataString += "|";
   dataString += "S1 Humid: ";
-  dataString += "\t|\t";
+  dataString += "|";
   dataString += "S2 Humid: ";
-  dataString += "\t|\t";
+  dataString += "|";
   dataString += "S3 Humid: ";
-  dataString += "\t|\t";
+  dataString += "|";
   dataString += "Packets Sent: \n";
   dataString += "---------------------------------------------------------------------\n";
 }
