@@ -2,9 +2,45 @@
 * Basic sketch designed to ensure data is correctly recorded to SD card *
 * 	before a more advanced sketch is implemented						            *
 ************************************************************************/
-#include "RHGaugeDatalogger.h"
+//Libraries to include:
+#include <Sensirion.h>
+#include <Wire.h> //RTClib depends on this
+#include <RTClib.h>
+#include <SPI.h>
+#include <SD.h>
 
+//Pin Setup:
 const int chipSelect = 4;
+const uint8_t clockPin1 = 2;
+const uint8_t clockPin2 = 4;
+const uint8_t clockPin3 = 6;
+const uint8_t dataPin1 = 3;
+const uint8_t dataPin2 = 5;
+const uint8_t dataPin3 = 7;
+
+//Objects
+Sensirion Sensor1 = Sensirion(dataPin1, clockPin1);
+Sensirion Sensor2 = Sensirion(dataPin2, clockPin2);
+Sensirion Sensor3 = Sensirion(dataPin3, clockPin3);
+RTC_DS1307 rtc; //For real time clock module
+DateTime now; //Var to store time stamp
+
+//Create struct to store data to be transmitted
+struct dataPacket
+{
+  //Sensirion variable setup:
+  float temp1;
+  float humid1;
+  float dew1;
+
+  float temp2;
+  float humid2;
+  float dew2;
+
+  float temp3;
+  float humid3;
+  float dew3;
+} sensor;
 
 ///////////////////////////////////////////////////////////////////////
 // Initial Setup:                                                    //
@@ -16,9 +52,11 @@ void setup()
 {
   //Start serial communication at 9600 baud
   Serial.begin(9600);
-  while (!Serial) { ;} //Wait for serial port to connect
+  while (!Serial) {
+    ; // wait for serial port to connect. Needed for native USB port only
+  }
 
-  Serial.print("Initializing SD card");
+  Serial.print ("Initializing SD card...");
 
   //Check if card is present and can be initialized
   if (!SD.begin(chipSelect))
@@ -35,12 +73,10 @@ void loop()
   sensor.temp1 = -40;
   sensor.temp2 = -40;
   sensor.temp3 = -40;
-  sensor.humid1 = -1;
-  sensor.humid2 = -1;
-  sensor.humid3 = -1;
 
   //Get current time from system
   now = rtc.now();
+  Serial.println("Got RTC");
 
   //Read RH gauges with 1s delay in between each read
   Sensor1.measure(&sensor.temp1, &sensor.humid1, &sensor.dew1);
@@ -54,6 +90,7 @@ void loop()
   String dataString = "";
   //Append to string
   dataString += "Time: ";
+  dataString += "7/12/2016 PLACEHOLDER";
   dataString += String(now.month(), DEC);
   dataString += "/";
   dataString += String(now.day(), DEC);
@@ -80,12 +117,16 @@ void loop()
 
   //Write to card
   File dataFile = SD.open("datalog.txt", FILE_WRITE);
+
   //Check if file is available and write to it, otherwise throw an error
   if (dataFile) 
   {
     dataFile.println(dataString);
     dataFile.println("");
     dataFile.close();
+    //Also print to serial
+    Serial.println(dataString);
+    Serial.println("");
   } 
   else
     Serial.println("Error opening datalog.txt");
