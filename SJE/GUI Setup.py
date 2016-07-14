@@ -241,6 +241,38 @@ class Search:
 	def doSomething(self, event):
 		print('Btn clicked')
 
+	def searchPerms(self, event):
+		# For testing #
+		for i in range(0, 7):
+			self.lbl[i] = ttk.Label(self.resultFrame, text=[i])
+			self.lbl[i].grid(column=[i], row=0, sticky=W)
+
+		for index in range(1, 11):
+			permutations.append('Result ' + str(index))
+
+		# Setup result headings
+		self.results.set('')
+		self.resultFrame.configure(padding='3 3 12 12')
+
+		self.resultHLbl = ttk.Label(self.resultFrame, text='Result: ')
+		self.resultHLbl.grid(columnspan=2, row=1, sticky=W)
+		self.posHLbl = ttk.Label(self.resultFrame, text='Row/Col: ')
+		self.posHLbl.grid(columnspan=2, column=2, row=1, sticky=W)
+		self.contextHLbl = ttk.Label(self.resultFrame, text='Context: ')
+		self.contextHLbl.grid(columnspan=2, column=4, row=1, sticky=W)
+
+		
+		# Enumerate results
+		for i in range(len(permutations)):
+			print('Iteration ' + str(i))
+			self.cbVals[i] = StringVar()
+			self.cbVals[i].set(1)
+			self.resultCB[i] = ttk.Checkbutton(self.resultFrame, text=permutations[i], variable=self.cbVals[i])
+			self.resultCB[i].bind('<Button-1>', self.updatePerms)
+			self.resultCB[i].grid(columnspan=2, column=0, row=[i+2], sticky=W)
+
+	def updatePerms(self, event):
+		print('Item state changed')
 
 filePane = FileSelection()
 sModePane = SearchSelection()
