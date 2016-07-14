@@ -17,8 +17,6 @@ from tkinter import ttk, filedialog
 from openpyxl.cell import get_column_letter, column_index_from_string
 
 #Global Variables
-search=''
-match=''
 offset=''
 permutations = []
 
@@ -313,48 +311,6 @@ paramPane = ParamSelection()
 searchPane = Search()
 
 root.mainloop()
-# Step three, user selects search mode
-while True:
-	print('Select search mode (keyword or exact)')
-	print('Mode: ', end='')
-	userInput = input().lower()
-
-	if userInput == 'keyword':
-		searchMode = 'keyword'
-		break
-	elif userInput == 'exact':
-		searchMode = 'exact'
-		break
-	else:
-		
-		print('Search mode not found: ' + userInput)
-		print('Valid options are keyword or exact')
-		print()
-
-print('\tUsing ' + searchMode + ' search mode')
-print()
-
-# Step four, user selects match mode
-while True:
-	print('Select match mode (keywordOffset or colInRow)')
-	print('Mode (Enter k or c): ', end='')
-	userInput = input().lower()
-
-	if userInput == 'keywordOffset' or userInput == 'k':
-		matchMode = 'keywordOffset'
-		break
-	elif userInput == 'colInRow' or userInput == 'c':
-		matchMode = 'colInRow'
-		break
-	else:
-		
-		print('Match mode not found: ' + userInput)
-		print('Valid options are keywordOffset or colInRow')
-		print()
-
-print('\tUsing ' + matchMode + ' match mode')
-print()
-
 #############################################################
 # KEYWORD - Generates a Regex and finds many permutations 	#
 #############################################################
