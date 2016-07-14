@@ -189,9 +189,62 @@ class ParamSelection:
 		else:
 			self.offsetPtrnLbl.set('Enter Offset (Number of characters):')
 
+
+class Search:
+	# Search Frame (Lower right)
+	def __init__(self):
+		# Outer Frame setup
+		searchFrame = ttk.LabelFrame(root, text='Search: ', padding='3 3 12 12')
+		searchFrame.grid(columnspan=6, column=7, row=2, pady=10, sticky='N W S E')
+
+		# Required variables
+		self.searchTerm = StringVar()
+		self.selectState = StringVar()
+		self.selectState.set('Unselect All')
+		self.cbVals={}
+		self.resultCB={}
+		self.lbl={}
+		
+		# Interface elements
+		ttk.Label(searchFrame, text='Enter search term:').grid(columnspan=2, row=2, sticky='W')
+		self.termEntry = ttk.Entry(searchFrame, width=53, textvariable=self.searchTerm)
+		self.termEntry.grid(columnspan=5, column=2, row=2, sticky=W)
+		
+		ttk.Label(searchFrame, text='Available Permutations:').grid(columnspan=3, row=3, sticky='W S')
+		self.permutBtn = ttk.Button(searchFrame, text='Search Permutations', style='permutBtn.TButton')
+		self.permutBtn.bind('<Button-1>', self.searchPerms)
+		self.permutBtn.grid(columnspan=2, column=5, row=3, sticky=E)
+
+		self.startSearchBtn = ttk.Button(searchFrame, text='Start Search', style='startSearchBtn.TButton')
+		self.startSearchBtn.bind('<Button-1>', self.doSomething)
+		self.startSearchBtn.grid(columnspan=2, row=7, sticky=W)
+		self.selectBtn = ttk.Button(searchFrame, textvariable=self.selectState, style='selectBtn.TButton')
+		self.selectBtn.bind('<Button-1>', self.switchState)
+		self.selectBtn.grid(columnspan=4, column=2, row=7)
+		self.exportBtn = ttk.Button(searchFrame, text='Export Sheet', style='exportBtn.TButton')
+		self.exportBtn.bind('<Button-1>', self.doSomething)
+		self.exportBtn.grid(columnspan=2, column=5, row=7, sticky=E)
+
+		for child in searchFrame.winfo_children(): child.grid_configure(padx=5, pady=10)
+
+		# Inner Frame Setup
+		self.resultFrame = ttk.Frame(searchFrame, borderwidth=5, relief='groove', padding='3 3 120 120')
+		self.resultFrame.grid(columnspan=7, rowspan=3, row=4, padx=5, sticky='N W S E')
+
+		# Required Variables
+		self.results = StringVar()
+		self.results.set('Waiting for search term...')
+
+		# Interface elements
+		ttk.Label(self.resultFrame, textvariable=self.results).grid(columnspan=6, rowspan=3)
+
+	def doSomething(self, event):
+		print('Btn clicked')
+
+
 filePane = FileSelection()
 sModePane = SearchSelection()
 paramPane = ParamSelection()
-
+searchPane = Search()
 
 root.mainloop()
