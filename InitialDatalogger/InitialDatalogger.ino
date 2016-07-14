@@ -8,6 +8,9 @@
 #include <RTClib.h>
 #include <SPI.h>
 #include <SD.h>
+#include <Sleep_n0m1.h>
+
+#define ENDEBUG 1 //Variable to determine whether to print debug statements. 1 = TRUE, 0 = FALSE
 
 //Pin Setup:
 const int chipSelect = 4;
@@ -18,12 +21,14 @@ const uint8_t dataPin1 = 3;
 const uint8_t dataPin2 = 5;
 const uint8_t dataPin3 = 7;
 
-//Objects
+//Objects and vars
 Sensirion Sensor1 = Sensirion(dataPin1, clockPin1);
 Sensirion Sensor2 = Sensirion(dataPin2, clockPin2);
 Sensirion Sensor3 = Sensirion(dataPin3, clockPin3);
 RTC_DS1307 rtc; //For real time clock module
 DateTime now; //Var to store time stamp
+Sleep sleep;
+unsigned long sleepTime; //Amount of time in MS Arduino should sleep
 
 //Create struct to store data to be transmitted
 struct dataPacket
@@ -52,6 +57,7 @@ struct dataPacket
 ///////////////////////////////////////////////////////////////////////
 void setup()
 {
+  sleepTime = 900000; //Sleep for 15 minutes, change to something like 7 sec (7000ms) for testing
   //Start serial communication at 9600 baud
   Serial.begin(9600);
   while (!Serial) {
@@ -79,13 +85,16 @@ void setup()
     return;
   }
   Serial.println("Card successfully initialized");
-
   Serial.println("");
+
   Serial.println("Recording Data:");
+  setupCol();
 }
 
 void loop()
 {
+  delay(100); //Delay for Serial to resume after sleeping
+
   //Reset variables for sensors 
   sensor.temp1 = -40;
   sensor.temp2 = -40;
@@ -142,14 +151,25 @@ void loop()
   if (dataFile) 
   {
     dataFile.println(dataString);
-    dataFile.println("");
     dataFile.close();
     //Also print to serial
     Serial.println(dataString);
-    Serial.println("");
   } 
   else
     Serial.println("Error opening datalog.txt");
+  delay(500); //Ensure write finishes and file closes
+
+  //Go to sleep
+  if (ENDEBUG)
+  {
+    Serial.print("Sleeping for ");
+    Serial.print(sleepTime / 1000);
+    Serial.println(" seconds...");
+    delay(100); //Ensure print completes before sleeping
+  }
+  //Power off Arduino
+  sleep.pwrDownMode(); //Set sleep mode
+  sleep.sleepDelay(sleepTime); //Sleep for specified time  
 }
 
 void setupCol()
@@ -157,22 +177,37 @@ void setupCol()
   //Make string for assembling column text
   String dataString = "";
   //Append to string
-  dataString += "Unix Time: ";
+  dataString += "Unix Time";
   dataString += "|";
-  dataString += "Standard Time ";
+  dataString += "Standard Time";
   dataString += "|";
-  dataString += "S1 Temp: ";
+  dataString += "S1 Temp";
   dataString += "|";
-  dataString += "S2 Temp: ";
+  dataString += "S2 Temp";
   dataString += "|";
-  dataString += "S3 Temp: ";
+  dataString += "S3 Temp";
   dataString += "|";
-  dataString += "S1 Humid: ";
+  dataString += "S1 Humid";
   dataString += "|";
-  dataString += "S2 Humid: ";
+  dataString += "S2 Humid";
   dataString += "|";
-  dataString += "S3 Humid: ";
+  dataString += "S3 Humid";
   dataString += "|";
-  dataString += "Packets Sent: \n";
-  dataString += "---------------------------------------------------------------------\n";
+  dataString += "Packets Sent\n";
+  dataString += "---------------------------------------------------------------------------------------";
+
+  //Write to card
+  File dataFile = SD.open("datalog.txt", FILE_WRITE);
+
+  //Check if file is available and write to it, otherwise throw an error
+  if (dataFile) 
+  {
+    dataFile.println(dataString);
+    dataFile.close();
+    //Also print to serial
+    Serial.println(dataString);
+  }
+  else
+    Serial.println("Error opening datalog.txt");
+  delay(500); //Ensure write finishes and file closes
 }
