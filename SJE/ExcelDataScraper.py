@@ -56,7 +56,7 @@ class FileSelection:
 		self.fileEntry.grid(columnspan=3, column=4, row=1, sticky=W)
 
 		ttk.Label(fileFrame, text='Select Sheet:').grid(columnspan=3, row=2, sticky=E)
-		self.sheetCBox = ttk.Combobox(fileFrame, textvariable=self.selectedSheet, state='readonly')
+		self.sheetCBox = ttk.Combobox(fileFrame, textvariable=self.selectedSheet, width=30, state='readonly')
 		self.sheetCBox['values'] = ''
 		self.sheetCBox.grid(columnspan=3, column=4, row=2, sticky=W)
 
@@ -173,6 +173,8 @@ class ParamSelection:
 		self.charRBtn = ttk.Radiobutton(paramFrame, text='Character Count', variable=self.offsetMode, value='char', command=self.radioSet)
 		self.charRBtn.grid(column=1, row=4, sticky=W)
 		self.ptrnEntry = ttk.Entry(paramFrame, width=30, textvariable=self.offsetPattern)
+		self.ptrnEntry.bind('<Button-1>', self.clearEntry)
+		self.ptrnEntry.bind('<FocusOut>', self.evalPattern)
 		self.ptrnEntry.grid(columnspan=5, column=2, row=4, sticky=W)
 
 		for child in paramFrame.winfo_children(): child.grid_configure(padx=5, pady=5)
@@ -186,6 +188,10 @@ class ParamSelection:
 			if self.pasteCol.get() == 'Column: A to XFD':
 				self.pColEntry.configure(foreground='black')
 				self.pasteCol.set('')
+		elif event.widget is self.ptrnEntry:
+			if self.offsetPattern.get() == 'Not a number!' or self.offsetPattern.get() == 'Must be a number (Ex 10)' or self.offsetPattern.get() == 'Enter a pattern!':
+				self.ptrnEntry.configure(foreground='black')
+				self.offsetPattern.set('')
 
 	def resetEntry(self, event):
 		if event.widget is self.sColEntry:
@@ -198,12 +204,28 @@ class ParamSelection:
 				self.pasteCol.set('Column: A to XFD')
 
 	def radioSet(self):
-		offset=self.offsetMode.get()
-		print(offset)
 		if self.offsetMode.get() == 'pattern':
+			if self.offsetPattern.get() == 'Not a number!' or self.offsetPattern.get() == 'Must be a number (Ex 10)' or self.offsetPattern.get() == 'Enter a pattern!':
+				self.ptrnEntry.configure(foreground='black')
+				self.offsetPattern.set('')
 			self.offsetPtrnLbl.set('Enter Pattern:')
 		else:
 			self.offsetPtrnLbl.set('Enter Offset (# of charcters):')
+			if self.offsetPattern.get() == '' or self.offsetPattern.get() == 'Not a number!' or self.offsetPattern.get() == 'Enter a pattern!':
+				self.ptrnEntry.configure(foreground='grey')
+				self.offsetPattern.set('Must be a number (Ex 10)')
+
+	def evalPattern(self, event):
+		if self.offsetMode.get() == 'pattern':
+			if not self.offsetPattern.get() == '':
+				RegexGeneration.test()
+			else:
+				self.ptrnEntry.configure(foreground='red')
+				self.offsetPattern.set('Enter a pattern!')
+		else:
+			if not self.offsetPattern.get().isdigit():
+				self.ptrnEntry.configure(foreground='red')
+				self.offsetPattern.set('Not a number!')
 
 
 class Search:
@@ -301,6 +323,12 @@ class Search:
 				self.cbVals[box].set(1)
 			self.updatePerms(None)
 			self.selectState.set('Unselect All')
+
+
+class RegexGeneration:
+	# Class to handle all regular expression and pattern generation
+	def test():
+		print('Success')
 
 
 #************************************ Program Start ************************************#
