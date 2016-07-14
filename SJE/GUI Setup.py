@@ -260,7 +260,6 @@ class Search:
 		self.posHLbl.grid(columnspan=2, column=2, row=1, sticky=W)
 		self.contextHLbl = ttk.Label(self.resultFrame, text='Context: ')
 		self.contextHLbl.grid(columnspan=2, column=4, row=1, sticky=W)
-
 		
 		# Enumerate results
 		for i in range(len(permutations)):
@@ -270,6 +269,8 @@ class Search:
 			self.resultCB[i] = ttk.Checkbutton(self.resultFrame, text=permutations[i], variable=self.cbVals[i])
 			self.resultCB[i].bind('<Button-1>', self.updatePerms)
 			self.resultCB[i].grid(columnspan=2, column=0, row=[i+2], sticky=W)
+
+		for child in self.resultFrame.winfo_children(): child.grid_configure(padx=5)
 
 	def updatePerms(self, event):
 		print('Item state changed')
