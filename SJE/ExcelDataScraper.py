@@ -44,15 +44,14 @@ class FileSelection:
 		# File opening options
 		self.fileOpt = options = {}
 		options['defaultextension'] = '.xlsx'
-		options['filetypes'] = [('Excel', '.xlsx'), ('Spreadsheet', '.xlsm'), ('Spreadsheet', '.xltx'), ('Spreadsheet', '.xltm'), ('All Files', '.*')]
+		options['filetypes'] = [('Excel', '.xlsx'), ('Spreadsheet', '.xlsm'), ('Spreadsheet', '.xltx'), ('Spreadsheet', '.xltm')]
 		options['initialdir'] = 'C:\\Users\\' + getpass.getuser() + '\\Documents'
 		options['parent'] = fileFrame
 		options['title'] = 'Select a File to Use'
 
 		# Interface elements
-		self.fileBtn = ttk.Button(fileFrame, text='Select File:', style='fileBtn.TButton')
-		self.fileBtn.bind('<Button-1>', self.askDir)
-		root.bind('<Return>', self.askDir)
+		self.fileBtn = ttk.Button(fileFrame, text='Select File:', style='fileBtn.TButton', command=self.askDir)
+		root.bind('<Return>', self.eventPass)
 		self.fileBtn.focus_set()
 		self.fileBtn.grid(columnspan=3, row=1, sticky=E)
 		self.fileEntry = ttk.Entry(fileFrame, width=50, textvariable=self.filePath)
@@ -60,9 +59,7 @@ class FileSelection:
 
 		ttk.Label(fileFrame, text='Select Sheet:').grid(columnspan=3, row=2, sticky=E)
 		self.sheetCBox = ttk.Combobox(fileFrame, textvariable=self.selectedSheet, state='readonly')
-		self.sheetCBox.bind('<<ComboboxSelected>>', self.doSomething)
-		self.sheetCBox['values'] = ('Sheet1', 'Sheet2', 'Sheet3')
-		self.sheetCBox.current(0)
+		self.sheetCBox['values'] = ''
 		self.sheetCBox.grid(columnspan=3, column=4, row=2, sticky=W)
 
 		self.loadBtn = ttk.Button(fileFrame, text='Load File', style='loadBtn.TButton')
@@ -72,26 +69,34 @@ class FileSelection:
 
 		for child in fileFrame.winfo_children(): child.grid_configure(padx=5, pady=10)
 
-		#dividerFrame = ttk.Frame(root, padding='3 3 12 12')
-		#dividerFrame.grid(columnspan=6, row=1, sticky='N W S E')
-		#ttk.Label(dividerFrame, text='').grid(columnspan=6, row=1, sticky='W E') # Divider
+	def eventPass(self, event):
+		self.askDir()
 
-	def doSomething(self, event):
-		print('Box moved')
-
-	def loadFile(self, event):
-		self.fileDisp.set('Successfully loaded: ' + str(self.filePath.get()))
-		print('File Loaded!!!')
-
-	def askDir(self, event):
+	def askDir(self):
 		self.filename = filedialog.askopenfilename(**self.fileOpt)
 		if self.filename:
 			self.filePath.set(self.filename)
-			self.loadBtn.state(['!disabled'])
-			self.loadBtn.bind('<Button-1>', self.loadFile)
-			self.loadBtn.focus_set()
 			root.bind('<Return>', self.loadFile)
+			self.loadBtn.bind('<Button-1>', self.loadFile)
+			self.loadBtn.state(['!disabled'])
+			self.loadBtn.focus_set()
+			self.loadSheets()
 		style.configure('fileBtn.TButton', relief=RAISED)
+
+	def loadSheets(self):
+		try:
+			self.wb = openpyxl.load_workbook(self.filePath.get())
+			self.sheetCBox['values'] = self.wb.get_sheet_names()
+			self.sheetCBox.current(self.sheetCBox['values'].index(self.wb.active.title))
+		except FileNotFoundError:
+			self.fileDisp.set('Could not load file at ' + self.filename)
+
+	def loadFile(self, event):
+		try:
+			self.sheet = self.wb.get_sheet_by_name(self.selectedSheet.get())
+			self.fileDisp.set('Successfully loaded ' + str(self.selectedSheet.get()) + '.')
+		except KeyError:
+			self.fileDisp.set('Error loading ' + str(self.selectedSheet.get()) + '!')
 		
 
 class SearchSelection:
@@ -307,73 +312,7 @@ sModePane = SearchSelection()
 paramPane = ParamSelection()
 searchPane = Search()
 
-# First step, user enters path to Excel file to be scraped
-while True:
-	# Get file path from user
-	print('Enter path to Excel file including file extension')
-	print('\tEx. C:\\Users\\intern\\data.xlsx')
-	#print('Path (Press Enter to quit): ', end='')
-	#filePath = input()
-	print(r'Path (Press Enter to quit): C:\Users\intern\Documents\test.xlsx')
-	filePath = r'C:\Users\intern\Documents\test.xlsx' # For quick testing
-
-	# Check if Enter is pressed and quit if true
-	if filePath == '':
-		sys.exit()
-	
-	# Cleanup user input... NEVER trust the user to do it right
-	elif not filePath.endswith('.xlsx'):
-		print('\tStandard Excel extension (.xlsx) not found, append it? (Y/N) ', end='')
-		userInput = input()
-		if userInput.lower().startswith('y'):
-			filePath += '.xlsx'
-
-	# Check that extension is valid and file actually exists
-	if not filePath.endswith(validExt):
-			clear()
-			print('File format not supported. Supported formats are: .xlsx, .xlsm, .xltx, and .xltm')
-			print()
-	else:
-		if not os.path.exists(filePath):
-			clear()
-			print('\tFile not found at ' + filePath + '. Please try again')
-			print()
-		else:			
-			wb = openpyxl.load_workbook(filePath)
-			wbName = os.path.basename(filePath)
-			break
-clear()
-print('\tFile found. Loading ' + wbName + '...')
-print()
-
-# Step two, user enters sheet name
-while True:
-	# Get sheet name from user
-	print('Enter the name of the Excel sheet (Type List Sheets to see all available sheets)')
-	print('Sheet Name (or press Enter for Active Sheet): ', end='')
-	userInput = input()
-
-	# Check input for errors or special phrases
-	if userInput.lower() == 'list sheets':
-		clear()
-		print('Available sheets for ' + wbName + ': ', end='')
-		print(', '.join(wb.get_sheet_names()))
-		print()
-	elif userInput == '':
-		sheet = wb.active
-		break
-	else:
-		try:
-			sheet = wb.get_sheet_by_name(userInput)
-			break
-		except KeyError:
-			clear()
-			print(userInput + ' not found in ' + wbName)
-			print()
-clear()
-print('\t' + sheet.title + ' selected.')
-print()
-
+root.mainloop()
 # Step three, user selects search mode
 while True:
 	print('Select search mode (keyword or exact)')
@@ -387,11 +326,11 @@ while True:
 		searchMode = 'exact'
 		break
 	else:
-		clear()
+		
 		print('Search mode not found: ' + userInput)
 		print('Valid options are keyword or exact')
 		print()
-clear()
+
 print('\tUsing ' + searchMode + ' search mode')
 print()
 
@@ -408,11 +347,11 @@ while True:
 		matchMode = 'colInRow'
 		break
 	else:
-		clear()
+		
 		print('Match mode not found: ' + userInput)
 		print('Valid options are keywordOffset or colInRow')
 		print()
-clear()
+
 print('\tUsing ' + matchMode + ' match mode')
 print()
 
@@ -426,7 +365,7 @@ if searchMode == 'keyword':
 	if matchMode == 'colInRow':
 		# Get search term
 		getTerm()
-		clear()
+		
 
 		# Step one, user selects columns to use
 		getCol('search')
@@ -435,7 +374,7 @@ if searchMode == 'keyword':
 
 		# Step two, verify user selected columns
 		while True:
-			clear()
+			
 			print('Column selection: ')
 			print('\tSearch column ' + get_column_letter(cols['search']) + ' for criteria (search).')
 			print('\tCopy data from column ' + get_column_letter(cols['copy']) + ' on successful match (copy).')
@@ -458,7 +397,7 @@ if searchMode == 'keyword':
 					userInput = input().lower()
 				print()
 				getCol(userInput)
-		clear()
+		
 		# Finished getting user options
 		# keyword / colInRow
 
@@ -469,7 +408,7 @@ if searchMode == 'keyword':
 	else:
 		# Get search term
 		getTerm()
-		clear()
+		
 
 		# Select offset or pattern mode
 		while True:
@@ -479,13 +418,13 @@ if searchMode == 'keyword':
 
 			if userInput == 'offset':
 				while True:
-					clear()
+					
 					print('How many characters after keyword should copy begin?')
 					print('Offset (spaces count): ', end='')
 					offset = input()
 					# Verify it's a number
 					if not offset.isdigit():
-						clear()
+						
 						print('Offset must be a number (Ex 42)')
 						print()
 					else:
@@ -493,13 +432,13 @@ if searchMode == 'keyword':
 				break
 
 			elif userInput == 'pattern':
-				clear()
+				
 				print('Enter pattern as a Regex (sorry, no auto generation yet)')
 				pattern = input()
 				break
 
 			else:
-				clear()
+				
 				print(userInput + ' is not a valid option')
 				print('Enter offset or pattern: ', end='')
 				print()
@@ -520,7 +459,7 @@ else:
 	if matchMode == 'colInRow':
 		# Get search term
 		getTerm()
-		clear()
+		
 
 		# Step one, user selects columns to use
 		getCol('search')
@@ -529,7 +468,7 @@ else:
 
 		# Step two, verify user selected columns
 		while True:
-			clear()
+			
 			print('Column selection: ')
 			print('\tSearch column ' + get_column_letter(cols['search']) + ' for criteria (search).')
 			print('\tCopy data from column ' + get_column_letter(cols['copy']) + ' on successful match (copy).')
@@ -552,7 +491,7 @@ else:
 					userInput = input().lower()
 				print()
 				getCol(userInput)
-		clear()
+		
 		# Finished getting user options
 		# exact / colInRow
 
@@ -563,7 +502,7 @@ else:
 	else:
 		# Get search term
 		getTerm()
-		clear()
+		
 
 		# Select offset or pattern mode
 		while True:
@@ -573,13 +512,13 @@ else:
 
 			if userInput == 'offset':
 				while True:
-					clear()
+					
 					print('How many characters after keyword should copy begin?')
 					print('Offset (spaces count): ', end='')
 					offset = input()
 					# Verify it's a number
 					if not offset.isdigit():
-						clear()
+						
 						print('Offset must be a number (Ex 42)')
 						print()
 					else:
@@ -587,23 +526,17 @@ else:
 				break
 
 			elif userInput == 'pattern':
-				clear()
+				
 				print('Enter pattern as a Regex (sorry, no auto generation yet)')
 				pattern = input()
 				break
 
 			else:
-				clear()
+				
 				print(userInput + ' is not a valid option')
 				print('Enter offset or pattern: ', end='')
 				print()
 	# Finished getting user options
 	# exact / keywordOffset / ( offset OR pattern )
 
-#########################################################################################################################################################
-# TODO: Rewrite using FUNCTIONS 																														#
-#########################################################################################################################################################
-
-
-
-root.mainloop()
+#root.mainloop()

@@ -27,6 +27,7 @@ class FileSelection:
 		self.filePath = StringVar()
 		self.selectedSheet = StringVar()
 		self.fileDisp = StringVar()
+		self.availableSheets = ()
 
 		# File opening options
 		self.fileOpt = options = {}
@@ -48,8 +49,7 @@ class FileSelection:
 		ttk.Label(fileFrame, text='Select Sheet:').grid(columnspan=3, row=2, sticky=E)
 		self.sheetCBox = ttk.Combobox(fileFrame, textvariable=self.selectedSheet, state='readonly')
 		self.sheetCBox.bind('<<ComboboxSelected>>', self.doSomething)
-		self.sheetCBox['values'] = ('Sheet1', 'Sheet2', 'Sheet3')
-		self.sheetCBox.current(0)
+		self.sheetCBox['values'] = self.availableSheets
 		self.sheetCBox.grid(columnspan=3, column=4, row=2, sticky=W)
 
 		self.loadBtn = ttk.Button(fileFrame, text='Load File', style='loadBtn.TButton')
