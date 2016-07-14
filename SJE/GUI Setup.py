@@ -187,14 +187,14 @@ class ParamSelection:
 		if self.offsetMode.get() == 'pattern':
 			self.offsetPtrnLbl.set('Enter Pattern:')
 		else:
-			self.offsetPtrnLbl.set('Enter Offset (Number of characters):')
+			self.offsetPtrnLbl.set('Enter Offset (# of charcters):')
 
 
 class Search:
 	# Search Frame (Lower right)
 	def __init__(self):
 		# Outer Frame setup
-		searchFrame = ttk.LabelFrame(root, text='Search: ', padding='3 3 12 12')
+		searchFrame = ttk.LabelFrame(root, text='Search: ', padding='3 3')
 		searchFrame.grid(columnspan=6, column=7, row=2, pady=10, sticky='N W S E')
 
 		# Required variables
@@ -217,13 +217,13 @@ class Search:
 
 		self.startSearchBtn = ttk.Button(searchFrame, text='Start Search', style='startSearchBtn.TButton')
 		self.startSearchBtn.bind('<Button-1>', self.doSomething)
-		self.startSearchBtn.grid(columnspan=2, row=7, sticky=W)
+		self.startSearchBtn.grid(row=8, sticky=W)
 		self.selectBtn = ttk.Button(searchFrame, textvariable=self.selectState, style='selectBtn.TButton')
 		self.selectBtn.bind('<Button-1>', self.switchState)
-		self.selectBtn.grid(columnspan=4, column=2, row=7)
+		self.selectBtn.grid(columnspan=5, column=1, row=8)
 		self.exportBtn = ttk.Button(searchFrame, text='Export Sheet', style='exportBtn.TButton')
 		self.exportBtn.bind('<Button-1>', self.doSomething)
-		self.exportBtn.grid(columnspan=2, column=5, row=7, sticky=E)
+		self.exportBtn.grid(columnspan=2, column=6, row=8, sticky=E)
 
 		for child in searchFrame.winfo_children(): child.grid_configure(padx=5, pady=10)
 
@@ -263,7 +263,6 @@ class Search:
 		
 		# Enumerate results
 		for i in range(len(permutations)):
-			print('Iteration ' + str(i))
 			self.cbVals[i] = StringVar()
 			self.cbVals[i].set(1)
 			self.resultCB[i] = ttk.Checkbutton(self.resultFrame, text=permutations[i], variable=self.cbVals[i])

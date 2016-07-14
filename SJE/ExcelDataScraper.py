@@ -4,17 +4,9 @@
 # ExcelDataScraper.py 																	#
 # Written by Kanyon Edvall																#						
 #									 													#
-# This program allows you to traverse any excel sheet and find data of interest 	   	#
-# There are currently two search modes: 											   	#
-# 	1. Keyword search: Finds relevant data based on proximity to a keyword or keywords 	#
-#	2. Exact search: Finds relevant data based on an exact match 						#
-# Keyword search uses Regex expressions to find context of keywords and allows the 		#
-# 	user to select which context options they want to search for 						#
-#	Ex. Keyword: pn may return Context: pn, PN, P/N, P-N, Pn, P N, etc. 				#
+# This program allows you to traverse any excel sheet and find data of interest			#
+# Runs windowless with a GUI made in tkinter 										   	#
 #########################################################################################
-
-# This program will have a GUI counterpart... It's in the works!!!
-# For now CLI only 
 
 # Import Everything
 import sys, os, re, openpyxl
