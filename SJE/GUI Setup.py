@@ -274,6 +274,19 @@ class Search:
 	def updatePerms(self, event):
 		print('Item state changed')
 
+	def switchState(self, event):
+		if self.selectState.get() == 'Unselect All':
+			for box in self.resultCB:
+				self.cbVals[box].set(0)
+			self.updatePerms(None)
+			self.selectState.set('Select All')
+		else:
+			for box in self.resultCB:
+				self.cbVals[box].set(1)
+			self.updatePerms(None)
+			self.selectState.set('Unselect All')
+
+
 filePane = FileSelection()
 sModePane = SearchSelection()
 paramPane = ParamSelection()
