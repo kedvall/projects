@@ -141,27 +141,26 @@ class ParamSelection:
 		paramFrame.grid(columnspan=6, column=7, pady=10, row=0, sticky='N W S E')
 
 		# Required variables
-		self.searchCol = StringVar()
+		self.searchCol = StringVar() # Holds name of column to be searched
+		self.pasteCol = StringVar() # Holds name of column to paste data into
+		self.offsetMode = StringVar() # Currently select offset mode (Radio button)
+		self.offsetPtrnLbl = StringVar() # Holds text of label above pattern entry
+		self.offsetPattern = StringVar() # Holds text from pattern entry field
+		vcmd = paramFrame.register(self.validate) # Validation binding
+
+		# Set defaults
 		self.searchCol.set('Column: A to XFD')
-		self.pasteCol = StringVar()
 		self.pasteCol.set('Column: A to XFD')
-		self.offsetMode = StringVar()
 		self.offsetMode.set('pattern')
-		self.offsetPtrnLbl = StringVar()
 		self.offsetPtrnLbl.set('Enter Pattern:')
-		self.offsetPattern = StringVar()
 
 		# Interface elements
 		ttk.Label(paramFrame, text='Which column would you like to search?').grid(columnspan=5, row=0, sticky=E)
-		self.sColEntry = ttk.Entry(paramFrame, width=17, textvariable=self.searchCol, foreground='grey')
-		self.sColEntry.bind('<Button-1>', self.clearEntry)
-		self.sColEntry.bind('<FocusOut>', self.resetEntry)
+		self.sColEntry = ttk.Entry(paramFrame, width=17, textvariable=self.searchCol, foreground='grey', validate='all', validatecommand=(vcmd, '%V', '%W', '%P'))
 		self.sColEntry.grid(columnspan=2, column=5, row=0, sticky=W)
-
+		
 		ttk.Label(paramFrame, text='Which column would you like to copy the selected data to?').grid(columnspan=5, row=1, sticky=E)
-		self.pColEntry = ttk.Entry(paramFrame, width=17, textvariable=self.pasteCol, foreground='grey')
-		self.pColEntry.bind('<Button-1>', self.clearEntry)
-		self.pColEntry.bind('<FocusOut>', self.resetEntry)
+		self.pColEntry = ttk.Entry(paramFrame, width=17, textvariable=self.pasteCol, foreground='grey', validate='all', validatecommand=(vcmd, '%V', '%W', '%P'))
 		self.pColEntry.grid(columnspan=2, column=5, row=1, sticky=W)
 
 		ttk.Label(paramFrame, text='').grid(columnspan=7, row=2, sticky=(W, E)) # Divider
@@ -172,60 +171,89 @@ class ParamSelection:
 		self.patternRBtn.grid(column=0, row=4, sticky=W)
 		self.charRBtn = ttk.Radiobutton(paramFrame, text='Character Count', variable=self.offsetMode, value='char', command=self.radioSet)
 		self.charRBtn.grid(column=1, row=4, sticky=W)
-		self.ptrnEntry = ttk.Entry(paramFrame, width=30, textvariable=self.offsetPattern)
-		self.ptrnEntry.bind('<Button-1>', self.clearEntry)
-		self.ptrnEntry.bind('<FocusOut>', self.evalPattern)
+		self.ptrnEntry = ttk.Entry(paramFrame, width=30, textvariable=self.offsetPattern, validate='all', validatecommand=(vcmd, '%V', '%W', '%P'))
 		self.ptrnEntry.grid(columnspan=5, column=2, row=4, sticky=W)
-
+		
 		for child in paramFrame.winfo_children(): child.grid_configure(padx=5, pady=5)
 
-	def clearEntry(self, event):
-		if event.widget is self.sColEntry:
-			if self.searchCol.get() == 'Column: A to XFD':
-				self.sColEntry.configure(foreground='black')
-				self.searchCol.set('')
-		elif event.widget is self.pColEntry:
-			if self.pasteCol.get() == 'Column: A to XFD':
-				self.pColEntry.configure(foreground='black')
-				self.pasteCol.set('')
-		elif event.widget is self.ptrnEntry:
-			if self.offsetPattern.get() == 'Not a number!' or self.offsetPattern.get() == 'Must be a number (Ex 10)' or self.offsetPattern.get() == 'Enter a pattern!':
-				self.ptrnEntry.configure(foreground='black')
-				self.offsetPattern.set('')
+	def validate(self, reason, name, value):
+		if reason == 'radioChange'
 
-	def resetEntry(self, event):
-		if event.widget is self.sColEntry:
-			if self.searchCol.get() == '':
-				self.sColEntry.configure(foreground='grey')
-				self.searchCol.set('Column: A to XFD')
-		if event.widget is self.pColEntry:
-			if self.pasteCol.get() == '':
-				self.pColEntry.configure(foreground='grey')
-				self.pasteCol.set('Column: A to XFD')
 
-	def radioSet(self):
-		if self.offsetMode.get() == 'pattern':
-			if self.offsetPattern.get() == 'Not a number!' or self.offsetPattern.get() == 'Must be a number (Ex 10)' or self.offsetPattern.get() == 'Enter a pattern!':
-				self.ptrnEntry.configure(foreground='black')
-				self.offsetPattern.set('')
-			self.offsetPtrnLbl.set('Enter Pattern:')
-		else:
-			self.offsetPtrnLbl.set('Enter Offset (# of charcters):')
-			if self.offsetPattern.get() == '' or self.offsetPattern.get() == 'Not a number!' or self.offsetPattern.get() == 'Enter a pattern!':
+		print(reason + ', ' + str(name) + ', ' + str(value))
+		if reason == 'radioChange':
+			if self.offsetMode.get() == 'char':
+				if not (value.isdigit() or value == ''):
+					self.prepEntry('instruct', 'pattern')
+			if self.offsetMode.get() == 'pattern':
+					self.prepEntry('clear', 'pattern')
+
+		if reason == 'focusin':
+			self.prepEntry( 'clear', name)
+
+		if reason == 'focusout':
+			self.prepEntry('instruct', name)
+			
+			if name == str(self.sColEntry):
+				if not value.isalpha() and self.searchCol.get() != 'Column: A to XFD': # If the user entered something other than a letter and text isn't placeholder, clear it
+					self.searchCol.set('')
+			if name == str(self.pColEntry):
+				if not value.isalpha() and self.pasteCol.get() != 'Column: A to XFD': # If the user entered something other than a letter and text isn't placeholder, clear it
+					self.pasteCol.set('')
+			if name == str(self.ptrnEntry) and self.offsetMode == 'char': # If in character mode validate, otherwise ignore
+				if not value.isdigit() and self.offsetPattern.get() != 'Must be a number (Ex 10)':  # If the user entered something other than a number and text isn't placeholder, clear it
+					self.offsetPattern.set('')
+			
+		if reason == 'key':
+			if name == str(self.sColEntry) or name == str(self.pColEntry):
+				print(value)
+				if not (value.isalpha() or value == ''):
+					print('No Char')
+					return False
+			if (name == str(self.ptrnEntry) and self.offsetMode.get() == 'char'):
+				print(value)
+				if not (value.isdigit() or value == ''):
+					print('No Digit')
+					return False
+
+		return True
+
+	def prepEntry(self, prepType, entry):
+		if prepType == 'clear': # If the entry has placeholder text, clear it
+			if entry == str(self.sColEntry):
+				if self.searchCol.get() == 'Column: A to XFD':
+					self.sColEntry.configure(foreground='black')
+					self.searchCol.set('')
+			if entry == str(self.pColEntry):
+				if self.pasteCol.get() == 'Column: A to XFD':
+					self.pColEntry.configure(foreground='black')
+					self.pasteCol.set('')
+			if entry == str(self.ptrnEntry) or entry == 'pattern':
+				if self.offsetPattern.get() == 'Must be a number (Ex 10)':
+					self.ptrnEntry.configure(foreground='black')
+					self.offsetPattern.set('')
+
+		if prepType == 'instruct': # If the entry is blank, insert instructions
+			if entry == str(self.sColEntry):
+				if self.searchCol.get() == '':
+					self.sColEntry.configure(foreground='grey')
+					self.searchCol.set('Column: A to XFD')
+			if entry == str(self.pColEntry):
+				if self.pasteCol.get() == '':
+					self.pColEntry.configure(foreground='grey')
+					self.pasteCol.set('Column: A to XFD')
+			if entry == str(self.ptrnEntry) or entry == 'pattern':
 				self.ptrnEntry.configure(foreground='grey')
 				self.offsetPattern.set('Must be a number (Ex 10)')
 
-	def evalPattern(self, event):
+
+	def radioSet(self):
 		if self.offsetMode.get() == 'pattern':
-			if not self.offsetPattern.get() == '':
-				RegexGeneration.test()
-			else:
-				self.ptrnEntry.configure(foreground='red')
-				self.offsetPattern.set('Enter a pattern!')
+			self.offsetPtrnLbl.set('Enter Pattern:')
+			self.validate('radioChange', None, self.offsetPattern.get())
 		else:
-			if not self.offsetPattern.get().isdigit():
-				self.ptrnEntry.configure(foreground='red')
-				self.offsetPattern.set('Not a number!')
+			self.offsetPtrnLbl.set('Enter Offset (# of charcters):')
+			self.validate('radioChange', None, self.offsetPattern.get())
 
 
 class Search:
