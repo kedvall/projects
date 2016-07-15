@@ -184,7 +184,8 @@ class ParamSelection:
 		
 		self.nameDict = {str(self.sColEntry):{'textvar':'self.searchCol', 'placeholder':'Column: A to XFD', 'entryName':'self.sColEntry', 'type':'column'},
 						 str(self.pColEntry):{'textvar':'self.pasteCol', 'placeholder':'Column: A to XFD', 'entryName':'self.pColEntry', 'type':'column'},
-						 str(self.ptrnEntry):{'textvar':'self.offsetPattern', 'placeholder':'Must be a number (Ex 10)', 'entryName':'self.ptrnEntry', 'type':'pattern'}}
+						 str(self.ptrnEntry):{'textvar':'self.offsetPattern', 'placeholder':'Must be a number (Ex 10)', 'entryName':'self.ptrnEntry', 'type':'pattern'},
+						 'radioTriggerMapping':{'textvar':'self.offsetPattern', 'placeholder':'Must be a number (Ex 10)', 'entryName':'self.ptrnEntry', 'type':'pattern'}}
 
 		for child in paramFrame.winfo_children(): child.grid_configure(padx=5, pady=5)
 
@@ -204,9 +205,9 @@ class ParamSelection:
 		if reason == 'radioChange': # Radio button was clicked, check new position
 			if entryValue == 'char':
 				if not self.validateEntry(entryName, entryValue):
-					self.setPlaceholder('self.offsetPattern', True)
+					self.setPlaceholder('radioTriggerMapping', True)
 			if entryValue == 'pattern':
-				self.remPlaceholder('self.offsetPattern')
+				self.remPlaceholder('radioTriggerMapping')
 
 		elif reason == 'focusin':
 			self.remPlaceholder(entryName)
@@ -218,36 +219,20 @@ class ParamSelection:
 			if not self.validateEntry(entryName, entryValue):
 				return False
 
-		return True
-
-		'''
-			if name == str(self.sColEntry):
-				if not value.isalpha() and self.searchCol.get() != 'Column: A to XFD': # If the user entered something other than a letter and text isn't placeholder, clear it
-					self.searchCol.set('')
-			if name == str(self.pColEntry):
-				if not value.isalpha() and self.pasteCol.get() != 'Column: A to XFD': # If the user entered something other than a letter and text isn't placeholder, clear it
-					self.pasteCol.set('')
-			if name == str(self.ptrnEntry) and self.offsetMode == 'char': # If in character mode validate, otherwise ignore
-				if not value.isdigit() and self.offsetPattern.get() != 'Must be a number (Ex 10)':  # If the user entered something other than a number and text isn't placeholder, clear it
-					self.offsetPattern.set('')
-			
-		if reason == 'key':
-			if name == str(self.sColEntry) or name == str(self.pColEntry):
-				print(value)
-				if not (value.isalpha() or value == ''):
-					print('No Char')
-					return False
-			if (name == str(self.ptrnEntry) and self.offsetMode.get() == 'char'):
-				print(value)
-				if not (value.isdigit() or value == ''):
-					print('No Digit')
-					return False
-		'''
+		return True		
 
 
-	def validateEntry(self, entryName, valueToEval):
+	def validateEntry(self, varName, curEntryVal):
 		# Validates the entry based on entry type. Returns True if pass, False if fail
-		print('Validating')
+		if self.nameDict[varName]['type'] == 'column':
+			if (curEntryVal.isalpha() or curEntryVal == ''):
+				return True
+
+		elif self.offsetMode.get() == 'char':
+			if (curEntryVal.isdigit() or curEntryVal == ''):
+				return True
+
+		return False
 
 
 	def setPlaceholder(self, varName, forceSet):
@@ -256,9 +241,10 @@ class ParamSelection:
 
 		if forceSet: # If force flag is set, override current value
 			textvar.set(self.nameDict[varName]['placeholder'])
-
+			self.nameDict[varName]['entryName'].configure(foreground='grey')
 		elif textvar.get() == '': # Check if Entry is empty before setting value
 			textvar.set(self.nameDict[varName]['placeholder'])
+			self.nameDict[varName]['entryName'].configure(foreground='grey')
 
 
 	def remPlaceholder(self, varName):
@@ -267,55 +253,7 @@ class ParamSelection:
 
 		if textvar.get() == self.nameDict[varName]['placeholder']:
 			textvar.set('')
-
-
-	def checkColumn(self, hold):
-		print()
-
-
-	def checkPattern(self, hold):
-		print()
-
-
-	def nameTranslation(self, nameToTrans):
-		# Translates an entry widget's name to the corresponding textvariable based on dictionary
-		# Returns translation or input value is not found
-		try:
-			tranlatedName = self.entryVarDict[nameToTrans]
-			print('Return trans')
-			return tranlatedName
-		except KeyError:
-			print('Origin')
-			return nameToTrans
-
-
-	def prepEntry(self, prepType, entry):
-		if prepType == 'clear': # If the entry has placeholder text, clear it
-			if entry == str(self.sColEntry):
-				if self.searchCol.get() == 'Column: A to XFD':
-					self.sColEntry.configure(foreground='black')
-					self.searchCol.set('')
-			if entry == str(self.pColEntry):
-				if self.pasteCol.get() == 'Column: A to XFD':
-					self.pColEntry.configure(foreground='black')
-					self.pasteCol.set('')
-			if entry == str(self.ptrnEntry) or entry == 'pattern':
-				if self.offsetPattern.get() == 'Must be a number (Ex 10)':
-					self.ptrnEntry.configure(foreground='black')
-					self.offsetPattern.set('')
-
-		if prepType == 'instruct': # If the entry is blank, insert instructions
-			if entry == str(self.sColEntry):
-				if self.searchCol.get() == '':
-					self.sColEntry.configure(foreground='grey')
-					self.searchCol.set('Column: A to XFD')
-			if entry == str(self.pColEntry):
-				if self.pasteCol.get() == '':
-					self.pColEntry.configure(foreground='grey')
-					self.pasteCol.set('Column: A to XFD')
-			if entry == str(self.ptrnEntry) or entry == 'pattern':
-				self.ptrnEntry.configure(foreground='grey')
-				self.offsetPattern.set('Must be a number (Ex 10)')
+			self.nameDict[varName]['entryName'].configure(foreground='black')
 
 
 class Search:
