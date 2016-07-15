@@ -182,10 +182,10 @@ class ParamSelection:
 		self.ptrnEntry = ttk.Entry(paramFrame, width=30, textvariable=self.offsetPattern, validate='all', validatecommand=(vcmd, '%V', '%W', '%P'))
 		self.ptrnEntry.grid(columnspan=5, column=2, row=4, sticky=W)
 		
-		self.nameDict = {str(self.sColEntry):{'textvar':'self.searchCol', 'placeholder':'Column: A to XFD', 'entryName':'self.sColEntry', 'type':'column'},
-						 str(self.pColEntry):{'textvar':'self.pasteCol', 'placeholder':'Column: A to XFD', 'entryName':'self.pColEntry', 'type':'column'},
-						 str(self.ptrnEntry):{'textvar':'self.offsetPattern', 'placeholder':'Must be a number (Ex 10)', 'entryName':'self.ptrnEntry', 'type':'pattern'},
-						 'radioTriggerMapping':{'textvar':'self.offsetPattern', 'placeholder':'Must be a number (Ex 10)', 'entryName':'self.ptrnEntry', 'type':'pattern'}}
+		self.nameDict = {str(self.sColEntry):{'textvar':self.searchCol, 'placeholder':'Column: A to XFD', 'entryName':self.sColEntry, 'type':'column'},
+						 str(self.pColEntry):{'textvar':self.pasteCol, 'placeholder':'Column: A to XFD', 'entryName':self.pColEntry, 'type':'column'},
+						 str(self.ptrnEntry):{'textvar':self.offsetPattern, 'placeholder':'Must be a number (Ex 10)', 'entryName':self.ptrnEntry, 'type':'pattern'},
+						 'radioTriggerMapping':{'textvar':self.offsetPattern, 'placeholder':'Must be a number (Ex 10)', 'entryName':self.ptrnEntry, 'type':'pattern'}}
 
 		for child in paramFrame.winfo_children(): child.grid_configure(padx=5, pady=5)
 
@@ -193,30 +193,29 @@ class ParamSelection:
 	def radioSet(self):
 		if self.offsetMode.get() == 'pattern':
 			self.offsetPtrnLbl.set('Enter Pattern:')
-			self.updateHandler('radioChange', None, self.offsetMode.get())
+			self.updateHandler('radioChange', 'radioTriggerMapping', self.offsetPattern.get())
 		else:
 			self.offsetPtrnLbl.set('Enter Offset (# of characters):')
-			self.updateHandler('radioChange', None, self.offsetMode.get())
+			self.updateHandler('radioChange', 'radioTriggerMapping', self.offsetPattern.get())
 
 
-	def updateHandler(self, reason, entryName, entryValue): 
-		#print('reason: ' + reason + ', entryName: ' + str(entryName) + ', entryValue: ' + entryValue) # For debugging
+	def updateHandler(self, reason, varName, entryValue): 
 		# Called on entry state change, decides where to pass task. Return True to allow edit, False to disallow
 		if reason == 'radioChange': # Radio button was clicked, check new position
-			if entryValue == 'char':
-				if not self.validateEntry(entryName, entryValue):
-					self.setPlaceholder('radioTriggerMapping', True)
-			if entryValue == 'pattern':
-				self.remPlaceholder('radioTriggerMapping')
+			if self.offsetMode.get() == 'char':
+				if (not self.validateEntry(varName, entryValue) or self.offsetPattern.get() == ''):
+					self.setPlaceholder(varName, True)
+			else:
+				self.remPlaceholder(varName)
 
 		elif reason == 'focusin':
-			self.remPlaceholder(entryName)
+			self.remPlaceholder(varName)
 
 		elif reason == 'focusout':
-			self.setPlaceholder(entryName, False)
+			self.setPlaceholder(varName, False)
 
 		elif reason == 'key':
-			if not self.validateEntry(entryName, entryValue):
+			if not self.validateEntry(varName, entryValue):
 				return False
 
 		return True		
@@ -225,14 +224,14 @@ class ParamSelection:
 	def validateEntry(self, varName, curEntryVal):
 		# Validates the entry based on entry type. Returns True if pass, False if fail
 		if self.nameDict[varName]['type'] == 'column':
-			if (curEntryVal.isalpha() or curEntryVal == ''):
-				return True
+			if not (curEntryVal.isalpha() or curEntryVal == ''):
+				return False
 
 		elif self.offsetMode.get() == 'char':
-			if (curEntryVal.isdigit() or curEntryVal == ''):
-				return True
+			if not (curEntryVal.isdigit() or curEntryVal == ''):
+				return False
 
-		return False
+		return True
 
 
 	def setPlaceholder(self, varName, forceSet):
@@ -241,10 +240,16 @@ class ParamSelection:
 
 		if forceSet: # If force flag is set, override current value
 			textvar.set(self.nameDict[varName]['placeholder'])
-			self.nameDict[varName]['entryName'].configure(foreground='grey')
+			self.nameDict[varName][str('entryName')].configure(foreground='grey')
+
 		elif textvar.get() == '': # Check if Entry is empty before setting value
-			textvar.set(self.nameDict[varName]['placeholder'])
-			self.nameDict[varName]['entryName'].configure(foreground='grey')
+			if (self.nameDict[varName]['type'] == 'pattern' and self.offsetMode.get() == 'char'): # If pattern entry, make sure char is selected
+				textvar.set(self.nameDict[varName]['placeholder'])
+				self.nameDict[varName][str('entryName')].configure(foreground='grey')
+
+			elif self.nameDict[varName]['type'] == 'column': # Column entry
+				textvar.set(self.nameDict[varName]['placeholder'])
+				self.nameDict[varName][str('entryName')].configure(foreground='grey')
 
 
 	def remPlaceholder(self, varName):
@@ -253,7 +258,7 @@ class ParamSelection:
 
 		if textvar.get() == self.nameDict[varName]['placeholder']:
 			textvar.set('')
-			self.nameDict[varName]['entryName'].configure(foreground='black')
+			self.nameDict[varName][str('entryName')].configure(foreground='black')
 
 
 class Search:
