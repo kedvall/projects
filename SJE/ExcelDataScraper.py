@@ -146,7 +146,8 @@ class ParamSelection:
 		self.offsetMode = StringVar() # Currently select offset mode (Radio button)
 		self.offsetPtrnLbl = StringVar() # Holds text of label above pattern entry
 		self.offsetPattern = StringVar() # Holds text from pattern entry field
-		vcmd = paramFrame.register(self.validate) # Validation binding
+		vcmd = paramFrame.register(self.updateHandler) # Validation binding
+		self.instructionDict = {'column':'Column: A to XFD', 'char':'Must be a number (Ex 10)'}
 
 		# Set defaults
 		self.searchCol.set('Column: A to XFD')
@@ -174,12 +175,38 @@ class ParamSelection:
 		self.ptrnEntry = ttk.Entry(paramFrame, width=30, textvariable=self.offsetPattern, validate='all', validatecommand=(vcmd, '%V', '%W', '%P'))
 		self.ptrnEntry.grid(columnspan=5, column=2, row=4, sticky=W)
 		
+		self.entryVarDict = {str(self.sColEntry):'searchCol', str(self.pColEntry):'pasteCol', str(self.ptrnEntry):'offsetPattern'}
+
 		for child in paramFrame.winfo_children(): child.grid_configure(padx=5, pady=5)
 
-	def validate(self, reason, name, value):
-		if reason == 'radioChange'
+	def radioSet(self):
+		if self.offsetMode.get() == 'pattern':
+			self.offsetPtrnLbl.set('Enter Pattern:')
+			self.updateHandler('radioChange', None, self.offsetMode.get())
+		else:
+			self.offsetPtrnLbl.set('Enter Offset (# of characters):')
+			self.updateHandler('radioChange', None, self.offsetMode.get())
 
+	def updateHandler(self, reason, entryName, entryValue): 
+		#print('reason: ' + reason + ', entryName: ' + str(entryName) + ', entryValue: ' + entryValue) # For debugging
+		# Called on entry state change, decides where to pass task. Return True to allow edit, False to disallow
+		if reason == 'radioChange': # Radio button was clicked, check new position
+			if entryValue == 'char':
+				if not self.validateEntry(entryName, entryValue):
+					self.setPlaceholder('offsetPattern', True)
+			if entryValue == 'pattern':
+				self.remPlaceholder('offsetPattern')
 
+		elif reason == 'focusin':
+			self.remPlaceholder(entryName)
+
+		elif reason == 'focusout':
+			self.setPlaceholder(entryName, False)
+
+		elif reason == 'key':
+			self.validateEntry(entryName, entryValue)
+
+		'''
 		print(reason + ', ' + str(name) + ', ' + str(value))
 		if reason == 'radioChange':
 			if self.offsetMode.get() == 'char':
@@ -215,8 +242,39 @@ class ParamSelection:
 				if not (value.isdigit() or value == ''):
 					print('No Digit')
 					return False
-
+		'''
 		return True
+
+	def validateEntry(self, entryName, valueToEval):
+		# Validates the entry based on entry type. Returns True if pass, False if fail
+		print('Validating')
+
+	def setPlaceholder(self, entryVariable, forceSet):
+		# Sets the placeholder text of the entry. Can be forced to override current text
+		entryVariable = self.nameTranslation(entryVariable)
+		print('Setplace translated: ' + str(entryVariable))
+
+	def remPlaceholder(self, entryVariable):
+		# Removes the placeholder text of the entry
+		entryVariable = self.nameTranslation(entryVariable)
+		print('remPlace translated: ' + str(entryVariable))
+
+	def checkColumn(self, hold):
+		print()
+
+	def checkPattern(self, hold):
+		print()
+
+	def nameTranslation(self, nameToTrans):
+		# Translates an entry widget's name to the corresponding textvariable based on dictionary
+		# Returns translation or input value is not found
+		try:
+			tranlatedName = self.entryVarDict[nameToTrans]
+			print('Return trans')
+			return tranlatedName
+		except KeyError:
+			print('Origin')
+			return nameToTrans
 
 	def prepEntry(self, prepType, entry):
 		if prepType == 'clear': # If the entry has placeholder text, clear it
@@ -245,15 +303,6 @@ class ParamSelection:
 			if entry == str(self.ptrnEntry) or entry == 'pattern':
 				self.ptrnEntry.configure(foreground='grey')
 				self.offsetPattern.set('Must be a number (Ex 10)')
-
-
-	def radioSet(self):
-		if self.offsetMode.get() == 'pattern':
-			self.offsetPtrnLbl.set('Enter Pattern:')
-			self.validate('radioChange', None, self.offsetPattern.get())
-		else:
-			self.offsetPtrnLbl.set('Enter Offset (# of charcters):')
-			self.validate('radioChange', None, self.offsetPattern.get())
 
 
 class Search:
