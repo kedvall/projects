@@ -1,5 +1,4 @@
 #! python3
-
 #########################################################################################
 # ExcelDataScraper.py 																	#
 # Written by Kanyon Edvall																#						
@@ -7,6 +6,7 @@
 # This program allows you to traverse any excel sheet and find data of interest			#
 # Runs windowless with a GUI made in tkinter 										   	#
 #########################################################################################
+
 
 #************************************ Program Setup ************************************#
 # Import Everything
@@ -16,9 +16,11 @@ from tkinter import *
 from tkinter import ttk, filedialog
 from openpyxl.cell import get_column_letter, column_index_from_string
 
+
 #Global Variables
 offset=''
 permutations = []
+
 
 # Set up GUI
 root = Tk() # Create blank window
@@ -67,8 +69,10 @@ class FileSelection:
 
 		for child in fileFrame.winfo_children(): child.grid_configure(padx=5, pady=10)
 
+
 	def eventPass(self, event):
 		self.askDir()
+
 
 	def askDir(self):
 		self.filename = filedialog.askopenfilename(**self.fileOpt)
@@ -81,6 +85,7 @@ class FileSelection:
 			self.loadSheets()
 		style.configure('fileBtn.TButton', relief=RAISED)
 
+
 	def loadSheets(self):
 		try:
 			self.wb = openpyxl.load_workbook(self.filePath.get())
@@ -88,6 +93,7 @@ class FileSelection:
 			self.sheetCBox.current(self.sheetCBox['values'].index(self.wb.active.title))
 		except FileNotFoundError:
 			self.fileDisp.set('Could not load file at ' + self.filename)
+
 
 	def loadFile(self, event):
 		try:
@@ -127,6 +133,7 @@ class SearchSelection:
 
 		for child in sModeFrame.winfo_children(): child.grid_configure(padx=5, pady=0)
 		
+
 	def radioSet(self):
 		search = self.searchMode.get()
 		match = self.matchMode.get()
@@ -175,9 +182,12 @@ class ParamSelection:
 		self.ptrnEntry = ttk.Entry(paramFrame, width=30, textvariable=self.offsetPattern, validate='all', validatecommand=(vcmd, '%V', '%W', '%P'))
 		self.ptrnEntry.grid(columnspan=5, column=2, row=4, sticky=W)
 		
-		self.entryVarDict = {str(self.sColEntry):'searchCol', str(self.pColEntry):'pasteCol', str(self.ptrnEntry):'offsetPattern'}
+		self.nameDict = {str(self.sColEntry):{'textvar':'self.searchCol', 'placeholder':'Column: A to XFD', 'entryName':'self.sColEntry', 'type':'column'},
+						 str(self.pColEntry):{'textvar':'self.pasteCol', 'placeholder':'Column: A to XFD', 'entryName':'self.pColEntry', 'type':'column'},
+						 str(self.ptrnEntry):{'textvar':'self.offsetPattern', 'placeholder':'Must be a number (Ex 10)', 'entryName':'self.ptrnEntry', 'type':'pattern'}}
 
 		for child in paramFrame.winfo_children(): child.grid_configure(padx=5, pady=5)
+
 
 	def radioSet(self):
 		if self.offsetMode.get() == 'pattern':
@@ -187,15 +197,16 @@ class ParamSelection:
 			self.offsetPtrnLbl.set('Enter Offset (# of characters):')
 			self.updateHandler('radioChange', None, self.offsetMode.get())
 
+
 	def updateHandler(self, reason, entryName, entryValue): 
 		#print('reason: ' + reason + ', entryName: ' + str(entryName) + ', entryValue: ' + entryValue) # For debugging
 		# Called on entry state change, decides where to pass task. Return True to allow edit, False to disallow
 		if reason == 'radioChange': # Radio button was clicked, check new position
 			if entryValue == 'char':
 				if not self.validateEntry(entryName, entryValue):
-					self.setPlaceholder('offsetPattern', True)
+					self.setPlaceholder('self.offsetPattern', True)
 			if entryValue == 'pattern':
-				self.remPlaceholder('offsetPattern')
+				self.remPlaceholder('self.offsetPattern')
 
 		elif reason == 'focusin':
 			self.remPlaceholder(entryName)
@@ -204,23 +215,12 @@ class ParamSelection:
 			self.setPlaceholder(entryName, False)
 
 		elif reason == 'key':
-			self.validateEntry(entryName, entryValue)
+			if not self.validateEntry(entryName, entryValue):
+				return False
+
+		return True
 
 		'''
-		print(reason + ', ' + str(name) + ', ' + str(value))
-		if reason == 'radioChange':
-			if self.offsetMode.get() == 'char':
-				if not (value.isdigit() or value == ''):
-					self.prepEntry('instruct', 'pattern')
-			if self.offsetMode.get() == 'pattern':
-					self.prepEntry('clear', 'pattern')
-
-		if reason == 'focusin':
-			self.prepEntry( 'clear', name)
-
-		if reason == 'focusout':
-			self.prepEntry('instruct', name)
-			
 			if name == str(self.sColEntry):
 				if not value.isalpha() and self.searchCol.get() != 'Column: A to XFD': # If the user entered something other than a letter and text isn't placeholder, clear it
 					self.searchCol.set('')
@@ -243,27 +243,39 @@ class ParamSelection:
 					print('No Digit')
 					return False
 		'''
-		return True
+
 
 	def validateEntry(self, entryName, valueToEval):
 		# Validates the entry based on entry type. Returns True if pass, False if fail
 		print('Validating')
 
-	def setPlaceholder(self, entryVariable, forceSet):
-		# Sets the placeholder text of the entry. Can be forced to override current text
-		entryVariable = self.nameTranslation(entryVariable)
-		print('Setplace translated: ' + str(entryVariable))
 
-	def remPlaceholder(self, entryVariable):
+	def setPlaceholder(self, varName, forceSet):
+		# Sets the placeholder text of the entry. Can be forced to override current text
+		textvar = self.nameDict[varName]['textvar']
+
+		if forceSet: # If force flag is set, override current value
+			textvar.set(self.nameDict[varName]['placeholder'])
+
+		elif textvar.get() == '': # Check if Entry is empty before setting value
+			textvar.set(self.nameDict[varName]['placeholder'])
+
+
+	def remPlaceholder(self, varName):
 		# Removes the placeholder text of the entry
-		entryVariable = self.nameTranslation(entryVariable)
-		print('remPlace translated: ' + str(entryVariable))
+		textvar = self.nameDict[varName]['textvar']
+
+		if textvar.get() == self.nameDict[varName]['placeholder']:
+			textvar.set('')
+
 
 	def checkColumn(self, hold):
 		print()
 
+
 	def checkPattern(self, hold):
 		print()
+
 
 	def nameTranslation(self, nameToTrans):
 		# Translates an entry widget's name to the corresponding textvariable based on dictionary
@@ -275,6 +287,7 @@ class ParamSelection:
 		except KeyError:
 			print('Origin')
 			return nameToTrans
+
 
 	def prepEntry(self, prepType, entry):
 		if prepType == 'clear': # If the entry has placeholder text, clear it
