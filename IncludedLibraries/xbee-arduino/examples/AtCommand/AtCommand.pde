@@ -31,9 +31,9 @@ with the Arduino Serial Monitor.
 
 // Define SoftSerial TX/RX pins
 // Connect Arduino pin 8 to TX of usb-serial device
-uint8_t ssRX = 8;
+uint8_t ssRX = 10;
 // Connect Arduino pin 9 to RX of usb-serial device
-uint8_t ssTX = 9;
+uint8_t ssTX = 11;
 // Remember to connect all devices to a common Ground: XBee, Arduino and USB-Serial device
 SoftwareSerial nss(ssRX, ssTX);
 

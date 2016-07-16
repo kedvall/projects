@@ -5,10 +5,7 @@
 #include <XBee.h>
 #include <SoftwareSerial.h>
 
-//Define SoftwareSerial TX/RX pins
-uint8_t ssRX = 8; //Connect pin 8 to TX of usb-serial device
-uint8_t ssTX = 9; //Connect pin 9 to RX of usb-serial device
-SoftwareSerial nss(ssRX, ssTX);
+SoftwareSerial nss(10, 11); //RX, TX
 
 XBee xbee = XBee();
 

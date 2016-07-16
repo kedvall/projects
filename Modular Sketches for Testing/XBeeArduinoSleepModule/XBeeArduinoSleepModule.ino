@@ -14,8 +14,8 @@ uint8_t ssRX = 7; //Connect pin 8 to TX of usb-serial device
 uint8_t ssTX = 8; //Connect pin 9 to RX of usb-serial device
 SoftwareSerial nss(ssRX, ssTX);
 
-uint8_t psCmd[] = {'D', '7'}; //Pin control
-uint8_t smCmd[] = {'S', 'M'}; //Sleep mode
+uint8_t psCmd[] = {'D7', '0'}; //Pin control
+uint8_t smCmd[] = {'SM', '1'}; //Sleep mode
 
 unsigned long sleepTime; //Amount of time in MS Arduino should sleep
 
@@ -76,6 +76,7 @@ void loop()
 
 void sendAtCommand() {
   nss.println("Sending command to the XBee");
+  Serial.println("Sending command to the XBee");
 
   // send the command
   xbee.send(atRequest);
@@ -90,40 +91,56 @@ void sendAtCommand() {
 
       if (atResponse.isOk()) {
         nss.print("Command [");
+        Serial.print("Command [");
         nss.print(atResponse.getCommand()[0]);
+        Serial.print(atResponse.getCommand()[0]);
         nss.print(atResponse.getCommand()[1]);
+        Serial.print(atResponse.getCommand()[1]);
         nss.println("] was successful!");
+        Serial.println("] was successful!");
 
         if (atResponse.getValueLength() > 0) {
           nss.print("Command value length is ");
+          Serial.print("Command value length is ");
           nss.println(atResponse.getValueLength(), DEC);
+          Serial.println(atResponse.getValueLength(), DEC);
 
           nss.print("Command value: ");
           
           for (int i = 0; i < atResponse.getValueLength(); i++) {
             nss.print(atResponse.getValue()[i], HEX);
+            Serial.print(atResponse.getValue()[i], HEX);
             nss.print(" ");
+            Serial.print(" ");
           }
 
           nss.println("");
+          Serial.println("");
         }
       } 
       else {
         nss.print("Command return error code: ");
+        Serial.print("Command return error code: ");
         nss.println(atResponse.getStatus(), HEX);
+        Serial.println(atResponse.getStatus(), HEX);
       }
     } else {
+      Serial.print("Expected AT response but got ");
       nss.print("Expected AT response but got ");
+      Serial.print(xbee.getResponse().getApiId(), HEX);
       nss.print(xbee.getResponse().getApiId(), HEX);
     }   
   } else {
     // at command failed
     if (xbee.getResponse().isError()) {
+      Serial.print("Error reading packet.  Error code: ");  
       nss.print("Error reading packet.  Error code: ");  
+      Serial.println(xbee.getResponse().getErrorCode());
       nss.println(xbee.getResponse().getErrorCode());
     } 
     else {
       nss.print("No response from radio");  
+      Serial.print("No response from radio");  
     }
   }
 }

@@ -1,5 +1,5 @@
 /************************************************************************
-* Module for testing sleep functionality of Arduino (without XBee)    *
+* Module for testing sleep functionality of Arduino (without XBee)      *
 ************************************************************************/
 #include <SPI.h>
 #include <avr/sleep.h>
