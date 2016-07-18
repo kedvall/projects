@@ -101,9 +101,9 @@ class FileSelection:
 	def loadWorkbook(self):
 	# Load workbook and setup sheet selection
 		try:
-			self.wb = openpyxl.load_workbook(self.filePath.get())
-			self.sheetCBox['values'] = self.wb.get_sheet_names()
-			self.sheetCBox.current(self.sheetCBox['values'].index(self.wb.active.title))
+			FileSelection.wb = openpyxl.load_workbook(self.filePath.get())
+			self.sheetCBox['values'] = FileSelection.wb.get_sheet_names()
+			self.sheetCBox.current(self.sheetCBox['values'].index(FileSelection.wb.active.title))
 		except FileNotFoundError:
 			self.fileDisp.set('Could not load file at ' + self.filename)
 
@@ -111,7 +111,7 @@ class FileSelection:
 	def loadFile(self, event):
 		# Load selected sheet from workbook
 		try:
-			self.sheet = self.wb.get_sheet_by_name(self.selectedSheet.get())
+			FileSelection.sheet = FileSelection.wb.get_sheet_by_name(self.selectedSheet.get())
 			self.fileDisp.set('Successfully loaded ' + str(self.selectedSheet.get()) + '.')
 		except KeyError:
 			self.fileDisp.set('Error loading ' + str(self.selectedSheet.get()) + '!')
@@ -162,42 +162,42 @@ class ParamSelection:
 		paramFrame.grid(columnspan=6, column=7, pady=10, row=0, sticky='N W S E')
 
 		# Required variables
-		self.searchCol = StringVar() # Holds name of column to be searched
-		self.pasteCol = StringVar() # Holds name of column to paste data into
-		self.offsetMode = StringVar() # Currently select offset mode (Radio button)
+		ParamSelection.searchCol = StringVar() # Holds name of column to be searched
+		ParamSelection.pasteCol = StringVar() # Holds name of column to paste data into
+		ParamSelection.offsetMode = StringVar() # Currently select offset mode (Radio button)
 		self.offsetPtrnLbl = StringVar() # Holds text of label above pattern entry
 		self.offsetPattern = StringVar() # Holds text from pattern entry field
 		vcmd = paramFrame.register(self.updateHandler) # Validation binding
 		self.instructionDict = {'column':'Column: A to XFD', 'char':'Must be a number (Ex 10)'}
 
 		# Set defaults
-		self.searchCol.set('Column: A to XFD')
-		self.pasteCol.set('Column: A to XFD')
-		self.offsetMode.set('pattern')
+		ParamSelection.searchCol.set('Column: A to XFD')
+		ParamSelection.pasteCol.set('Column: A to XFD')
+		ParamSelection.offsetMode.set('pattern')
 		self.offsetPtrnLbl.set('Enter Pattern:')
 
 		# Interface elements
 		ttk.Label(paramFrame, text='Which column would you like to search?').grid(columnspan=5, row=0, sticky=E)
-		self.sColEntry = ttk.Entry(paramFrame, width=17, textvariable=self.searchCol, foreground='grey', validate='all', validatecommand=(vcmd, '%V', '%W', '%P'))
+		self.sColEntry = ttk.Entry(paramFrame, width=17, textvariable=ParamSelection.searchCol, foreground='grey', validate='all', validatecommand=(vcmd, '%V', '%W', '%P'))
 		self.sColEntry.grid(columnspan=2, column=5, row=0, sticky=W)
 		
 		ttk.Label(paramFrame, text='Which column would you like to copy the selected data to?').grid(columnspan=5, row=1, sticky=E)
-		self.pColEntry = ttk.Entry(paramFrame, width=17, textvariable=self.pasteCol, foreground='grey', validate='all', validatecommand=(vcmd, '%V', '%W', '%P'))
+		self.pColEntry = ttk.Entry(paramFrame, width=17, textvariable=ParamSelection.pasteCol, foreground='grey', validate='all', validatecommand=(vcmd, '%V', '%W', '%P'))
 		self.pColEntry.grid(columnspan=2, column=5, row=1, sticky=W)
 
 		ttk.Label(paramFrame, text='').grid(columnspan=7, row=2, sticky=(W, E)) # Divider
 		ttk.Label(paramFrame, text='Select Offset Type:').grid(columnspan=3, row=3, sticky=W)
 		ttk.Label(paramFrame, textvariable=self.offsetPtrnLbl).grid(columnspan=5, column=2, row=3, sticky=W)
 
-		self.patternRBtn = ttk.Radiobutton(paramFrame, text='Pattern', variable=self.offsetMode, value='pattern', command=self.radioSet)
+		self.patternRBtn = ttk.Radiobutton(paramFrame, text='Pattern', variable=ParamSelection.offsetMode, value='pattern', command=self.radioSet)
 		self.patternRBtn.grid(column=0, row=4, sticky=W)
-		self.charRBtn = ttk.Radiobutton(paramFrame, text='Character Count', variable=self.offsetMode, value='char', command=self.radioSet)
+		self.charRBtn = ttk.Radiobutton(paramFrame, text='Character Count', variable=ParamSelection.offsetMode, value='char', command=self.radioSet)
 		self.charRBtn.grid(column=1, row=4, sticky=W)
 		self.ptrnEntry = ttk.Entry(paramFrame, width=30, textvariable=self.offsetPattern, validate='all', validatecommand=(vcmd, '%V', '%W', '%P'))
 		self.ptrnEntry.grid(columnspan=5, column=2, row=4, sticky=W)
 		
-		self.nameDict = {str(self.sColEntry):{'textvar':self.searchCol, 'placeholder':'Column: A to XFD', 'entryName':self.sColEntry, 'type':'column'},
-						 str(self.pColEntry):{'textvar':self.pasteCol, 'placeholder':'Column: A to XFD', 'entryName':self.pColEntry, 'type':'column'},
+		self.nameDict = {str(self.sColEntry):{'textvar':ParamSelection.searchCol, 'placeholder':'Column: A to XFD', 'entryName':self.sColEntry, 'type':'column'},
+						 str(self.pColEntry):{'textvar':ParamSelection.pasteCol, 'placeholder':'Column: A to XFD', 'entryName':self.pColEntry, 'type':'column'},
 						 str(self.ptrnEntry):{'textvar':self.offsetPattern, 'placeholder':'Must be a number (Ex 10)', 'entryName':self.ptrnEntry, 'type':'pattern'},
 						 'radioTriggerMapping':{'textvar':self.offsetPattern, 'placeholder':'Must be a number (Ex 10)', 'entryName':self.ptrnEntry, 'type':'pattern'}}
 
@@ -205,7 +205,7 @@ class ParamSelection:
 
 
 	def radioSet(self):
-		if self.offsetMode.get() == 'pattern':
+		if ParamSelection.offsetMode.get() == 'pattern':
 			self.offsetPtrnLbl.set('Enter Pattern:')
 			self.updateHandler('radioChange', 'radioTriggerMapping', self.offsetPattern.get())
 		else:
@@ -216,7 +216,7 @@ class ParamSelection:
 	def updateHandler(self, reason, varName, entryValue): 
 	# Called on entry state change, decides where to pass task. Return True to allow edit, False to disallow
 		if reason == 'radioChange': # Radio button was clicked, check new position
-			if self.offsetMode.get() == 'char':
+			if ParamSelection.offsetMode.get() == 'char':
 				if (not self.validateEntry(varName, entryValue) or self.offsetPattern.get() == ''):
 					self.setPlaceholder(varName, True)
 			else:
@@ -241,7 +241,7 @@ class ParamSelection:
 			if not (curEntryVal.isalpha() or curEntryVal == ''):
 				return False
 
-		elif self.offsetMode.get() == 'char':
+		elif ParamSelection.offsetMode.get() == 'char':
 			if not (curEntryVal.isdigit() or curEntryVal == ''):
 				return False
 
@@ -257,7 +257,7 @@ class ParamSelection:
 			self.nameDict[varName][str('entryName')].configure(foreground='grey')
 
 		elif textvar.get() == '': # Check if Entry is empty before setting value
-			if (self.nameDict[varName]['type'] == 'pattern' and self.offsetMode.get() == 'char'): # If pattern entry, make sure char is selected
+			if (self.nameDict[varName]['type'] == 'pattern' and ParamSelection.offsetMode.get() == 'char'): # If pattern entry, make sure char is selected
 				textvar.set(self.nameDict[varName]['placeholder'])
 				self.nameDict[varName][str('entryName')].configure(foreground='grey')
 
@@ -337,13 +337,6 @@ class Search:
 			self.lbl[i] = ttk.Label(self.resultFrame, text=[i])
 			self.lbl[i].grid(column=[i], row=0, sticky=W)
 
-		# Generate permutations based on search terms
-		RegexGeneration.genPerms(str(self.searchTerm.get()))
-
-
-		for index in range(1, 11):
-			permutations.append('Result ' + str(index))
-
 		# Setup result headings
 		self.results.set('')
 		self.resultFrame.configure(padding='3 3 12 12')
@@ -354,12 +347,19 @@ class Search:
 		self.posHLbl.grid(columnspan=2, column=2, row=1, sticky=W)
 		self.contextHLbl = ttk.Label(self.resultFrame, text='Context: ')
 		self.contextHLbl.grid(columnspan=2, column=4, row=1, sticky=W)
+
+
+		# Generate permutations based on search terms
+		if self.searchTerm.get() != '':
+			RegexGeneration.genPerms(RegexGeneration, str(self.searchTerm.get()))
+			ExcelHandler.findPerms(ExcelHandler, FileSelection, ParamSelection)
+
 		
 		# Print results
-		for i in range(len(permutations)):
+		for i in range(len(permsFound)):
 			self.cbVals[i] = StringVar()
 			self.cbVals[i].set(1)
-			self.resultCB[i] = ttk.Checkbutton(self.resultFrame, text=permutations[i], variable=self.cbVals[i])
+			self.resultCB[i] = ttk.Checkbutton(self.resultFrame, text=permsFound[i], variable=self.cbVals[i])
 			self.resultCB[i].bind('<Button-1>', self.updatePerms)
 			self.resultCB[i].grid(columnspan=2, column=0, row=[i+2], sticky=W)
 
@@ -385,38 +385,36 @@ class Search:
 			self.selectStateText.set('Unselect All')
 
 
-class ExcelHandler:
+class ExcelHandler(FileSelection, ParamSelection):
 # Class to handle traversing Excel sheets
-
-	def __init__(self):
-		# Make workbook and sheet local to this class
-		self.wb = FileSelection.wb
-		self.sheet = FileSelection.sheet
-
-
-	def findPerms(self):
-		permsFound
-		print('Excel Handler called')
-
+	def findPerms(self, files, params):
+		self.wb = files.wb
+		self.sheet = files.sheet
+		print(str(params.searchCol.get()).upper())
+		self.searchCol = column_index_from_string(str(params.searchCol.get()).upper())
 
 
 class RegexGeneration:
 # Class to handle all regular expression and pattern generation
-
 	def genPerms(self, originTerm):
 	# Generate permutations to search for based on search term
 		if '.' not in originTerm:
 			searchStrings = originTerm.split()
-			searchStrings = r'([-_ /\])*'.join(searchStrings)
+			searchStrings = '(\[-_ /\\])*'.join(searchStrings)
+			print(str(searchStrings))
 			self.permutRegex = re.compile(r'(' + re.escape(searchStrings) + ')+', re.I)
 			print(self.permutRegex.pattern)
 
 		else:
 			searchStrings = originTerm.split()
-			searchStrings = r'([-_ /\])*'.join(searchStrings)
+			print('1'+str(searchStrings))
+			searchStrings = '(\[-_ /\\])*'.join(searchStrings)
+			print('2'+str(searchStrings))
 			searchStrings = originTerm.split('.')
-			searchStrings = r'([-_ /\])*'.join(searchStrings)
-			self.permutRegex = re.compile(r'(' + re.escape(searchStrings) + ')+', re.I)
+			print('3'+str(searchStrings))
+			searchStrings = '(\[-_ /\\])*'.join(searchStrings)
+			print('4'+str(searchStrings))
+			self.permutRegex = re.compile(r'(' + searchStrings + ')+', re.I)
 			print(self.permutRegex.pattern)
 
 
