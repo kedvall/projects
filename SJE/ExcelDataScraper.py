@@ -393,6 +393,12 @@ class ExcelHandler(FileSelection, ParamSelection):
 		print(str(params.searchCol.get()).upper())
 		self.searchCol = column_index_from_string(str(params.searchCol.get()).upper())
 
+		for rowNum in range (1, self.sheet.max_row + 1):
+			curCell = self.sheet.cell(row=rowNum, column=self.searchCol)
+			print('Searching row: ' + str(rowNum) + ' val: ' + str(curCell.value))
+			for results in RegexGeneration.permutRegex.findall(str(curCell.value)):
+				permsFound.append(results[0])
+				print(permsFound)
 
 class RegexGeneration:
 # Class to handle all regular expression and pattern generation
@@ -400,19 +406,19 @@ class RegexGeneration:
 	# Generate permutations to search for based on search term
 		if '.' not in originTerm:
 			searchStrings = originTerm.split()
-			searchStrings = '(\[-_ /\\])*'.join(searchStrings)
+			searchStrings = '([\\-_ /])*'.join(searchStrings)
 			print(str(searchStrings))
-			self.permutRegex = re.compile(r'(' + re.escape(searchStrings) + ')+', re.I)
+			self.permutRegex = re.compile(r'(' + searchStrings + ')+', re.I)
 			print(self.permutRegex.pattern)
 
 		else:
 			searchStrings = originTerm.split()
 			print('1'+str(searchStrings))
-			searchStrings = '(\[-_ /\\])*'.join(searchStrings)
+			searchStrings = '([\\-_ /])*'.join(searchStrings)
 			print('2'+str(searchStrings))
 			searchStrings = originTerm.split('.')
 			print('3'+str(searchStrings))
-			searchStrings = '(\[-_ /\\])*'.join(searchStrings)
+			searchStrings = '([\\-_ /])*'.join(searchStrings)
 			print('4'+str(searchStrings))
 			self.permutRegex = re.compile(r'(' + searchStrings + ')+', re.I)
 			print(self.permutRegex.pattern)
