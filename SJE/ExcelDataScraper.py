@@ -7,6 +7,13 @@
 # Runs windowless with a GUI made in tkinter 										   	#
 #########################################################################################
 
+#																						#
+# ************************************************************************************* #
+# TODO: 																				#
+# - Integrate search backend into GUI 													#
+# - Regex generation 																	#
+# ************************************************************************************* #
+#																						#
 
 #************************************ Program Setup ************************************#
 # Import Everything
@@ -281,26 +288,29 @@ class Search:
 		self.termEntry = ttk.Entry(searchFrame, width=53, textvariable=self.searchTerm)
 		self.termEntry.grid(columnspan=5, column=2, row=2, sticky=W)
 		
-		ttk.Label(searchFrame, text='Available Permutations:').grid(columnspan=3, row=3, sticky='W S')
+		ttk.Label(searchFrame, text="A period will allow any non alphanumeric character to be substituted in it's place.").grid(columnspan=7, row=3, sticky='W')
+
+		specialLbl = ttk.Label(searchFrame, text='Available Permutations:').grid(columnspan=3, row=4, sticky='W S')
 		self.permutBtn = ttk.Button(searchFrame, text='Search Permutations', style='permutBtn.TButton')
 		self.permutBtn.bind('<Button-1>', self.searchPerms)
-		self.permutBtn.grid(columnspan=2, column=5, row=3, sticky=E)
+		self.permutBtn.grid(columnspan=2, column=5, row=4, sticky=E)
 
 		self.startSearchBtn = ttk.Button(searchFrame, text='Start Search', style='startSearchBtn.TButton')
 		self.startSearchBtn.bind('<Button-1>', self.doSomething)
-		self.startSearchBtn.grid(row=8, sticky=W)
+		self.startSearchBtn.grid(row=9, sticky=W)
 		self.selectBtn = ttk.Button(searchFrame, textvariable=self.selectState, style='selectBtn.TButton')
 		self.selectBtn.bind('<Button-1>', self.switchState)
-		self.selectBtn.grid(columnspan=5, column=1, row=8)
+		self.selectBtn.grid(columnspan=5, column=1, row=9)
 		self.exportBtn = ttk.Button(searchFrame, text='Export Sheet', style='exportBtn.TButton')
 		self.exportBtn.bind('<Button-1>', self.doSomething)
-		self.exportBtn.grid(columnspan=2, column=6, row=8, sticky=E)
+		self.exportBtn.grid(columnspan=2, column=6, row=9, sticky=E)
 
 		for child in searchFrame.winfo_children(): child.grid_configure(padx=5, pady=10)
 
+
 		# Inner Frame Setup
 		self.resultFrame = ttk.Frame(searchFrame, borderwidth=5, relief='groove', padding='3 3 120 120')
-		self.resultFrame.grid(columnspan=7, rowspan=3, row=4, padx=5, sticky='N W S E')
+		self.resultFrame.grid(columnspan=7, rowspan=3, row=5, padx=5, sticky='N W S E')
 
 		# Required Variables
 		self.results = StringVar()
@@ -309,12 +319,14 @@ class Search:
 		# Interface elements
 		ttk.Label(self.resultFrame, textvariable=self.results).grid(columnspan=6, rowspan=3)
 
+
 	def doSomething(self, event):
 		print('Btn clicked')
 
+
 	def searchPerms(self, event):
 		# For testing #
-		for i in range(0, 7):
+		for i in range(0, 8):
 			self.lbl[i] = ttk.Label(self.resultFrame, text=[i])
 			self.lbl[i].grid(column=[i], row=0, sticky=W)
 
@@ -372,188 +384,3 @@ paramPane = ParamSelection()
 searchPane = Search()
 
 root.mainloop()
-#############################################################
-# KEYWORD - Generates a Regex and finds many permutations 	#
-#############################################################
-if searchMode == 'keyword':
-	#############################################
-	# colInRow - Pull data from another column 	#
-	#############################################
-	if matchMode == 'colInRow':
-		# Get search term
-		getTerm()
-		
-
-		# Step one, user selects columns to use
-		getCol('search')
-		getCol('copy')
-		getCol('paste')
-
-		# Step two, verify user selected columns
-		while True:
-			
-			print('Column selection: ')
-			print('\tSearch column ' + get_column_letter(cols['search']) + ' for criteria (search).')
-			print('\tCopy data from column ' + get_column_letter(cols['copy']) + ' on successful match (copy).')
-			print('\tPaste copied data into column ' +  get_column_letter(cols['paste']) + ' (paste).')
-			print()
-			print('Are all columns correct? Enter yes or enter name of column you wish to change.')
-			print('Column names (search, copy, or paste): ', end='')
-			userInput = input().lower()
-
-			if userInput == 'yes' or userInput == 'y':
-				break
-			elif userInput in cols.keys():
-				print()
-				getCol(userInput)
-			else:
-				while userInput not in cols.keys():
-					print()
-					print('Column name ' + userInput + ' not found.')
-					print('Column names are search, copy, or paste: ', end='')
-					userInput = input().lower()
-				print()
-				getCol(userInput)
-		
-		# Finished getting user options
-		# keyword / colInRow
-
-	#############################################################
-	# keywordOffset - Copies data from the same row and column 	#
-	#	based on an offset or pattern 							#
-	#############################################################
-	else:
-		# Get search term
-		getTerm()
-		
-
-		# Select offset or pattern mode
-		while True:
-			print('Enumerate data based on static offset or custom pattern?')
-			print('Enter offset or pattern: ', end='')
-			userInput = input()
-
-			if userInput == 'offset':
-				while True:
-					
-					print('How many characters after keyword should copy begin?')
-					print('Offset (spaces count): ', end='')
-					offset = input()
-					# Verify it's a number
-					if not offset.isdigit():
-						
-						print('Offset must be a number (Ex 42)')
-						print()
-					else:
-						break
-				break
-
-			elif userInput == 'pattern':
-				
-				print('Enter pattern as a Regex (sorry, no auto generation yet)')
-				pattern = input()
-				break
-
-			else:
-				
-				print(userInput + ' is not a valid option')
-				print('Enter offset or pattern: ', end='')
-				print()
-	# Finished getting user options
-	# keyword / keywordOffset / ( offset OR pattern )
-
-#############################################################
-# EXACT - Searches for an exact match of the search term 	#
-#############################################################
-else:
-	print('Enter text to search for, may be multiple words')
-	print('Search Term: ', end='')
-	searchTerm = input()
-
-	#############################################
-	# colInRow - Pull data from another column 	#
-	#############################################
-	if matchMode == 'colInRow':
-		# Get search term
-		getTerm()
-		
-
-		# Step one, user selects columns to use
-		getCol('search')
-		getCol('copy')
-		getCol('paste')
-
-		# Step two, verify user selected columns
-		while True:
-			
-			print('Column selection: ')
-			print('\tSearch column ' + get_column_letter(cols['search']) + ' for criteria (search).')
-			print('\tCopy data from column ' + get_column_letter(cols['copy']) + ' on successful match (copy).')
-			print('\tPaste copied data into column ' +  get_column_letter(cols['paste']) + ' (paste).')
-			print()
-			print('Are all columns correct? Enter yes or enter name of column you wish to change.')
-			print('Column names (search, copy, or paste): ', end='')
-			userInput = input().lower()
-
-			if userInput == 'yes' or userInput == 'y':
-				break
-			elif userInput in cols.keys():
-				print()
-				getCol(userInput)
-			else:
-				while userInput not in cols.keys():
-					print()
-					print('Column name ' + userInput + ' not found.')
-					print('Column names are search, copy, or paste: ', end='')
-					userInput = input().lower()
-				print()
-				getCol(userInput)
-		
-		# Finished getting user options
-		# exact / colInRow
-
-	#############################################################
-	# keywordOffset - Copies data from the same row and column 	#
-	#	based on an offset or pattern 							#
-	#############################################################
-	else:
-		# Get search term
-		getTerm()
-		
-
-		# Select offset or pattern mode
-		while True:
-			print('Enumerate data based on static offset or custom pattern?')
-			print('Enter offset or pattern: ', end='')
-			userInput = input()
-
-			if userInput == 'offset':
-				while True:
-					
-					print('How many characters after keyword should copy begin?')
-					print('Offset (spaces count): ', end='')
-					offset = input()
-					# Verify it's a number
-					if not offset.isdigit():
-						
-						print('Offset must be a number (Ex 42)')
-						print()
-					else:
-						break
-				break
-
-			elif userInput == 'pattern':
-				
-				print('Enter pattern as a Regex (sorry, no auto generation yet)')
-				pattern = input()
-				break
-
-			else:
-				
-				print(userInput + ' is not a valid option')
-				print('Enter offset or pattern: ', end='')
-				print()
-	# Finished getting user options
-	# exact / keywordOffset / ( offset OR pattern )
-
-#root.mainloop()
