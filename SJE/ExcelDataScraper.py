@@ -26,7 +26,9 @@ from openpyxl.cell import get_column_letter, column_index_from_string
 
 #Global Variables
 offset=''
-permutations = []
+generatedPerms = []
+permsFound = []
+permsToSearch = []
 
 
 # Set up GUI
@@ -37,7 +39,8 @@ style = ttk.Style()
 
 # Class declaration
 class FileSelection:
-	# File Selection Frame (Upper left)
+# File Selection Frame (Upper left)
+
 	def __init__(self):
 		# Frame setup
 		fileFrame = ttk.LabelFrame(root, text='File Selection: ', padding='3 3 12 12') # Make a themed frame to hold objects
@@ -78,10 +81,12 @@ class FileSelection:
 
 
 	def eventPass(self, event):
+
 		self.askDir()
 
 
 	def askDir(self):
+		# Open ask directory dialog and set path
 		self.filename = filedialog.askopenfilename(**self.fileOpt)
 		if self.filename:
 			self.filePath.set(self.filename)
@@ -89,11 +94,12 @@ class FileSelection:
 			self.loadBtn.bind('<Button-1>', self.loadFile)
 			self.loadBtn.state(['!disabled'])
 			self.loadBtn.focus_set()
-			self.loadSheets()
+			self.loadWorkbook()
 		style.configure('fileBtn.TButton', relief=RAISED)
 
 
-	def loadSheets(self):
+	def loadWorkbook(self):
+	# Load workbook and setup sheet selection
 		try:
 			self.wb = openpyxl.load_workbook(self.filePath.get())
 			self.sheetCBox['values'] = self.wb.get_sheet_names()
@@ -103,6 +109,7 @@ class FileSelection:
 
 
 	def loadFile(self, event):
+		# Load selected sheet from workbook
 		try:
 			self.sheet = self.wb.get_sheet_by_name(self.selectedSheet.get())
 			self.fileDisp.set('Successfully loaded ' + str(self.selectedSheet.get()) + '.')
@@ -111,7 +118,7 @@ class FileSelection:
 		
 
 class SearchSelection:
-	# Search Selection Frame (Lower left)
+# Search Selection Frame (Lower left)
 	def __init__(self):
 		# Frame setup
 		sModeFrame = ttk.LabelFrame(root, text='Search Type: ', padding='3 3 12 12')
@@ -148,7 +155,7 @@ class SearchSelection:
 	
 
 class ParamSelection:
-	# Parameter selection frame (Upper right)
+# Parameter selection frame (Upper right)
 	def __init__(self):
 		# Frame setup
 		paramFrame = ttk.LabelFrame(root, text='Search Options: ', padding='3 3 12 12')
@@ -207,7 +214,7 @@ class ParamSelection:
 
 
 	def updateHandler(self, reason, varName, entryValue): 
-		# Called on entry state change, decides where to pass task. Return True to allow edit, False to disallow
+	# Called on entry state change, decides where to pass task. Return True to allow edit, False to disallow
 		if reason == 'radioChange': # Radio button was clicked, check new position
 			if self.offsetMode.get() == 'char':
 				if (not self.validateEntry(varName, entryValue) or self.offsetPattern.get() == ''):
@@ -229,7 +236,7 @@ class ParamSelection:
 
 
 	def validateEntry(self, varName, curEntryVal):
-		# Validates the entry based on entry type. Returns True if pass, False if fail
+	# Validates the entry based on entry type. Returns True if pass, False if fail
 		if self.nameDict[varName]['type'] == 'column':
 			if not (curEntryVal.isalpha() or curEntryVal == ''):
 				return False
@@ -242,7 +249,7 @@ class ParamSelection:
 
 
 	def setPlaceholder(self, varName, forceSet):
-		# Sets the placeholder text of the entry. Can be forced to override current text
+	# Sets the placeholder text of the entry. Can be forced to override current text
 		textvar = self.nameDict[varName]['textvar']
 
 		if forceSet: # If force flag is set, override current value
@@ -260,7 +267,7 @@ class ParamSelection:
 
 
 	def remPlaceholder(self, varName):
-		# Removes the placeholder text of the entry
+	# Removes the placeholder text of the entry
 		textvar = self.nameDict[varName]['textvar']
 
 		if textvar.get() == self.nameDict[varName]['placeholder']:
@@ -269,7 +276,7 @@ class ParamSelection:
 
 
 class Search:
-	# Search Frame (Lower right)
+# Search Frame (Lower right)
 	def __init__(self):
 		# Outer Frame setup
 		searchFrame = ttk.LabelFrame(root, text='Search: ', padding='3 3')
@@ -277,8 +284,8 @@ class Search:
 
 		# Required variables
 		self.searchTerm = StringVar()
-		self.selectState = StringVar()
-		self.selectState.set('Unselect All')
+		self.selectStateText = StringVar()
+		self.selectStateText.set('Unselect All')
 		self.cbVals={}
 		self.resultCB={}
 		self.lbl={}
@@ -298,7 +305,7 @@ class Search:
 		self.startSearchBtn = ttk.Button(searchFrame, text='Start Search', style='startSearchBtn.TButton')
 		self.startSearchBtn.bind('<Button-1>', self.doSomething)
 		self.startSearchBtn.grid(row=9, sticky=W)
-		self.selectBtn = ttk.Button(searchFrame, textvariable=self.selectState, style='selectBtn.TButton')
+		self.selectBtn = ttk.Button(searchFrame, textvariable=self.selectStateText, style='selectBtn.TButton')
 		self.selectBtn.bind('<Button-1>', self.switchState)
 		self.selectBtn.grid(columnspan=5, column=1, row=9)
 		self.exportBtn = ttk.Button(searchFrame, text='Export Sheet', style='exportBtn.TButton')
@@ -325,10 +332,14 @@ class Search:
 
 
 	def searchPerms(self, event):
-		# For testing #
-		for i in range(0, 8):
+		# For layout testing #
+		for i in range(0, 7):
 			self.lbl[i] = ttk.Label(self.resultFrame, text=[i])
 			self.lbl[i].grid(column=[i], row=0, sticky=W)
+
+		# Generate permutations based on search terms
+		RegexGeneration.genPerms(str(self.searchTerm.get()))
+
 
 		for index in range(1, 11):
 			permutations.append('Result ' + str(index))
@@ -344,7 +355,7 @@ class Search:
 		self.contextHLbl = ttk.Label(self.resultFrame, text='Context: ')
 		self.contextHLbl.grid(columnspan=2, column=4, row=1, sticky=W)
 		
-		# Enumerate results
+		# Print results
 		for i in range(len(permutations)):
 			self.cbVals[i] = StringVar()
 			self.cbVals[i].set(1)
@@ -354,26 +365,59 @@ class Search:
 
 		for child in self.resultFrame.winfo_children(): child.grid_configure(padx=5)
 
+
 	def updatePerms(self, event):
+
 		print('Item state changed')
 
+
 	def switchState(self, event):
-		if self.selectState.get() == 'Unselect All':
+
+		if self.selectStateText.get() == 'Unselect All':
 			for box in self.resultCB:
 				self.cbVals[box].set(0)
 			self.updatePerms(None)
-			self.selectState.set('Select All')
+			self.selectStateText.set('Select All')
 		else:
 			for box in self.resultCB:
 				self.cbVals[box].set(1)
 			self.updatePerms(None)
-			self.selectState.set('Unselect All')
+			self.selectStateText.set('Unselect All')
+
+
+class ExcelHandler:
+# Class to handle traversing Excel sheets
+
+	def __init__(self):
+		# Make workbook and sheet local to this class
+		self.wb = FileSelection.wb
+		self.sheet = FileSelection.sheet
+
+
+	def findPerms(self):
+		permsFound
+		print('Excel Handler called')
+
 
 
 class RegexGeneration:
-	# Class to handle all regular expression and pattern generation
-	def test():
-		print('Success')
+# Class to handle all regular expression and pattern generation
+
+	def genPerms(self, originTerm):
+	# Generate permutations to search for based on search term
+		if '.' not in originTerm:
+			searchStrings = originTerm.split()
+			searchStrings = r'([-_ /\])*'.join(searchStrings)
+			self.permutRegex = re.compile(r'(' + re.escape(searchStrings) + ')+', re.I)
+			print(self.permutRegex.pattern)
+
+		else:
+			searchStrings = originTerm.split()
+			searchStrings = r'([-_ /\])*'.join(searchStrings)
+			searchStrings = originTerm.split('.')
+			searchStrings = r'([-_ /\])*'.join(searchStrings)
+			self.permutRegex = re.compile(r'(' + re.escape(searchStrings) + ')+', re.I)
+			print(self.permutRegex.pattern)
 
 
 #************************************ Program Start ************************************#
@@ -383,4 +427,5 @@ sModePane = SearchSelection()
 paramPane = ParamSelection()
 searchPane = Search()
 
+# Run GUI
 root.mainloop()
