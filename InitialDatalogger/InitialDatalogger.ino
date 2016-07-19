@@ -159,6 +159,12 @@ void loop()
     Serial.println("Error opening datalog.txt");
   delay(500); //Ensure write finishes and file closes
 
+  //Check if a reset is needed (every 2 hours)
+  if (sensor.packets >= 8)
+  {
+    software_Reset();
+  }
+
   //Go to sleep
   if (ENDEBUG)
   {
@@ -211,3 +217,9 @@ void setupCol()
     Serial.println("Error opening datalog.txt");
   delay(500); //Ensure write finishes and file closes
 }
+
+// Restarts program from beginning but does not reset the peripherals and registers
+void software_Reset()
+{
+  asm volatile ("  jmp 0");  
+} 
