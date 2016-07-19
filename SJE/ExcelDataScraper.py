@@ -294,7 +294,10 @@ class Search:
 		self.termEntry = ttk.Entry(searchFrame, width=53, textvariable=self.searchTerm)
 		self.termEntry.grid(columnspan=5, column=2, row=2, sticky=W)
 		
-		ttk.Label(searchFrame, text="A period will allow any non alphanumeric character to be substituted in it's place.").grid(columnspan=7, row=3, sticky='W')
+		self.searchOptionsBtn = ttk.Button(searchFrame, text='Search Options', command=self.optionsDialog, style='searchOptionsBtn.TButton')
+		self.searchOptionsBtn.grid(column=0, row=3, sticky='W')
+		self.instructionLbl = ttk.Label(searchFrame, text="A period will allow any non alphanumeric character to be substituted in it's place.", wraplength=350)
+		self.instructionLbl.grid(columnspan=6, column=1, row=3, sticky='W')
 
 		specialLbl = ttk.Label(searchFrame, text='Available Permutations:').grid(columnspan=3, row=4, sticky='W S')
 		self.permutBtn = ttk.Button(searchFrame, text='Search Permutations', style='permutBtn.TButton')
@@ -312,6 +315,8 @@ class Search:
 		self.exportBtn.grid(columnspan=2, column=6, row=9, sticky=E)
 
 		for child in searchFrame.winfo_children(): child.grid_configure(padx=5, pady=10)
+		self.searchOptionsBtn.grid_configure(pady=0)
+		self.instructionLbl.grid_configure(padx=7, pady=0)
 
 
 		# Inner Frame Setup
@@ -354,6 +359,10 @@ class Search:
 		Search.drawCalled = True
 
 
+	def optionsDialog(self):
+		print('Options!')
+
+
 	def searchPerms(self, event):
 	# Search the selected spreadsheet for the specified permutations and generate any requested ones
 		# Check if the user actually entered something
@@ -375,11 +384,11 @@ class Search:
 
 
 	def switchState(self, event):
-		if self.selectStateText.get() == 'Unselect All':
+		if self.selectStateText.get() == 'Deselect All':
 			self.selectStateText.set('Select All')
 			self.resultbox.selection_clear(0, END)
 		else:
-			self.selectStateText.set('Unselect All')
+			self.selectStateText.set('Deselect All')
 			self.resultbox.selection_set(0, END)
 
 
