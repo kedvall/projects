@@ -316,15 +316,43 @@ class Search:
 
 
 		# Inner Frame Setup
-		self.resultFrame = ttk.Frame(searchFrame, borderwidth=5, relief='groove', padding='3 3 120 120')
-		self.resultFrame.grid(columnspan=7, rowspan=3, row=5, padx=5, sticky='N W S E')
+		self.resultFrameTop = ttk.Frame(searchFrame, borderwidth=0, relief='groove', padding='3 3 120 120')
+		self.resultFrameTop.grid(columnspan=7, row=5, padx=5, sticky='N W S E')
+		self.resultFrameBot = ttk.Frame(searchFrame, borderwidth=0)
+		self.resultFrameBot.grid(columnspan=7, rowspan=2, row=6, padx=5, sticky='N W S E')
 
 		# Required Variables
 		self.results = StringVar()
 		self.results.set('Waiting for search term...')
+		Search.drawCalled = False
 
 		# Interface elements
-		ttk.Label(self.resultFrame, textvariable=self.results).pack(side=LEFT)
+		ttk.Label(self.resultFrameTop, textvariable=self.results).pack(side=LEFT)
+
+	
+	def drawResults(self):
+		# Setup result headings
+		self.results.set('')
+		self.resultFrameTop.configure(relief='flat', padding='0 0 0 0')
+		self.resultFrameTop.grid_configure(padx=1)
+		self.resultHLbl = ttk.Label(self.resultFrameTop, text='Result:' + ' ' * 25)
+		self.resultHLbl.pack(side=LEFT)
+		self.posHLbl = ttk.Label(self.resultFrameTop, text='Row/Col:' + ' ' * 10)
+		self.posHLbl.pack(side=LEFT)
+		self.contextHLbl = ttk.Label(self.resultFrameTop, text='Context:')
+		self.contextHLbl.pack(side=LEFT)
+
+		# Set up frame
+		self.scrollbar = Scrollbar(self.resultFrameBot, orient=VERTICAL)
+		self.resultbox = Listbox(self.resultFrameBot, selectmode=MULTIPLE, yscrollcommand=self.scrollbar.set)
+		self.scrollbar.config(command=self.resultbox.yview)
+		self.scrollbar.pack(side=RIGHT, fill=Y, padx=0, pady=0)
+		self.resultbox.pack(fill=BOTH, expand=1, padx=0, pady=0)
+
+		# Remove all items from previous list
+		self.resultbox.delete(0, END)
+		# Set called var
+		Search.drawCalled = True
 
 
 	def doSomething(self, event):
@@ -332,22 +360,8 @@ class Search:
 
 
 	def searchPerms(self, event):
-		# Setup result headings
-		self.results.set('')
-		self.resultFrame.configure(padding='0 0 0 0')
-		self.resultHLbl = ttk.Label(self.resultFrame, text='Result:\t')
-		self.resultHLbl.pack(side=LEFT)
-		self.posHLbl = ttk.Label(self.resultFrame, text='Row/Col:\t')
-		self.posHLbl.pack(side=LEFT)
-		self.contextHLbl = ttk.Label(self.resultFrame, text='Context:')
-		self.contextHLbl.pack(side=LEFT)
-
-		# Set up frame
-		self.scrollbar = Scrollbar(self.resultFrame, orient=VERTICAL)
-		self.resultbox = Listbox(self.resultFrame, selectmode=MULTIPLE, yscrollcommand=self.scrollbar.set)
-		self.scrollbar.config(command=self.resultbox.yview)
-		self.scrollbar.pack(side=BOTTOM, fill=Y, padx=0, pady=0)
-		self.resultbox.pack(side=BOTTOM, fill=BOTH, expand=1, padx=0, pady=0)
+		if not Search.drawCalled:
+			self.drawResults()
 
 		self.resultbox.insert(END, "a list entry")
 
@@ -374,8 +388,6 @@ class Search:
 			self.resultCB[i] = ttk.Checkbutton(self.resultFrame, text=permsFound[i], variable=self.cbVals[i])
 			self.resultCB[i].bind('<Button-1>', self.updatePerms)
 			self.resultCB[i].grid(columnspan=2, column=0, row=[i+2], sticky=W)
-
-		for child in self.resultFrame.winfo_children(): child.grid_configure(padx=5)
 
 
 	def updatePerms(self, event):
