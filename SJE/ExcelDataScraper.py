@@ -324,7 +324,7 @@ class Search:
 		self.results.set('Waiting for search term...')
 
 		# Interface elements
-		ttk.Label(self.resultFrame, textvariable=self.results).grid(columnspan=6, rowspan=3)
+		ttk.Label(self.resultFrame, textvariable=self.results).pack(side=LEFT)
 
 
 	def doSomething(self, event):
@@ -332,27 +332,39 @@ class Search:
 
 
 	def searchPerms(self, event):
-		# For layout testing #
-		for i in range(0, 7):
-			self.lbl[i] = ttk.Label(self.resultFrame, text=[i])
-			self.lbl[i].grid(column=[i], row=0, sticky=W)
-
 		# Setup result headings
 		self.results.set('')
-		self.resultFrame.configure(padding='3 3 12 12')
+		self.resultFrame.configure(padding='0 0 0 0')
+		self.resultHLbl = ttk.Label(self.resultFrame, text='Result:\t')
+		self.resultHLbl.pack(side=LEFT)
+		self.posHLbl = ttk.Label(self.resultFrame, text='Row/Col:\t')
+		self.posHLbl.pack(side=LEFT)
+		self.contextHLbl = ttk.Label(self.resultFrame, text='Context:')
+		self.contextHLbl.pack(side=LEFT)
 
-		self.resultHLbl = ttk.Label(self.resultFrame, text='Result: ')
-		self.resultHLbl.grid(columnspan=2, row=1, sticky=W)
-		self.posHLbl = ttk.Label(self.resultFrame, text='Row/Col: ')
-		self.posHLbl.grid(columnspan=2, column=2, row=1, sticky=W)
-		self.contextHLbl = ttk.Label(self.resultFrame, text='Context: ')
-		self.contextHLbl.grid(columnspan=2, column=4, row=1, sticky=W)
+		# Set up frame
+		self.scrollbar = Scrollbar(self.resultFrame, orient=VERTICAL)
+		self.resultbox = Listbox(self.resultFrame, selectmode=MULTIPLE, yscrollcommand=self.scrollbar.set)
+		self.scrollbar.config(command=self.resultbox.yview)
+		self.scrollbar.pack(side=BOTTOM, fill=Y, padx=0, pady=0)
+		self.resultbox.pack(side=BOTTOM, fill=BOTH, expand=1, padx=0, pady=0)
 
+		self.resultbox.insert(END, "a list entry")
 
+		for item in ['one', 'two', 'three', 'four']:
+			self.resultbox.insert(END, item)
+
+		for number in range(1, 125):
+			self.resultbox.insert(END, str(number))
+
+		
 		# Generate permutations based on search terms
 		if self.searchTerm.get() != '':
-			RegexGeneration.genPerms(RegexGeneration, str(self.searchTerm.get()))
-			ExcelHandler.findPerms(ExcelHandler, FileSelection, ParamSelection)
+			try:
+				RegexGeneration.genPerms(RegexGeneration, str(self.searchTerm.get()))
+				ExcelHandler.findPerms(ExcelHandler, FileSelection, ParamSelection)
+			except AttributeError:
+				print('Error!')
 
 		
 		# Print results
@@ -396,9 +408,10 @@ class ExcelHandler(FileSelection, ParamSelection):
 		for rowNum in range (1, self.sheet.max_row + 1):
 			curCell = self.sheet.cell(row=rowNum, column=self.searchCol)
 			print('Searching row: ' + str(rowNum) + ' val: ' + str(curCell.value))
-			for results in RegexGeneration.permutRegex.findall(str(curCell.value)):
-				permsFound.append(results[0])
-				print(permsFound)
+			for result in RegexGeneration.permutRegex.findall(str(curCell.value)):
+				if result[0] not in (' '.join(permsFound)):
+					permsFound.append(result[0])
+
 
 class RegexGeneration:
 # Class to handle all regular expression and pattern generation
