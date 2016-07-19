@@ -46,7 +46,7 @@ class FileSelection:
 		fileFrame.grid(columnspan=6, row=0, pady=10, sticky='N W S E')
 
 		# Required variables
-		self.filePath = StringVar()
+		FileSelection.filePath = StringVar()
 		self.selectedSheet = StringVar()
 		self.fileDisp = StringVar()
 
@@ -88,7 +88,7 @@ class FileSelection:
 		# Open ask directory dialog and set path
 		self.filename = filedialog.askopenfilename(**self.fileOpt)
 		if self.filename:
-			self.filePath.set(self.filename)
+			FileSelection.filePath.set(self.filename)
 			root.bind('<Return>', self.loadFile)
 			self.loadBtn.bind('<Button-1>', self.loadFile)
 			self.loadBtn.state(['!disabled'])
@@ -100,7 +100,7 @@ class FileSelection:
 	def loadWorkbook(self):
 	# Load workbook and setup sheet selection
 		try:
-			FileSelection.wb = openpyxl.load_workbook(self.filePath.get())
+			FileSelection.wb = openpyxl.load_workbook(FileSelection.filePath.get())
 			self.sheetCBox['values'] = FileSelection.wb.get_sheet_names()
 			self.sheetCBox.current(self.sheetCBox['values'].index(FileSelection.wb.active.title))
 		except FileNotFoundError:
@@ -312,7 +312,7 @@ class Search:
 		self.selectBtn.bind('<Button-1>', self.switchState)
 		self.selectBtn.grid(columnspan=5, column=1, row=9)
 		self.exportBtn = ttk.Button(searchFrame, text='Export Sheet', style='exportBtn.TButton')
-		self.exportBtn.bind('<Button-1>', self.doSomething)
+		self.exportBtn.bind('<Button-1>', self.exportSheet)
 		self.exportBtn.grid(columnspan=2, column=6, row=9, sticky=E)
 
 		for child in searchFrame.winfo_children(): child.grid_configure(padx=5, pady=10)
@@ -398,24 +398,29 @@ class Search:
 
 	def startSearch(self, event):
 		self.translateSelection()
+		print(permsToSearch)
 		ExcelHandler.searchSheet(ExcelHandler)
 		print('Done!')
+		tkinter.messagebox.showinfo('Progress', 'Finished Search.')
 
 
 	def translateSelection(self):
 		# Correlates the currently selected listbox items to their string values using the permsFound list
+		global permsToSearch
 		permsToSearch = self.resultbox.curselection()
 		permsToSearch = [permsFound[int(item)] for item in permsToSearch]
-		print(permsToSearch)
 
 
-	def doSomething(self, event):
-		print('Something')
-
+	def exportSheet(self, event):
+		exportPath = os.path.dirname(ExcelHandler.filePath) + os.sep + 'extracted_' + os.path.basename(ExcelHandler.filePath)
+		ExcelHandler.wb.save(exportPath)
+		text = 'Exported to ' + exportPath
+		tkinter.messagebox.showinfo('Export', text)
 
 class ExcelHandler(FileSelection, ParamSelection):
 # Class to handle traversing Excel sheets
 	def __init__(self, files, params):
+		ExcelHandler.filePath = files.filePath.get()
 		ExcelHandler.wb = files.wb
 		ExcelHandler.sheet = files.sheet
 		ExcelHandler.searchCol = column_index_from_string(str(params.searchCol.get()).upper())
@@ -435,12 +440,13 @@ class ExcelHandler(FileSelection, ParamSelection):
 
 
 	def searchSheet(self):
+		print(permsToSearch)
 		for term in permsToSearch:
 			for rowNum in range (1, ExcelHandler.sheet.max_row + 1):
 				curCell = ExcelHandler.sheet.cell(row=rowNum, column=ExcelHandler.searchCol)
-				print('Searching ' + curCell + ' for term: ' + term)
 				startIndex = str(curCell.value).find(term)
 				if startIndex != -1:
+					print('Found match for ' + term + ' at ' + str(curCell))
 					pasteCell = ExcelHandler.sheet.cell(row=rowNum, column=ExcelHandler.pasteCol)
 					pasteCell.value = startIndex
 
