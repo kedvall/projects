@@ -26,7 +26,6 @@ from openpyxl.cell import get_column_letter, column_index_from_string
 
 #Global Variables
 offset=''
-generatedPerms = []
 permsFound = []
 permsToSearch = []
 
@@ -356,47 +355,33 @@ class Search:
 
 
 	def doSomething(self, event):
-		print('Btn clicked')
+		print(self.resultbox.curselection())
 
 
 	def searchPerms(self, event):
+		# Draw result box if it's not already there
+		print(permsFound)
 		if not Search.drawCalled:
 			self.drawResults()
-
-		self.resultbox.insert(END, "a list entry")
-
-		for item in ['one', 'two', 'three', 'four']:
-			self.resultbox.insert(END, item)
-
-		for number in range(1, 125):
-			self.resultbox.insert(END, str(number))
-
 		
 		# Generate permutations based on search terms
 		if self.searchTerm.get() != '':
-			try:
-				RegexGeneration.genPerms(RegexGeneration, str(self.searchTerm.get()))
-				ExcelHandler.findPerms(ExcelHandler, FileSelection, ParamSelection)
-			except AttributeError:
-				print('Error!')
-
+			RegexGeneration.genPerms(RegexGeneration, str(self.searchTerm.get()))
+			ExcelHandler.findPerms(ExcelHandler, FileSelection, ParamSelection)
 		
 		# Print results
-		for i in range(len(permsFound)):
-			self.cbVals[i] = StringVar()
-			self.cbVals[i].set(1)
-			self.resultCB[i] = ttk.Checkbutton(self.resultFrame, text=permsFound[i], variable=self.cbVals[i])
-			self.resultCB[i].bind('<Button-1>', self.updatePerms)
-			self.resultCB[i].grid(columnspan=2, column=0, row=[i+2], sticky=W)
+		for item in permsFound:
+			if not (item in self.resultbox.get(0, "end")):
+				self.resultbox.insert(END, item)
 
 
 	def updatePerms(self, event):
-
-		print('Item state changed')
+		permsToSearch = self.resultbox.curselection()
+		permsToSearch = [permsFound[int(item)] for item in permsToSearch]
+		print(permsToSearch)
 
 
 	def switchState(self, event):
-
 		if self.selectStateText.get() == 'Unselect All':
 			for box in self.resultCB:
 				self.cbVals[box].set(0)
