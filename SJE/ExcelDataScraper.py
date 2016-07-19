@@ -284,7 +284,7 @@ class Search:
 		# Required variables
 		self.searchTerm = StringVar()
 		self.selectStateText = StringVar()
-		self.selectStateText.set('Unselect All')
+		self.selectStateText.set('Select All')
 		self.cbVals={}
 		self.resultCB={}
 		self.lbl={}
@@ -302,7 +302,7 @@ class Search:
 		self.permutBtn.grid(columnspan=2, column=5, row=4, sticky=E)
 
 		self.startSearchBtn = ttk.Button(searchFrame, text='Start Search', style='startSearchBtn.TButton')
-		self.startSearchBtn.bind('<Button-1>', self.doSomething)
+		self.startSearchBtn.bind('<Button-1>', self.startSearch)
 		self.startSearchBtn.grid(row=9, sticky=W)
 		self.selectBtn = ttk.Button(searchFrame, textvariable=self.selectStateText, style='selectBtn.TButton')
 		self.selectBtn.bind('<Button-1>', self.switchState)
@@ -354,44 +354,49 @@ class Search:
 		Search.drawCalled = True
 
 
-	def doSomething(self, event):
-		print(self.resultbox.curselection())
-
-
 	def searchPerms(self, event):
-		# Draw result box if it's not already there
-		print(permsFound)
-		if not Search.drawCalled:
-			self.drawResults()
-		
-		# Generate permutations based on search terms
+	# Search the selected spreadsheet for the specified permutations and generate any requested ones
+		# Check if the user actually entered something
 		if self.searchTerm.get() != '':
+			# Draw result box if it's not already there
+			if not Search.drawCalled:
+				self.drawResults()
+			
+			# Generate permutations based on search terms
 			RegexGeneration.genPerms(RegexGeneration, str(self.searchTerm.get()))
 			ExcelHandler.findPerms(ExcelHandler, FileSelection, ParamSelection)
-		
-		# Print results
-		for item in permsFound:
-			if not (item in self.resultbox.get(0, "end")):
-				self.resultbox.insert(END, item)
+			
+			# Print results
+			for item in permsFound:
+				if not (item in self.resultbox.get(0, "end")):
+					self.resultbox.insert(END, item)
+		else:
+			tkinter.messagebox.showinfo('Error', 'Please enter a term to search for.')
 
 
-	def updatePerms(self, event):
+	def switchState(self, event):
+		if self.selectStateText.get() == 'Unselect All':
+			self.selectStateText.set('Select All')
+			self.resultbox.selection_clear(0, END)
+		else:
+			self.selectStateText.set('Unselect All')
+			self.resultbox.selection_set(0, END)
+
+
+	def startSearch(self, event):
+		self.translateSelection()
+		tkinter.messagebox.showinfo('Progress', 'Searching...')
+
+
+	def translateSelection(self):
+		# Correlates the currently selected listbox items to their string values using the permsFound list
 		permsToSearch = self.resultbox.curselection()
 		permsToSearch = [permsFound[int(item)] for item in permsToSearch]
 		print(permsToSearch)
 
 
-	def switchState(self, event):
-		if self.selectStateText.get() == 'Unselect All':
-			for box in self.resultCB:
-				self.cbVals[box].set(0)
-			self.updatePerms(None)
-			self.selectStateText.set('Select All')
-		else:
-			for box in self.resultCB:
-				self.cbVals[box].set(1)
-			self.updatePerms(None)
-			self.selectStateText.set('Unselect All')
+	def doSomething(self, event):
+		print('Something')
 
 
 class ExcelHandler(FileSelection, ParamSelection):
