@@ -399,7 +399,7 @@ class Search:
 	def startSearch(self, event):
 		self.translateSelection()
 		ExcelHandler.searchSheet(ExcelHandler)
-		tkinter.messagebox.showinfo('Progress', 'Searching...')
+		print('Done!')
 
 
 	def translateSelection(self):
@@ -430,8 +430,19 @@ class ExcelHandler(FileSelection, ParamSelection):
 					permsFound.append(result[0])
 
 
-	def searchSheet(self):
+	def getPermInfo(self):
+		print('Placeholder for getting Row/Col and Context info')
 
+
+	def searchSheet(self):
+		for term in permsToSearch:
+			for rowNum in range (1, ExcelHandler.sheet.max_row + 1):
+				curCell = ExcelHandler.sheet.cell(row=rowNum, column=ExcelHandler.searchCol)
+				print('Searching ' + curCell + ' for term: ' + term)
+				startIndex = str(curCell.value).find(term)
+				if startIndex != -1:
+					pasteCell = ExcelHandler.sheet.cell(row=rowNum, column=ExcelHandler.pasteCol)
+					pasteCell.value = startIndex
 
 
 class RegexGeneration:
