@@ -41,7 +41,7 @@ class FileSelection:
 # File Selection Frame (Upper left)
 
 	def __init__(self):
-		# Frame setup
+		### Frame setup ###
 		fileFrame = ttk.LabelFrame(root, text='File Selection: ', padding='3 3 12 12') # Make a themed frame to hold objects
 		fileFrame.grid(columnspan=6, row=0, pady=10, sticky='N W S E')
 
@@ -156,7 +156,7 @@ class SearchSelection:
 class ParamSelection:
 # Parameter selection frame (Upper right)
 	def __init__(self):
-		# Frame setup
+		### Frame setup ###
 		paramFrame = ttk.LabelFrame(root, text='Search Options: ', padding='3 3 12 12')
 		paramFrame.grid(columnspan=6, column=7, pady=10, row=0, sticky='N W S E')
 
@@ -277,7 +277,7 @@ class ParamSelection:
 class Search:
 # Search Frame (Lower right)
 	def __init__(self):
-		# Outer Frame setup
+		### Outer Frame setup ###
 		searchFrame = ttk.LabelFrame(root, text='Search: ', padding='3 3')
 		searchFrame.grid(columnspan=6, column=7, row=2, pady=10, sticky='N W S E')
 
@@ -292,6 +292,7 @@ class Search:
 		# Interface elements
 		ttk.Label(searchFrame, text='Enter search term:').grid(columnspan=2, row=2, sticky='W')
 		self.termEntry = ttk.Entry(searchFrame, width=53, textvariable=self.searchTerm)
+		self.termEntry.bind('<FocusIn>', self.createHandler)
 		self.termEntry.grid(columnspan=5, column=2, row=2, sticky=W)
 		
 		self.searchOptionsBtn = ttk.Button(searchFrame, text='Search Options', command=self.optionsDialog, style='searchOptionsBtn.TButton')
@@ -318,8 +319,7 @@ class Search:
 		self.searchOptionsBtn.grid_configure(pady=0)
 		self.instructionLbl.grid_configure(padx=7, pady=0)
 
-
-		# Inner Frame Setup
+		### Inner Frame Setup ###
 		self.resultFrameTop = ttk.Frame(searchFrame, borderwidth=0, relief='groove', padding='3 3 120 120')
 		self.resultFrameTop.grid(columnspan=7, row=5, padx=5, sticky='N W S E')
 		self.resultFrameBot = ttk.Frame(searchFrame, borderwidth=0)
@@ -332,6 +332,10 @@ class Search:
 
 		# Interface elements
 		ttk.Label(self.resultFrameTop, textvariable=self.results).pack(side=LEFT)
+
+
+	def createHandler(self, event):
+		ExcelHandler(FileSelection, ParamSelection)
 
 	
 	def drawResults(self):
@@ -373,7 +377,7 @@ class Search:
 			
 			# Generate permutations based on search terms
 			RegexGeneration.genPerms(RegexGeneration, str(self.searchTerm.get()))
-			ExcelHandler.findPerms(ExcelHandler, FileSelection, ParamSelection)
+			ExcelHandler.findPerms(ExcelHandler)
 			
 			# Print results
 			for item in permsFound:
@@ -394,6 +398,7 @@ class Search:
 
 	def startSearch(self, event):
 		self.translateSelection()
+		ExcelHandler.searchSheet(ExcelHandler)
 		tkinter.messagebox.showinfo('Progress', 'Searching...')
 
 
@@ -410,18 +415,23 @@ class Search:
 
 class ExcelHandler(FileSelection, ParamSelection):
 # Class to handle traversing Excel sheets
-	def findPerms(self, files, params):
-		self.wb = files.wb
-		self.sheet = files.sheet
-		print(str(params.searchCol.get()).upper())
-		self.searchCol = column_index_from_string(str(params.searchCol.get()).upper())
+	def __init__(self, files, params):
+		ExcelHandler.wb = files.wb
+		ExcelHandler.sheet = files.sheet
+		ExcelHandler.searchCol = column_index_from_string(str(params.searchCol.get()).upper())
+		ExcelHandler.pasteCol = column_index_from_string(str(params.pasteCol.get()).upper())
 
-		for rowNum in range (1, self.sheet.max_row + 1):
-			curCell = self.sheet.cell(row=rowNum, column=self.searchCol)
-			print('Searching row: ' + str(rowNum) + ' val: ' + str(curCell.value))
+
+	def findPerms(self):
+		for rowNum in range (1, ExcelHandler.sheet.max_row + 1):
+			curCell = ExcelHandler.sheet.cell(row=rowNum, column=ExcelHandler.searchCol)
 			for result in RegexGeneration.permutRegex.findall(str(curCell.value)):
 				if result[0] not in (' '.join(permsFound)):
 					permsFound.append(result[0])
+
+
+	def searchSheet(self):
+
 
 
 class RegexGeneration:
@@ -431,21 +441,14 @@ class RegexGeneration:
 		if '.' not in originTerm:
 			searchStrings = originTerm.split()
 			searchStrings = '([\\-_ /])*'.join(searchStrings)
-			print(str(searchStrings))
 			self.permutRegex = re.compile(r'(' + searchStrings + ')+', re.I)
-			print(self.permutRegex.pattern)
 
 		else:
 			searchStrings = originTerm.split()
-			print('1'+str(searchStrings))
 			searchStrings = '([\\-_ /])*'.join(searchStrings)
-			print('2'+str(searchStrings))
 			searchStrings = originTerm.split('.')
-			print('3'+str(searchStrings))
 			searchStrings = '([\\-_ /])*'.join(searchStrings)
-			print('4'+str(searchStrings))
 			self.permutRegex = re.compile(r'(' + searchStrings + ')+', re.I)
-			print(self.permutRegex.pattern)
 
 
 #************************************ Program Start ************************************#
