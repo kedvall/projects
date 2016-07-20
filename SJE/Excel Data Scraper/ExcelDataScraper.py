@@ -80,7 +80,6 @@ class FileSelection:
 
 
 	def eventPass(self, event):
-
 		self.askDir()
 
 
@@ -167,7 +166,6 @@ class ParamSelection:
 		self.offsetPtrnLbl = StringVar() # Holds text of label above pattern entry
 		ParamSelection.offsetPattern = StringVar() # Holds text from pattern entry field
 		vcmd = paramFrame.register(self.updateHandler) # Validation binding
-		self.instructionDict = {'column':'Column: A to XFD', 'char':'Must be a number (Ex 10)'}
 
 		# Set defaults
 		ParamSelection.searchCol.set('Column: A to XFD')
@@ -239,6 +237,11 @@ class ParamSelection:
 		if self.nameDict[varName]['type'] == 'column':
 			if not (curEntryVal.isalpha() or curEntryVal == ''):
 				return False
+			elif curEntryVal != '':
+				try:
+					column_index_from_string(str(curEntryVal).upper())
+				except ValueError:
+					return False
 
 		elif ParamSelection.offsetMode.get() == 'char':
 			if not (curEntryVal.isdigit() or curEntryVal == ''):
@@ -424,13 +427,13 @@ class Search:
 class ExcelHandler(FileSelection, ParamSelection):
 # Class to handle traversing Excel sheets
 	def __init__(self, files, params):
+		RegexGeneration.parseOffset(RegexGeneration)
 		ExcelHandler.filePath = files.filePath.get()
 		ExcelHandler.wb = files.wb
 		ExcelHandler.sheet = files.sheet
 		ExcelHandler.searchCol = column_index_from_string(str(params.searchCol.get()).upper())
 		ExcelHandler.pasteCol = column_index_from_string(str(params.pasteCol.get()).upper())
-		RegexGeneration.parseOffset(RegexGeneration)
-
+		
 
 	def findPerms(self):
 		global permsFound
