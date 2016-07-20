@@ -166,6 +166,7 @@ class ParamSelection:
 		self.offsetPtrnLbl = StringVar() # Holds text of label above pattern entry
 		ParamSelection.offsetPattern = StringVar() # Holds text from pattern entry field
 		vcmd = paramFrame.register(self.updateHandler) # Validation binding
+		self.ignoreSame = False
 
 		# Set defaults
 		ParamSelection.searchCol.set('Column: A to XFD')
@@ -240,6 +241,7 @@ class ParamSelection:
 			elif curEntryVal != '':
 				try:
 					column_index_from_string(str(curEntryVal).upper())
+					self.overwriteCheck()
 				except ValueError:
 					return False
 
@@ -275,6 +277,22 @@ class ParamSelection:
 		if textvar.get() == self.nameDict[varName]['placeholder']:
 			textvar.set('')
 			self.nameDict[varName][str('entryName')].configure(foreground='black')
+
+
+	def overwriteCheck(self):
+		print(ParamSelection.searchCol.get())
+		print(ParamSelection.pasteCol.get())
+		if (not self.ignoreSame) and (ParamSelection.searchCol.get() == ParamSelection.pasteCol.get()):
+			ans = tkinter.messagebox.askquestion('Overwrite Confirmation', 
+				'You entered the same column to search and paste data to.\nThis will overwrite the search column with new data,\nare you sure you want to proceed?')
+			if ans == 'yes':
+				print('yes')
+				self.ignoreSame = True
+				return
+			else:
+				print('no')
+				ParamSelection.pasteCol.set('')
+				return
 
 
 class Search:
