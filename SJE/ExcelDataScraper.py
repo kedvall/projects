@@ -165,7 +165,7 @@ class ParamSelection:
 		ParamSelection.pasteCol = StringVar() # Holds name of column to paste data into
 		ParamSelection.offsetMode = StringVar() # Currently select offset mode (Radio button)
 		self.offsetPtrnLbl = StringVar() # Holds text of label above pattern entry
-		self.offsetPattern = StringVar() # Holds text from pattern entry field
+		ParamSelection.offsetPattern = StringVar() # Holds text from pattern entry field
 		vcmd = paramFrame.register(self.updateHandler) # Validation binding
 		self.instructionDict = {'column':'Column: A to XFD', 'char':'Must be a number (Ex 10)'}
 
@@ -192,13 +192,13 @@ class ParamSelection:
 		self.patternRBtn.grid(column=0, row=4, sticky=W)
 		self.charRBtn = ttk.Radiobutton(paramFrame, text='Character Count', variable=ParamSelection.offsetMode, value='char', command=self.radioSet)
 		self.charRBtn.grid(column=1, row=4, sticky=W)
-		self.ptrnEntry = ttk.Entry(paramFrame, width=30, textvariable=self.offsetPattern, validate='all', validatecommand=(vcmd, '%V', '%W', '%P'))
+		self.ptrnEntry = ttk.Entry(paramFrame, width=30, textvariable=ParamSelection.offsetPattern, validate='all', validatecommand=(vcmd, '%V', '%W', '%P'))
 		self.ptrnEntry.grid(columnspan=5, column=2, row=4, sticky=W)
 		
 		self.nameDict = {str(self.sColEntry):{'textvar':ParamSelection.searchCol, 'placeholder':'Column: A to XFD', 'entryName':self.sColEntry, 'type':'column'},
 						 str(self.pColEntry):{'textvar':ParamSelection.pasteCol, 'placeholder':'Column: A to XFD', 'entryName':self.pColEntry, 'type':'column'},
-						 str(self.ptrnEntry):{'textvar':self.offsetPattern, 'placeholder':'Must be a number (Ex 10)', 'entryName':self.ptrnEntry, 'type':'pattern'},
-						 'radioTriggerMapping':{'textvar':self.offsetPattern, 'placeholder':'Must be a number (Ex 10)', 'entryName':self.ptrnEntry, 'type':'pattern'}}
+						 str(self.ptrnEntry):{'textvar':ParamSelection.offsetPattern, 'placeholder':'Must be a number (Ex 10)', 'entryName':self.ptrnEntry, 'type':'pattern'},
+						 'radioTriggerMapping':{'textvar':ParamSelection.offsetPattern, 'placeholder':'Must be a number (Ex 10)', 'entryName':self.ptrnEntry, 'type':'pattern'}}
 
 		for child in paramFrame.winfo_children(): child.grid_configure(padx=5, pady=5)
 
@@ -206,17 +206,17 @@ class ParamSelection:
 	def radioSet(self):
 		if ParamSelection.offsetMode.get() == 'pattern':
 			self.offsetPtrnLbl.set('Enter Pattern:')
-			self.updateHandler('radioChange', 'radioTriggerMapping', self.offsetPattern.get())
+			self.updateHandler('radioChange', 'radioTriggerMapping', ParamSelection.offsetPattern.get())
 		else:
 			self.offsetPtrnLbl.set('Enter Offset (# of characters):')
-			self.updateHandler('radioChange', 'radioTriggerMapping', self.offsetPattern.get())
+			self.updateHandler('radioChange', 'radioTriggerMapping', ParamSelection.offsetPattern.get())
 
 
 	def updateHandler(self, reason, varName, entryValue): 
 	# Called on entry state change, decides where to pass task. Return True to allow edit, False to disallow
 		if reason == 'radioChange': # Radio button was clicked, check new position
 			if ParamSelection.offsetMode.get() == 'char':
-				if (not self.validateEntry(varName, entryValue) or self.offsetPattern.get() == ''):
+				if (not self.validateEntry(varName, entryValue) or ParamSelection.offsetPattern.get() == ''):
 					self.setPlaceholder(varName, True)
 			else:
 				self.remPlaceholder(varName)
@@ -358,7 +358,7 @@ class Search:
 		self.resultbox.pack(fill=BOTH, expand=1, padx=0, pady=0)
 
 		# Remove all items from previous list
-		self.resultbox.delete(0, END)
+		self.resultbox.delete(1, END)
 		# Set called var
 		Search.drawCalled = True
 
@@ -375,6 +375,9 @@ class Search:
 			if not Search.drawCalled:
 				self.drawResults()
 			
+			# Remove all items from previous list
+			self.resultbox.delete(0, END)
+
 			# Generate permutations based on search terms
 			RegexGeneration.genPerms(RegexGeneration, str(self.searchTerm.get()))
 			ExcelHandler.findPerms(ExcelHandler)
@@ -417,6 +420,7 @@ class Search:
 		text = 'Exported to ' + exportPath
 		tkinter.messagebox.showinfo('Export', text)
 
+
 class ExcelHandler(FileSelection, ParamSelection):
 # Class to handle traversing Excel sheets
 	def __init__(self, files, params):
@@ -425,9 +429,11 @@ class ExcelHandler(FileSelection, ParamSelection):
 		ExcelHandler.sheet = files.sheet
 		ExcelHandler.searchCol = column_index_from_string(str(params.searchCol.get()).upper())
 		ExcelHandler.pasteCol = column_index_from_string(str(params.pasteCol.get()).upper())
+		RegexGeneration.parseOffset(RegexGeneration)
 
 
 	def findPerms(self):
+		global permsFound
 		for rowNum in range (1, ExcelHandler.sheet.max_row + 1):
 			curCell = ExcelHandler.sheet.cell(row=rowNum, column=ExcelHandler.searchCol)
 			for result in RegexGeneration.permutRegex.findall(str(curCell.value)):
@@ -447,8 +453,16 @@ class ExcelHandler(FileSelection, ParamSelection):
 				startIndex = str(curCell.value).find(term)
 				if startIndex != -1:
 					print('Found match for ' + term + ' at ' + str(curCell))
-					pasteCell = ExcelHandler.sheet.cell(row=rowNum, column=ExcelHandler.pasteCol)
-					pasteCell.value = startIndex
+					self.matchItem(self, curCell, ExcelHandler.sheet.cell(row=rowNum, column=ExcelHandler.pasteCol))
+
+
+	def matchItem(self, searchCell, pasteCell):
+		try:
+			result = RegexGeneration.patternRegex.search(searchCell.value)
+			if result != None:
+				pasteCell.value = result.group()
+		except TypeError:
+			return
 
 
 class RegexGeneration:
@@ -458,14 +472,19 @@ class RegexGeneration:
 		if '.' not in originTerm:
 			searchStrings = originTerm.split()
 			searchStrings = '([\\-_ /])*'.join(searchStrings)
-			self.permutRegex = re.compile(r'(' + searchStrings + ')+', re.I)
+			RegexGeneration.permutRegex = re.compile(r'(' + searchStrings + ')+', re.I)
 
 		else:
 			searchStrings = originTerm.split()
 			searchStrings = '([\\-_ /])*'.join(searchStrings)
 			searchStrings = originTerm.split('.')
 			searchStrings = '([\\-_ /])*'.join(searchStrings)
-			self.permutRegex = re.compile(r'(' + searchStrings + ')+', re.I)
+			RegexGeneration.permutRegex = re.compile(r'(' + searchStrings + ')+', re.I)
+
+
+	def parseOffset(self):
+		pattern = ParamSelection.offsetPattern.get()
+		RegexGeneration.patternRegex = re.compile(r'(' + pattern + ')', re.I)
 
 
 #************************************ Program Start ************************************#
