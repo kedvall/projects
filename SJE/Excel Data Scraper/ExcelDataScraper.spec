@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['ExcelDataScraper.py'],
-             pathex=['C:\\Users\\intern\\dev\\CompanySoftware\\SJE'],
+             pathex=['C:\\Users\\kedvall\\dev\\CompanySoftware\\SJE\\Excel Data Scraper'],
              binaries=None,
              datas=None,
              hiddenimports=[],
@@ -18,11 +18,16 @@ pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
 exe = EXE(pyz,
           a.scripts,
-          a.binaries,
-          a.zipfiles,
-          a.datas,
+          exclude_binaries=True,
           name='ExcelDataScraper',
           debug=False,
           strip=False,
           upx=True,
-          console=False )
+          console=True )
+coll = COLLECT(exe,
+               a.binaries,
+               a.zipfiles,
+               a.datas,
+               strip=False,
+               upx=True,
+               name='ExcelDataScraper')

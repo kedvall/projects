@@ -32,6 +32,7 @@ permsToSearch = []
 
 # Set up GUI
 root = Tk() # Create blank window
+root.iconbitmap(r'Excel Extractor.ico') # Set window icon
 root.title('Excel Data Scraper') # Set the name
 style = ttk.Style()
 
