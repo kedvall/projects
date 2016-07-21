@@ -236,7 +236,7 @@ class ParamSelection:
 					self.toggleEnable('en')
 				else:
 					self.toggleEnable('dis')
-			return True		
+		return True		
 
 
 	def validateEntry(self, varName, curEntryVal):
@@ -289,16 +289,10 @@ class ParamSelection:
 			Search.termEntry.configure(state='enabled')
 			Search.searchOptionsBtn.configure(state='enabled')
 			Search.permutBtn.configure(state='enabled')
-			Search.startSearchBtn.configure(state='enabled')
-			Search.selectBtn.configure(state='enabled')
-			Search.selectBtn.configure(state='enabled')
 		else:
 			Search.termEntry.configure(state='disabled')
 			Search.searchOptionsBtn.configure(state='disabled')
 			Search.permutBtn.configure(state='disabled')
-			Search.startSearchBtn.configure(state='disabled')
-			Search.selectBtn.configure(state='disabled')
-			Search.exportBtn.configure(state='disabled')			
 
 
 class Search:
@@ -401,6 +395,11 @@ class Search:
 	# Search the selected spreadsheet for the specified permutations and generate any requested ones
 		# Check if the user actually entered something
 		if self.searchTerm.get() != '':
+			# Enable buttons
+			Search.startSearchBtn.configure(state='enabled')
+			Search.selectBtn.configure(state='enabled')
+			Search.exportBtn.configure(state='enabled')
+
 			# Draw result box if it's not already there
 			if not Search.drawCalled:
 				self.drawResults()
