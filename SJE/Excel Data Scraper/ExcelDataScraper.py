@@ -168,7 +168,7 @@ class ParamSelection:
 		self.offsetPtrnLbl = StringVar() # Holds text of label above pattern entry
 		ParamSelection.offsetPattern = StringVar() # Holds text from pattern entry field
 		vcmd = ParamSelection.paramFrame.register(self.updateHandler) # Validation binding
-		self.ignoreSame = False
+		self.msgBoxText = 'You entered the same column to search and paste data to.\nThis will overwrite the search column with new data,\nare you sure you want to proceed?'
 
 		# Set defaults
 		ParamSelection.searchCol.set('Column: A to XFD')
@@ -216,6 +216,8 @@ class ParamSelection:
 
 	def updateHandler(self, reason, varName, entryValue): 
 	# Called on entry state change, decides where to pass task. Return True to allow edit, False to disallow
+		print(self.updateHandler)
+		print('update ' + self.nameDict[varName]['type'])
 		if reason == 'radioChange': # Radio button was clicked, check new position
 			if ParamSelection.offsetMode.get() == 'char':
 				if (not self.validateEntry(varName, entryValue) or ParamSelection.offsetPattern.get() == ''):
@@ -224,8 +226,9 @@ class ParamSelection:
 				self.remPlaceholder(varName)
 
 		elif reason == 'focusin':
+			print('focusin: ' + self.nameDict[varName]['type'])
 			if self.nameDict[varName]['type'] == 'pattern':
-				self.overwriteCheck(varName)
+				self.overwriteCheck()
 			else:
 				self.remPlaceholder(varName)
 
@@ -234,29 +237,19 @@ class ParamSelection:
 
 		elif reason == 'key':
 			if not self.validateEntry(varName, entryValue):
-				if self.nameDict[varName]['type'] == 'pattern':
-					Search.termEntry.configure(state='disabled')
-					Search.searchOptionsBtn.configure(state='disabled')
-					Search.permutBtn.configure(state='disabled')
-					Search.startSearchBtn.configure(state='disabled')
-					Search.selectBtn.configure(state='disabled')
-					Search.exportBtn.configure(state='disabled')
 				return False
 
-			elif entryValue != '':
-				if self.nameDict[varName]['type'] == 'pattern':
-					Search.termEntry.configure(state='enabled')
-					Search.searchOptionsBtn.configure(state='enabled')
-					Search.permutBtn.configure(state='enabled')
-					Search.startSearchBtn.configure(state='enabled')
-					Search.selectBtn.configure(state='enabled')
-					Search.selectBtn.configure(state='enabled')
-
-		return True		
+			elif self.nameDict[varName]['type'] == 'pattern':
+				if entryValue != '':
+					self.toggleEnable('en')
+				else:
+					self.toggleEnable('dis')
+			return True		
 
 
 	def validateEntry(self, varName, curEntryVal):
 	# Validates the entry based on entry type. Returns True if pass, False if fail
+		print(self.validateEntry)
 		if self.nameDict[varName]['type'] == 'column':
 			if not (curEntryVal.isalpha() or curEntryVal == ''):
 				return False
@@ -300,18 +293,32 @@ class ParamSelection:
 			self.nameDict[varName][str('entryName')].configure(foreground='black')
 
 
-	def overwriteCheck(self, varName):
-		print(ParamSelection.searchCol.get())
-		print(ParamSelection.pasteCol.get())
-		if (not self.ignoreSame) and (ParamSelection.searchCol.get() == ParamSelection.pasteCol.get()):
-			ans = tkinter.messagebox.askquestion('Overwrite Confirmation', 
-				'You entered the same column to search and paste data to.\nThis will overwrite the search column with new data,\nare you sure you want to proceed?')
-			if ans == 'yes':
-				return
-			else:
-				self.remPlaceholder(varName)
-				self.pColEntry.focus_set()
-				return
+	def overwriteCheck(self):
+		print(self.overwriteCheck)
+		if ParamSelection.searchCol.get() == ParamSelection.pasteCol.get():
+			ans = tkinter.messagebox.askquestion('Overwrite Confirmation', self.msgBoxText, parent=self.paramFrame)
+			if ans == 'no':
+				ParamSelection.pasteCol.set('')
+				self.pColEntry.configure(foreground='black')
+				self.pColEntry.focus()
+
+
+	def toggleEnable(self, state):
+		if state == 'en':
+			Search.termEntry.configure(state='enabled')
+			Search.searchOptionsBtn.configure(state='enabled')
+			Search.permutBtn.configure(state='enabled')
+			Search.startSearchBtn.configure(state='enabled')
+			Search.selectBtn.configure(state='enabled')
+			Search.selectBtn.configure(state='enabled')
+		else:
+			Search.termEntry.configure(state='disabled')
+			Search.searchOptionsBtn.configure(state='disabled')
+			Search.permutBtn.configure(state='disabled')
+			Search.startSearchBtn.configure(state='disabled')
+			Search.selectBtn.configure(state='disabled')
+			Search.exportBtn.configure(state='disabled')			
+
 
 class Search:
 # Search Frame (Lower right)
@@ -347,13 +354,10 @@ class Search:
 		Search.permutBtn.configure(state='disabled')
 
 		Search.startSearchBtn = ttk.Button(Search.searchFrame, text='Start Search', command=self.startSearch, style='startSearchBtn.TButton')
-		#Search.startSearchBtn.bind('<Button-1>', self.startSearch)
 		Search.startSearchBtn.grid(row=9, sticky=W)
 		Search.selectBtn = ttk.Button(Search.searchFrame, textvariable=self.selectStateText, command=self.switchState, style='selectBtn.TButton')
-		#Search.selectBtn.bind('<Button-1>', self.switchState)
 		Search.selectBtn.grid(columnspan=5, column=1, row=9)
 		Search.exportBtn = ttk.Button(Search.searchFrame, text='Export Sheet', command=self.exportSheet, style='exportBtn.TButton')
-		#Search.exportBtn.bind('<Button-1>', self.exportSheet)
 		Search.exportBtn.grid(columnspan=2, column=6, row=9, sticky=E)
 		Search.startSearchBtn.configure(state='disabled')
 		Search.selectBtn.configure(state='disabled')
