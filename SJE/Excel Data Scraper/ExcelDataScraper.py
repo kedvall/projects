@@ -224,14 +224,33 @@ class ParamSelection:
 				self.remPlaceholder(varName)
 
 		elif reason == 'focusin':
-			self.remPlaceholder(varName)
+			if self.nameDict[varName]['type'] == 'pattern':
+				self.overwriteCheck(varName)
+			else:
+				self.remPlaceholder(varName)
 
 		elif reason == 'focusout':
 			self.setPlaceholder(varName, False)
 
 		elif reason == 'key':
 			if not self.validateEntry(varName, entryValue):
+				if self.nameDict[varName]['type'] == 'pattern':
+					Search.termEntry.configure(state='disabled')
+					Search.searchOptionsBtn.configure(state='disabled')
+					Search.permutBtn.configure(state='disabled')
+					Search.startSearchBtn.configure(state='disabled')
+					Search.selectBtn.configure(state='disabled')
+					Search.exportBtn.configure(state='disabled')
 				return False
+
+			elif entryValue != '':
+				if self.nameDict[varName]['type'] == 'pattern':
+					Search.termEntry.configure(state='enabled')
+					Search.searchOptionsBtn.configure(state='enabled')
+					Search.permutBtn.configure(state='enabled')
+					Search.startSearchBtn.configure(state='enabled')
+					Search.selectBtn.configure(state='enabled')
+					Search.selectBtn.configure(state='enabled')
 
 		return True		
 
@@ -244,7 +263,6 @@ class ParamSelection:
 			elif curEntryVal != '':
 				try:
 					column_index_from_string(str(curEntryVal).upper())
-					self.overwriteCheck()
 				except ValueError:
 					return False
 
@@ -282,21 +300,18 @@ class ParamSelection:
 			self.nameDict[varName][str('entryName')].configure(foreground='black')
 
 
-	def overwriteCheck(self):
+	def overwriteCheck(self, varName):
 		print(ParamSelection.searchCol.get())
 		print(ParamSelection.pasteCol.get())
 		if (not self.ignoreSame) and (ParamSelection.searchCol.get() == ParamSelection.pasteCol.get()):
 			ans = tkinter.messagebox.askquestion('Overwrite Confirmation', 
 				'You entered the same column to search and paste data to.\nThis will overwrite the search column with new data,\nare you sure you want to proceed?')
 			if ans == 'yes':
-				print('yes')
-				self.ignoreSame = True
 				return
 			else:
-				print('no')
-				ParamSelection.pasteCol.set('')
+				self.remPlaceholder(varName)
+				self.pColEntry.focus_set()
 				return
-
 
 class Search:
 # Search Frame (Lower right)
@@ -315,32 +330,37 @@ class Search:
 		
 		# Interface elements
 		ttk.Label(Search.searchFrame, text='Enter search term:').grid(columnspan=2, row=2, sticky='W')
-		self.termEntry = ttk.Entry(Search.searchFrame, width=53, textvariable=self.searchTerm)
-		self.termEntry.bind('<FocusIn>', self.createHandler)
-		self.termEntry.grid(columnspan=5, column=2, row=2, sticky=W)
+		Search.termEntry = ttk.Entry(Search.searchFrame, width=53, textvariable=self.searchTerm)
+		Search.termEntry.bind('<FocusIn>', self.createHandler)
+		Search.termEntry.grid(columnspan=5, column=2, row=2, sticky=W)
+		Search.termEntry.configure(state='disabled')
 		
-		self.searchOptionsBtn = ttk.Button(Search.searchFrame, text='Search Options', command=self.optionsDialog, style='searchOptionsBtn.TButton')
-		self.searchOptionsBtn.grid(column=0, row=3, sticky='W')
+		Search.searchOptionsBtn = ttk.Button(Search.searchFrame, text='Search Options', command=self.optionsDialog, style='searchOptionsBtn.TButton')
+		Search.searchOptionsBtn.grid(column=0, row=3, sticky='W')
 		self.instructionLbl = ttk.Label(Search.searchFrame, text="A period will allow any non alphanumeric character to be substituted in it's place.", wraplength=350)
 		self.instructionLbl.grid(columnspan=6, column=1, row=3, sticky='W')
+		Search.searchOptionsBtn.configure(state='disabled')
 
 		specialLbl = ttk.Label(Search.searchFrame, text='Available Permutations:').grid(columnspan=3, row=4, sticky='W S')
-		self.permutBtn = ttk.Button(Search.searchFrame, text='Search Permutations', style='permutBtn.TButton')
-		self.permutBtn.bind('<Button-1>', self.searchPerms)
-		self.permutBtn.grid(columnspan=2, column=5, row=4, sticky=E)
+		Search.permutBtn = ttk.Button(Search.searchFrame, text='Search Permutations', command=self.searchPerms, style='permutBtn.TButton')
+		Search.permutBtn.grid(columnspan=2, column=5, row=4, sticky=E)
+		Search.permutBtn.configure(state='disabled')
 
-		self.startSearchBtn = ttk.Button(Search.searchFrame, text='Start Search', style='startSearchBtn.TButton')
-		self.startSearchBtn.bind('<Button-1>', self.startSearch)
-		self.startSearchBtn.grid(row=9, sticky=W)
-		self.selectBtn = ttk.Button(Search.searchFrame, textvariable=self.selectStateText, style='selectBtn.TButton')
-		self.selectBtn.bind('<Button-1>', self.switchState)
-		self.selectBtn.grid(columnspan=5, column=1, row=9)
-		self.exportBtn = ttk.Button(Search.searchFrame, text='Export Sheet', style='exportBtn.TButton')
-		self.exportBtn.bind('<Button-1>', self.exportSheet)
-		self.exportBtn.grid(columnspan=2, column=6, row=9, sticky=E)
+		Search.startSearchBtn = ttk.Button(Search.searchFrame, text='Start Search', command=self.startSearch, style='startSearchBtn.TButton')
+		#Search.startSearchBtn.bind('<Button-1>', self.startSearch)
+		Search.startSearchBtn.grid(row=9, sticky=W)
+		Search.selectBtn = ttk.Button(Search.searchFrame, textvariable=self.selectStateText, command=self.switchState, style='selectBtn.TButton')
+		#Search.selectBtn.bind('<Button-1>', self.switchState)
+		Search.selectBtn.grid(columnspan=5, column=1, row=9)
+		Search.exportBtn = ttk.Button(Search.searchFrame, text='Export Sheet', command=self.exportSheet, style='exportBtn.TButton')
+		#Search.exportBtn.bind('<Button-1>', self.exportSheet)
+		Search.exportBtn.grid(columnspan=2, column=6, row=9, sticky=E)
+		Search.startSearchBtn.configure(state='disabled')
+		Search.selectBtn.configure(state='disabled')
+		Search.exportBtn.configure(state='disabled')
 
 		for child in Search.searchFrame.winfo_children(): child.grid_configure(padx=5, pady=10)
-		self.searchOptionsBtn.grid_configure(pady=0)
+		Search.searchOptionsBtn.grid_configure(pady=0)
 		self.instructionLbl.grid_configure(padx=7, pady=0)
 
 		### Inner Frame Setup ###
@@ -392,7 +412,7 @@ class Search:
 		print('Options!')
 
 
-	def searchPerms(self, event):
+	def searchPerms(self):
 	# Search the selected spreadsheet for the specified permutations and generate any requested ones
 		# Check if the user actually entered something
 		if self.searchTerm.get() != '':
@@ -415,7 +435,7 @@ class Search:
 			tkinter.messagebox.showinfo('Error', 'Please enter a term to search for.')
 
 
-	def switchState(self, event):
+	def switchState(self):
 		if self.selectStateText.get() == 'Deselect All':
 			self.selectStateText.set('Select All')
 			self.resultbox.selection_clear(0, END)
@@ -424,7 +444,7 @@ class Search:
 			self.resultbox.selection_set(0, END)
 
 
-	def startSearch(self, event):
+	def startSearch(self):
 		self.translateSelection()
 		print(permsToSearch)
 		ExcelHandler.searchSheet(ExcelHandler)
@@ -439,7 +459,7 @@ class Search:
 		permsToSearch = [permsFound[int(item)] for item in permsToSearch]
 
 
-	def exportSheet(self, event):
+	def exportSheet(self):
 		exportPath = os.path.dirname(ExcelHandler.filePath) + os.sep + 'extracted_' + os.path.basename(ExcelHandler.filePath)
 		ExcelHandler.wb.save(exportPath)
 		text = 'Exported to ' + exportPath
