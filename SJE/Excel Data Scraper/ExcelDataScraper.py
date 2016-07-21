@@ -17,14 +17,14 @@
 
 #************************************ Program Setup ************************************#
 # Import Everything
-import sys, os, re, openpyxl, getpass
+import sys, os, re, openpyxl, getpass, base64, base64ico
 import tkinter.messagebox
 from tkinter import *
 from tkinter import ttk, filedialog
 from openpyxl.cell import get_column_letter, column_index_from_string
 
 
-#Global Variables
+# Global Variables
 offset=''
 permsFound = []
 permsToSearch = []
@@ -32,9 +32,21 @@ permsToSearch = []
 
 # Set up GUI
 root = Tk() # Create blank window
-root.iconbitmap(r'Excel Extractor.ico') # Set window icon
+#root.iconbitmap(r'Excel Extractor.ico') # Set window icon
 root.title('Excel Data Scraper') # Set the name
-style = ttk.Style()
+style = ttk.Style() # Set the style
+
+# Create icon from base64 code
+icondata = base64.b64decode(base64ico.icon)
+# The temp file is icon.ico
+tempFile= "icon.ico"
+iconfile= open(tempFile,"wb")
+# Extract the icon
+iconfile.write(icondata)
+iconfile.close()
+root.wm_iconbitmap(tempFile)
+# Delete the tempfile
+os.remove(tempFile)
 
 
 # Class declaration
