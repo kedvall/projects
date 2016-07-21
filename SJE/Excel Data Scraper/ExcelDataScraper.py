@@ -151,7 +151,6 @@ class SearchSelection:
 	def radioSet(self):
 		search = self.searchMode.get()
 		match = self.matchMode.get()
-		print(search + match)
 	
 
 class ParamSelection:
@@ -216,8 +215,6 @@ class ParamSelection:
 
 	def updateHandler(self, reason, varName, entryValue): 
 	# Called on entry state change, decides where to pass task. Return True to allow edit, False to disallow
-		print(self.updateHandler)
-		print('update ' + self.nameDict[varName]['type'])
 		if reason == 'radioChange': # Radio button was clicked, check new position
 			if ParamSelection.offsetMode.get() == 'char':
 				if (not self.validateEntry(varName, entryValue) or ParamSelection.offsetPattern.get() == ''):
@@ -226,7 +223,6 @@ class ParamSelection:
 				self.remPlaceholder(varName)
 
 		elif reason == 'focusin':
-			print('focusin: ' + self.nameDict[varName]['type'])
 			if self.nameDict[varName]['type'] == 'pattern':
 				self.overwriteCheck()
 			else:
@@ -249,7 +245,6 @@ class ParamSelection:
 
 	def validateEntry(self, varName, curEntryVal):
 	# Validates the entry based on entry type. Returns True if pass, False if fail
-		print(self.validateEntry)
 		if self.nameDict[varName]['type'] == 'column':
 			if not (curEntryVal.isalpha() or curEntryVal == ''):
 				return False
@@ -294,7 +289,6 @@ class ParamSelection:
 
 
 	def overwriteCheck(self):
-		print(self.overwriteCheck)
 		if ParamSelection.searchCol.get() == ParamSelection.pasteCol.get():
 			ans = tkinter.messagebox.askquestion('Overwrite Confirmation', self.msgBoxText, parent=self.paramFrame)
 			if ans == 'no':
@@ -450,9 +444,7 @@ class Search:
 
 	def startSearch(self):
 		self.translateSelection()
-		print(permsToSearch)
 		ExcelHandler.searchSheet(ExcelHandler)
-		print('Done!')
 		tkinter.messagebox.showinfo('Progress', 'Finished Search.')
 
 
@@ -495,13 +487,12 @@ class ExcelHandler(FileSelection, ParamSelection):
 
 
 	def searchSheet(self):
-		print(permsToSearch)
 		for term in permsToSearch:
 			for rowNum in range (1, ExcelHandler.sheet.max_row + 1):
 				curCell = ExcelHandler.sheet.cell(row=rowNum, column=ExcelHandler.searchCol)
 				startIndex = str(curCell.value).find(term)
 				if startIndex != -1:
-					print('Found match for ' + term + ' at ' + str(curCell))
+					print('Found match for ' + term + ' at ' + str(curCell)) #Eventually change to live feedback popup (scrolls with this text)
 					self.matchItem(self, curCell, ExcelHandler.sheet.cell(row=rowNum, column=ExcelHandler.pasteCol))
 
 
