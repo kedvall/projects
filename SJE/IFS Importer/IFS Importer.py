@@ -29,3 +29,33 @@ from openpyxl.cell import get_column_letter, column_index_from_string
 
 # Set Up GUI
 root = Tk()
+root.title('IFS Importer') # Set the name
+style = ttk.Style() # Set the style
+
+# Create icon from base64 code
+icondata = base64.b64decode(base64ico.importerIcon)
+# The temp file is icon.ico
+tempFile= "icon.ico"
+iconfile= open(tempFile,"wb")
+# Extract the icon
+iconfile.write(icondata)
+iconfile.close()
+root.wm_iconbitmap(tempFile)
+# Delete the tempfile
+os.remove(tempFile)
+
+
+# Class declaration
+
+
+
+
+
+
+
+
+
+
+
+
+root.mainloop()

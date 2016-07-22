@@ -25,12 +25,11 @@ permsToSearch = []
 
 # Set up GUI
 root = Tk() # Create blank window
-#root.iconbitmap(r'Excel Extractor.ico') # Set window icon
 root.title('Excel Extractor') # Set the name
 style = ttk.Style() # Set the style
 
 # Create icon from base64 code
-icondata = base64.b64decode(base64ico.icon)
+icondata = base64.b64decode(base64ico.extractorIcon)
 # The temp file is icon.ico
 tempFile= "icon.ico"
 iconfile= open(tempFile,"wb")
