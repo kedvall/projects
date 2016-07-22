@@ -3,8 +3,8 @@
 __pycache__/
 SJE/Excel Data Scraper/__pycache__/
 
-# exe build files #
-###################
+# Files from build #
+####################
 SJE/Excel Data Scraper/build/
-/SJE/Excel Data Scraper/dist/
-/SJE/Excel Data Scraper/Excel Extractor.spec
+SJE/Excel Data Scraper/dist/
+SJE/Excel Data Scraper/Excel Extractor.spec
