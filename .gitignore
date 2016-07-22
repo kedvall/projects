@@ -1,10 +1,10 @@
-# pycache folders #
-###################
-__pycache__/
-SJE/Excel Data Scraper/__pycache__/
+# pycache folder #
+##################
+SJE/**/__pycache__/
 
 # Files from build #
 ####################
-SJE/Excel Data Scraper/build/
-SJE/Excel Data Scraper/dist/
-SJE/Excel Data Scraper/Excel Extractor.spec
+SJE/**/build/
+SJE/**/dist/
+**.spec
+**.ico
