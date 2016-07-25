@@ -9,6 +9,7 @@
 //Included libraries
 #include <Sensirion.h>
 #include <Wire.h> //RTClib needs this
+#include <RTClib.h>
 #include <SPI.h>
 #include <SD.h>
 #include <Sleep_n0m1.h>
@@ -115,9 +116,9 @@ void loop()
   sensor.temp1 = -40;
   sensor.temp2 = -40;
   sensor.temp3 = -40;
-  sensor.humidity1 = -1;
-  sensor.humidity2 = -1;
-  sensor.humidity3 = -1;
+  sensor.humid1 = -1;
+  sensor.humid2 = -1;
+  sensor.humid3 = -1;
 
   //Get current time from system
   now = rtc.now();
@@ -161,7 +162,7 @@ void loop()
   dataString += "|";
   dataString += String(sensor.humid3);
   dataString += "|";
-  dataString += String(sensor.packets);
+  dataString += String(sensor.reads);
 
   //Write to card
   File dataFile = SD.open("datalog.txt", FILE_WRITE);
