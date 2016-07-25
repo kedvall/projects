@@ -1,10 +1,10 @@
-/****************************************************************
-* Data Logger.ino - Fully Featured data logging program 		*
-* Written by Kanyon Edvall 										*
-* 																*
-* Records data from temperature sensors and transmits it 		*
-* wirelessly back to upload hub 								*
-****************************************************************/
+/**********************************************************************
+* Data Logger.ino - Fully Featured data logging program               *
+* Written by Kanyon Edvall                                            *
+*                                                                     *
+* Records data from temperature sensors and transmits it              *
+* wirelessly back to upload hub                                       *
+**********************************************************************/
 
 //Included libraries
 #include <Sensirion.h>
@@ -69,7 +69,7 @@ void setup()
   sleepTime = 900000; //Sleep for 15 minutes, change to something like 7 sec (7000ms) for testing
 
   //Start serial communication at 9600 baud
-  Serial.begin(9600);
+  Serial.begin(115200);
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
@@ -129,7 +129,7 @@ void loop()
   delay(1000);
   Sensor3.measure(&sensor.temp3, &sensor.humid3, &sensor.dew3);
   delay(500);
-  //Increment packets
+  //Increment readings
   sensor.reads++;
 
   //Make string for assembling data to a log
@@ -173,12 +173,15 @@ void loop()
     dataFile.close();
     //Also print to serial
     Serial.println(dataString);
+    delay(500);
   } 
   else
     Serial.println("Error opening datalog.txt");
   delay(500); //Ensure write finishes and file closes
 
-
+  //Check if a reset is needed (every 2 hours)
+  if (sensor.reads >= 8)
+    software_Reset();
 
   //Go to sleep
   if (ENDEBUG)
@@ -186,25 +189,12 @@ void loop()
     Serial.print("Sleeping for ");
     Serial.print(sleepTime / 1000);
     Serial.println(" seconds...");
-    delay(100); //Ensure print completes before sleeping
+    delay(500); //Ensure print completes before sleeping
   }
   digitalWrite(XBEE_SLEEP, HIGH);
   //Power off Arduino
   sleep.pwrDownMode(); //Set sleep mode
   sleep.sleepDelay(sleepTime); //Sleep for specified time  
-}
-
-
-void transmit()
-{
-	unsigned long bufSize = sizeof(sensor);
-	char pBuffer[uBufSize];
-
-	memcpy(pBuffer, &sensor, bufSize);
-
-	for (unsigned int i = 0; i < bufSize; i++)
-		Serial.print(pBuffer[i])
-	delay(500);
 }
 
 
@@ -242,8 +232,16 @@ void setupCol()
     dataFile.close();
     //Also print to serial
     Serial.println(dataString);
+    delay(500);
   }
   else
     Serial.println("Error opening datalog.txt");
   delay(500); //Ensure write finishes and file closes
 }
+
+
+// Restarts program from beginning but does not reset the peripherals and registers
+void software_Reset()
+{
+  asm volatile ("  jmp 0");  
+} 

@@ -161,9 +161,7 @@ void loop()
 
   //Check if a reset is needed (every 2 hours)
   if (sensor.packets >= 8)
-  {
     software_Reset();
-  }
 
   //Go to sleep
   if (ENDEBUG)
