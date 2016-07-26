@@ -294,7 +294,13 @@ class ParamSelection:
 
 class PatternDialog():
 	def __init__(self):
-# Create and center the toplevel window
+		# Close any previous toplevel instance (clicking button more than once)
+		try:
+			PatternDialog.toplevel.destroy()
+		except AttributeError:
+			pass
+
+		# Create and center the toplevel window
 		PatternDialog.toplevel = Toplevel()
 		PatternDialog.toplevel.title('Pattern Search Configuration')
 
