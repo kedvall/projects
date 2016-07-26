@@ -61,7 +61,19 @@ ahk_interpreter = Interpreter()
 ahk_script = script
 ahk_interpreter.execute_script(ahk_script)
 
+sleep(1)
+print('Executing')
+for i in range(1,6):
+	pyautogui.keyDown('ctrl')
+	pyautogui.keyDown('alt')
+	pyautogui.keyDown('c')
+	sleep(0.1)
+	pyautogui.keyUp('ctrl')
+	pyautogui.keyUp('alt')
+	pyautogui.keyUp('c')
+	print(i)
 
+print('Done, quitting.')
 #ahk_interpreter.terminate() # Terminate the running script
 
 
