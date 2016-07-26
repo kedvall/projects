@@ -164,6 +164,7 @@ class ParamSelection:
 		ParamSelection.offsetPattern = StringVar() # Holds text from pattern entry field
 		ParamSelection.vcmd = ParamSelection.paramFrame.register(self.updateHandler) # Validation binding
 		self.offsetPtrnLbl = StringVar() # Holds text of label above pattern entry
+		ParamSelection.curDraw = 'pattern'
 
 		# Set defaults
 		ParamSelection.searchCol.set('Column: A to XFD')
@@ -198,20 +199,20 @@ class ParamSelection:
 
 
 	def radioSet(self):
-		if ParamSelection.offsetMode.get() == 'pattern':
-			self.updateHandler('radioChange', 'radioTriggerMapping', ParamSelection.offsetPattern.get())
-		else:
-			self.updateHandler('radioChange', 'radioTriggerMapping', ParamSelection.offsetPattern.get())
+		try:
+			if ParamSelection.offsetMode.get() == 'pattern':
+				self.updateHandler('radioChange', 'radioTriggerMapping', ParamSelection.offsetPattern.get())
+			else:
+				self.updateHandler('radioChange', 'radioTriggerMapping', ParamSelection.offsetPattern.get())
+		except KeyError:
+			return
 
 
 	def updateHandler(self, reason, varName, entryValue): 
 	# Called on entry state change, decides where to pass task. Return True to allow edit, False to disallow
-		if reason == 'radioChange': # Radio button was clicked, check new position
-			if ParamSelection.offsetMode.get() == 'char':
-				if (not self.validateEntry(varName, entryValue) or ParamSelection.offsetPattern.get() == ''):
-					self.setPlaceholder(varName, True)
-			else:
-				self.remPlaceholder(varName)
+		if reason == 'radioChange' and ParamSelection.curDraw == 'char': # Radio button was clicked, check new position
+			if (not self.validateEntry(varName, entryValue) or ParamSelection.offsetPattern.get() == ''):
+				self.setPlaceholder(varName, True)
 
 		elif reason == 'focusin':
 			self.remPlaceholder(varName)
@@ -286,21 +287,61 @@ class ParamSelection:
 			Search.searchOptionsBtn.configure(state='disabled')
 			Search.permutBtn.configure(state='disabled')
 
+
 	def clickConfigure(self):
 		PatternDialog()
 
 
 class PatternDialog():
 	def __init__(self):
-		self.toplevel = Toplevel()
-		self.toplevel.title('Pattern Search Configuration')
-		# Create icon from base64 code
-		Base64IconGen(self.toplevel)
+# Create and center the toplevel window
+		PatternDialog.toplevel = Toplevel()
+		PatternDialog.toplevel.title('Pattern Search Configuration')
 
-		self.ptrnEntry = ttk.Entry(self.toplevel, width=30, textvariable=ParamSelection.offsetPattern, validate='all', validatecommand=(ParamSelection.vcmd, '%V', '%W', '%P'))
-		self.ptrnEntry.grid(columnspan=5, sticky=W)
+		# Create icon from base64 code
+		Base64IconGen(PatternDialog.toplevel)
+
+		# Get screen dimensions
+		self.rX = root.winfo_rootx()
+		self.rY = root.winfo_rooty()
+		self.rHeight = root.winfo_height()
+		self.rWidth = root.winfo_width()
+
+		# Pass drawing frame depending on offset mode
+		if ParamSelection.offsetMode.get() == 'char':
+			self.drawChar()
+			ParamSelection.curDraw = 'char'
+		else:
+			self.drawPattern()
+			ParamSelection.curDraw = 'pattern'
+
+		
+	def drawChar(self):
+		ttk.Label(PatternDialog.toplevel, text='Enter number of characters:').pack(side=TOP, anchor=W)
+
+		self.ptrnEntry = ttk.Entry(PatternDialog.toplevel, width=30, textvariable=ParamSelection.offsetPattern, validate='all', validatecommand=(ParamSelection.vcmd, '%V', '%W', '%P'))
+		self.ptrnEntry.pack(side=TOP, anchor=W)
+
 		ParamSelection.nameDict[str(self.ptrnEntry)] = {'textvar':ParamSelection.offsetPattern, 'placeholder':'Must be a number (Ex 10)', 'entryName':self.ptrnEntry, 'type':'pattern'}
 		ParamSelection.nameDict['radioTriggerMapping'] = {'textvar':ParamSelection.offsetPattern, 'placeholder':'Must be a number (Ex 10)', 'entryName':self.ptrnEntry, 'type':'pattern'}
+	
+		root.update_idletasks()
+		size = list(int(item) for item in PatternDialog.toplevel.geometry().split('+')[0].split('x'))
+		if size[0] < 325:
+			size[0] = 325
+		geometry = "%dx%d+%d+%d" % (size[0], size[1], self.rX + ((self.rWidth / 2) - (size[0] / 2)), self.rY + ((self.rHeight / 2) - (size[1] / 2)))
+		PatternDialog.toplevel.geometry(geometry)
+
+
+	def drawPattern(self):
+		ttk.Label(PatternDialog.toplevel, text='Match the following rules:').pack(side=TOP, anchor=W)
+
+		root.update_idletasks()
+		size = list(int(item) for item in PatternDialog.toplevel.geometry().split('+')[0].split('x'))
+		if size[0] < 325:
+			size[0] = 325
+		geometry = "%dx%d+%d+%d" % (size[0], size[1], self.rX + ((self.rWidth / 2) - (size[0] / 2)), self.rY + ((self.rHeight / 2) - (size[1] / 2)))
+		PatternDialog.toplevel.geometry(geometry)
 
 
 class Search:
