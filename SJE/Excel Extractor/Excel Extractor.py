@@ -28,17 +28,9 @@ root = Tk() # Create blank window
 root.title('Excel Extractor') # Set the name
 style = ttk.Style() # Set the style
 
+
 # Create icon from base64 code
-icondata = base64.b64decode(base64ico.extractorIcon)
-# The temp file is icon.ico
-tempFile= "icon.ico"
-iconfile= open(tempFile,"wb")
-# Extract the icon
-iconfile.write(icondata)
-iconfile.close()
-root.wm_iconbitmap(tempFile)
-# Delete the tempfile
-os.remove(tempFile)
+#Base64IconGen(root)
 
 
 # Class declaration
@@ -169,9 +161,9 @@ class ParamSelection:
 		ParamSelection.searchCol = StringVar() # Holds name of column to be searched
 		ParamSelection.pasteCol = StringVar() # Holds name of column to paste data into
 		ParamSelection.offsetMode = StringVar() # Currently select offset mode (Radio button)
-		self.offsetPtrnLbl = StringVar() # Holds text of label above pattern entry
 		ParamSelection.offsetPattern = StringVar() # Holds text from pattern entry field
-		vcmd = ParamSelection.paramFrame.register(self.updateHandler) # Validation binding
+		ParamSelection.vcmd = ParamSelection.paramFrame.register(self.updateHandler) # Validation binding
+		self.offsetPtrnLbl = StringVar() # Holds text of label above pattern entry
 
 		# Set defaults
 		ParamSelection.searchCol.set('Column: A to XFD')
@@ -180,11 +172,11 @@ class ParamSelection:
 
 		# Interface elements
 		ttk.Label(ParamSelection.paramFrame, text='Which column would you like to search?').grid(columnspan=5, row=0, sticky=E)
-		self.sColEntry = ttk.Entry(ParamSelection.paramFrame, width=17, textvariable=ParamSelection.searchCol, foreground='grey', validate='all', validatecommand=(vcmd, '%V', '%W', '%P'))
+		self.sColEntry = ttk.Entry(ParamSelection.paramFrame, width=17, textvariable=ParamSelection.searchCol, foreground='grey', validate='all', validatecommand=(self.vcmd, '%V', '%W', '%P'))
 		self.sColEntry.grid(columnspan=2, column=5, row=0, sticky=W)
 		
 		ttk.Label(ParamSelection.paramFrame, text='Which column would you like to copy the selected data to?').grid(columnspan=5, row=1, sticky=E)
-		self.pColEntry = ttk.Entry(ParamSelection.paramFrame, width=17, textvariable=ParamSelection.pasteCol, foreground='grey', validate='all', validatecommand=(vcmd, '%V', '%W', '%P'))
+		self.pColEntry = ttk.Entry(ParamSelection.paramFrame, width=17, textvariable=ParamSelection.pasteCol, foreground='grey', validate='all', validatecommand=(self.vcmd, '%V', '%W', '%P'))
 		self.pColEntry.grid(columnspan=2, column=5, row=1, sticky=W)
 
 		ttk.Label(ParamSelection.paramFrame, text='').grid(columnspan=7, row=2, sticky=(W, E)) # Divider
@@ -198,11 +190,8 @@ class ParamSelection:
 		self.configBtn = ttk.Button(ParamSelection.paramFrame, text='Set Up Search Pattern', style='configBtn.TButton', command=self.clickConfigure)
 		self.configBtn.grid(columnspan=5, column=2, row=4, sticky=W)
 		
-		self.nameDict = {str(self.sColEntry):{'textvar':ParamSelection.searchCol, 'placeholder':'Column: A to XFD', 'entryName':self.sColEntry, 'type':'column'},
-						 str(self.pColEntry):{'textvar':ParamSelection.pasteCol, 'placeholder':'Column: A to XFD', 'entryName':self.pColEntry, 'type':'column'},
-						 #str(toplevel.ptrnEntry):{'textvar':ParamSelection.offsetPattern, 'placeholder':'Must be a number (Ex 10)', 'entryName':toplevel.ptrnEntry, 'type':'pattern'},
-						 #'radioTriggerMapping':{'textvar':ParamSelection.offsetPattern, 'placeholder':'Must be a number (Ex 10)', 'entryName':toplevel.ptrnEntry, 'type':'pattern'}
-						 }
+		ParamSelection.nameDict = {str(self.sColEntry):{'textvar':ParamSelection.searchCol, 'placeholder':'Column: A to XFD', 'entryName':self.sColEntry, 'type':'column'},
+						 str(self.pColEntry):{'textvar':ParamSelection.pasteCol, 'placeholder':'Column: A to XFD', 'entryName':self.pColEntry, 'type':'column'}}
 
 		for child in ParamSelection.paramFrame.winfo_children(): child.grid_configure(padx=5, pady=5)
 		ParamSelection.paramFrame.grid_remove()
@@ -234,7 +223,7 @@ class ParamSelection:
 			if not self.validateEntry(varName, entryValue):
 				return False
 
-			elif self.nameDict[varName]['type'] == 'pattern':
+			elif ParamSelection.nameDict[varName]['type'] == 'pattern':
 				if entryValue != '':
 					self.toggleEnable('en')
 				else:
@@ -244,7 +233,7 @@ class ParamSelection:
 
 	def validateEntry(self, varName, curEntryVal):
 	# Validates the entry based on entry type. Returns True if pass, False if fail
-		if self.nameDict[varName]['type'] == 'column':
+		if ParamSelection.nameDict[varName]['type'] == 'column':
 			if not (curEntryVal.isalpha() or curEntryVal == ''):
 				return False
 			elif curEntryVal != '':
@@ -262,29 +251,29 @@ class ParamSelection:
 
 	def setPlaceholder(self, varName, forceSet):
 	# Sets the placeholder text of the entry. Can be forced to override current text
-		textvar = self.nameDict[varName]['textvar']
+		textvar = ParamSelection.nameDict[varName]['textvar']
 
 		if forceSet: # If force flag is set, override current value
-			textvar.set(self.nameDict[varName]['placeholder'])
-			self.nameDict[varName][str('entryName')].configure(foreground='grey')
+			textvar.set(ParamSelection.nameDict[varName]['placeholder'])
+			ParamSelection.nameDict[varName][str('entryName')].configure(foreground='grey')
 
 		elif textvar.get() == '': # Check if Entry is empty before setting value
-			if (self.nameDict[varName]['type'] == 'pattern' and ParamSelection.offsetMode.get() == 'char'): # If pattern entry, make sure char is selected
-				textvar.set(self.nameDict[varName]['placeholder'])
-				self.nameDict[varName][str('entryName')].configure(foreground='grey')
+			if (ParamSelection.nameDict[varName]['type'] == 'pattern' and ParamSelection.offsetMode.get() == 'char'): # If pattern entry, make sure char is selected
+				textvar.set(ParamSelection.nameDict[varName]['placeholder'])
+				ParamSelection.nameDict[varName][str('entryName')].configure(foreground='grey')
 
-			elif self.nameDict[varName]['type'] == 'column': # Column entry
-				textvar.set(self.nameDict[varName]['placeholder'])
-				self.nameDict[varName][str('entryName')].configure(foreground='grey')
+			elif ParamSelection.nameDict[varName]['type'] == 'column': # Column entry
+				textvar.set(ParamSelection.nameDict[varName]['placeholder'])
+				ParamSelection.nameDict[varName][str('entryName')].configure(foreground='grey')
 
 
 	def remPlaceholder(self, varName):
 	# Removes the placeholder text of the entry
-		textvar = self.nameDict[varName]['textvar']
+		textvar = ParamSelection.nameDict[varName]['textvar']
 
-		if textvar.get() == self.nameDict[varName]['placeholder']:
+		if textvar.get() == ParamSelection.nameDict[varName]['placeholder']:
 			textvar.set('')
-			self.nameDict[varName][str('entryName')].configure(foreground='black')
+			ParamSelection.nameDict[varName][str('entryName')].configure(foreground='black')
 
 
 	def toggleEnable(self, state):
@@ -298,13 +287,20 @@ class ParamSelection:
 			Search.permutBtn.configure(state='disabled')
 
 	def clickConfigure(self):
-		toplevel = Toplevel()
-		self.ptrnEntry = ttk.Entry(toplevel, width=30, textvariable=ParamSelection.offsetPattern, validate='all', validatecommand=(vcmd, '%V', '%W', '%P'))
-		self.ptrnEntry.grid(columnspan=5, column=2, row=4, sticky=W)
-		#label1 = Label(toplevel, text=ABOUT_TEXT, height=0, width=100)
-		#label1.pack()
-		#label2 = Label(toplevel, text=DISCLAIMER, height=0, width=100)
-		#label2.pack()
+		PatternDialog()
+
+
+class PatternDialog():
+	def __init__(self):
+		self.toplevel = Toplevel()
+		self.toplevel.title('Pattern Search Configuration')
+		# Create icon from base64 code
+		Base64IconGen(self.toplevel)
+
+		self.ptrnEntry = ttk.Entry(self.toplevel, width=30, textvariable=ParamSelection.offsetPattern, validate='all', validatecommand=(ParamSelection.vcmd, '%V', '%W', '%P'))
+		self.ptrnEntry.grid(columnspan=5, sticky=W)
+		ParamSelection.nameDict[str(self.ptrnEntry)] = {'textvar':ParamSelection.offsetPattern, 'placeholder':'Must be a number (Ex 10)', 'entryName':self.ptrnEntry, 'type':'pattern'}
+		ParamSelection.nameDict['radioTriggerMapping'] = {'textvar':ParamSelection.offsetPattern, 'placeholder':'Must be a number (Ex 10)', 'entryName':self.ptrnEntry, 'type':'pattern'}
 
 
 class Search:
@@ -525,8 +521,28 @@ class RegexGeneration:
 		RegexGeneration.patternRegex = re.compile(r'(' + pattern + ')', re.I)
 
 
+	def searchPtrn(self):
+		print('Pattern')
+
+
+class Base64IconGen():
+# Takes icon from base64 format and creates window icon
+	def __init__(self, window):
+		icondata = base64.b64decode(base64ico.extractorIcon)
+		# The temp file is icon.ico
+		tempFile= "icon.ico"
+		iconfile= open(tempFile,"wb")
+		# Extract the icon
+		iconfile.write(icondata)
+		iconfile.close()
+		window.wm_iconbitmap(tempFile)
+		# Delete the tempfile
+		os.remove(tempFile)
+
+
 #************************************ Program Start ************************************#
 # Create objects
+Base64IconGen(root)
 filePane = FileSelection()
 sModePane = SearchSelection()
 paramPane = ParamSelection()
