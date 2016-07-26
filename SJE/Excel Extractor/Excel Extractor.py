@@ -163,7 +163,7 @@ class ParamSelection:
 	def __init__(self):
 		### Frame setup ###
 		ParamSelection.paramFrame = ttk.LabelFrame(root, text='Search Options: ', padding='3 3 12 12')
-		ParamSelection.paramFrame.grid(columnspan=6, column=7, pady=10, row=0, sticky='N W S E')
+		ParamSelection.paramFrame.grid(columnspan=6, pady=10, row=3, sticky='N W S E')
 
 		# Required variables
 		ParamSelection.searchCol = StringVar() # Holds name of column to be searched
@@ -177,7 +177,6 @@ class ParamSelection:
 		ParamSelection.searchCol.set('Column: A to XFD')
 		ParamSelection.pasteCol.set('Column: A to XFD')
 		ParamSelection.offsetMode.set('pattern')
-		self.offsetPtrnLbl.set('Enter Pattern:')
 
 		# Interface elements
 		ttk.Label(ParamSelection.paramFrame, text='Which column would you like to search?').grid(columnspan=5, row=0, sticky=E)
@@ -190,19 +189,20 @@ class ParamSelection:
 
 		ttk.Label(ParamSelection.paramFrame, text='').grid(columnspan=7, row=2, sticky=(W, E)) # Divider
 		ttk.Label(ParamSelection.paramFrame, text='Select Offset Type:').grid(columnspan=3, row=3, sticky=W)
-		ttk.Label(ParamSelection.paramFrame, textvariable=self.offsetPtrnLbl).grid(columnspan=5, column=2, row=3, sticky=W)
+		ttk.Label(ParamSelection.paramFrame, text='Pattern Configuration:').grid(columnspan=5, column=2, row=3, sticky=W)
 
 		self.patternRBtn = ttk.Radiobutton(ParamSelection.paramFrame, text='Pattern', variable=ParamSelection.offsetMode, value='pattern', command=self.radioSet)
 		self.patternRBtn.grid(column=0, row=4, sticky=W)
 		self.charRBtn = ttk.Radiobutton(ParamSelection.paramFrame, text='Character Count', variable=ParamSelection.offsetMode, value='char', command=self.radioSet)
 		self.charRBtn.grid(column=1, row=4, sticky=W)
-		self.ptrnEntry = ttk.Entry(ParamSelection.paramFrame, width=30, textvariable=ParamSelection.offsetPattern, validate='all', validatecommand=(vcmd, '%V', '%W', '%P'))
-		self.ptrnEntry.grid(columnspan=5, column=2, row=4, sticky=W)
+		self.configBtn = ttk.Button(ParamSelection.paramFrame, text='Set Up Search Pattern', style='configBtn.TButton', command=self.clickConfigure)
+		self.configBtn.grid(columnspan=5, column=2, row=4, sticky=W)
 		
 		self.nameDict = {str(self.sColEntry):{'textvar':ParamSelection.searchCol, 'placeholder':'Column: A to XFD', 'entryName':self.sColEntry, 'type':'column'},
 						 str(self.pColEntry):{'textvar':ParamSelection.pasteCol, 'placeholder':'Column: A to XFD', 'entryName':self.pColEntry, 'type':'column'},
-						 str(self.ptrnEntry):{'textvar':ParamSelection.offsetPattern, 'placeholder':'Must be a number (Ex 10)', 'entryName':self.ptrnEntry, 'type':'pattern'},
-						 'radioTriggerMapping':{'textvar':ParamSelection.offsetPattern, 'placeholder':'Must be a number (Ex 10)', 'entryName':self.ptrnEntry, 'type':'pattern'}}
+						 #str(toplevel.ptrnEntry):{'textvar':ParamSelection.offsetPattern, 'placeholder':'Must be a number (Ex 10)', 'entryName':toplevel.ptrnEntry, 'type':'pattern'},
+						 #'radioTriggerMapping':{'textvar':ParamSelection.offsetPattern, 'placeholder':'Must be a number (Ex 10)', 'entryName':toplevel.ptrnEntry, 'type':'pattern'}
+						 }
 
 		for child in ParamSelection.paramFrame.winfo_children(): child.grid_configure(padx=5, pady=5)
 		ParamSelection.paramFrame.grid_remove()
@@ -210,10 +210,8 @@ class ParamSelection:
 
 	def radioSet(self):
 		if ParamSelection.offsetMode.get() == 'pattern':
-			self.offsetPtrnLbl.set('Enter Pattern:')
 			self.updateHandler('radioChange', 'radioTriggerMapping', ParamSelection.offsetPattern.get())
 		else:
-			self.offsetPtrnLbl.set('Enter Offset (# of characters):')
 			self.updateHandler('radioChange', 'radioTriggerMapping', ParamSelection.offsetPattern.get())
 
 
@@ -299,13 +297,22 @@ class ParamSelection:
 			Search.searchOptionsBtn.configure(state='disabled')
 			Search.permutBtn.configure(state='disabled')
 
+	def clickConfigure(self):
+		toplevel = Toplevel()
+		self.ptrnEntry = ttk.Entry(toplevel, width=30, textvariable=ParamSelection.offsetPattern, validate='all', validatecommand=(vcmd, '%V', '%W', '%P'))
+		self.ptrnEntry.grid(columnspan=5, column=2, row=4, sticky=W)
+		#label1 = Label(toplevel, text=ABOUT_TEXT, height=0, width=100)
+		#label1.pack()
+		#label2 = Label(toplevel, text=DISCLAIMER, height=0, width=100)
+		#label2.pack()
+
 
 class Search:
 # Search Frame (Lower right)
 	def __init__(self):
 		### Outer Frame setup ###
 		Search.searchFrame = ttk.LabelFrame(root, text='Search: ', padding='3 3')
-		Search.searchFrame.grid(columnspan=6, column=7, row=2, pady=10, sticky='N W S E')
+		Search.searchFrame.grid(columnspan=6, column=7, rowspan=4, row=0, pady=10, sticky='N W S E')
 
 		# Required variables
 		self.searchTerm = StringVar()
@@ -348,7 +355,7 @@ class Search:
 		self.instructionLbl.grid_configure(padx=7, pady=0)
 
 		### Inner Frame Setup ###
-		self.resultFrameTop = ttk.Frame(Search.searchFrame, borderwidth=0, relief='groove', padding='3 3 120 120')
+		self.resultFrameTop = ttk.Frame(Search.searchFrame, borderwidth=0, relief='groove', padding='3 3 170 120')
 		self.resultFrameTop.grid(columnspan=7, row=5, padx=5, sticky='N W S E')
 		self.resultFrameBot = ttk.Frame(Search.searchFrame, borderwidth=0)
 		self.resultFrameBot.grid(columnspan=7, rowspan=2, row=6, padx=5, sticky='N W S E')
