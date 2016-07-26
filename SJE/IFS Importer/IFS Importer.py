@@ -26,6 +26,7 @@ from tkinter import *
 from tkinter import ttk, filedialog
 from openpyxl.cell import get_column_letter, column_index_from_string
 from pahk import Interpreter
+from time import sleep
 
 # Set Up GUI
 root = Tk()
@@ -45,26 +46,23 @@ root.wm_iconbitmap(tempFile)
 os.remove(tempFile)
 
 
+script = '''
+CoordMode, Mouse, Client
+^!c::
+	SetTitleMatchMode, 3
+	WinActivate, Untitled - Notepad
+	Send, Look text 
+	Send, {ENTER}
+'''
+
+
 # Auto Hotkey Test
-ahk_interpreter = Interpreter() # Create an ahk interpreter
+ahk_interpreter = Interpreter()
+ahk_script = script
+ahk_interpreter.execute_script(ahk_script)
 
-ahk_script = '''
-	CoordMode, Mouse, Client
 
-	!^c::
-		SetTitleMatchMode, 3
-		WinActivate, Untitled - Notepad
-		Send, Look text 
-		Send, {ENTER}
-			'''
-
-ahk_interpreter.execute_script(ahk_script) # Start a thread in the interpreter that runs the script
-
-while 1:
-    cmd = input('quit - quit the program\n Press CTRL+ALT+c\n')
-    if cmd.lower() == 'quit':
-        break
-ahk_interpreter.terminate() # Terminate the running script
+#ahk_interpreter.terminate() # Terminate the running script
 
 
 root.mainloop()
