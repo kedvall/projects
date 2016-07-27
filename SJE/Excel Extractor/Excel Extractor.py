@@ -110,7 +110,6 @@ class FileSelection:
 			self.fileDisp.set('Successfully loaded ' + str(self.selectedSheet.get()) + '.')
 			ParamSelection.paramFrame.grid()
 			Search.searchFrame.grid()
-			PatternDialog()
 		except KeyError:
 			self.fileDisp.set('Error loading ' + str(self.selectedSheet.get()) + '!')
 		
@@ -126,21 +125,21 @@ class SearchSelection:
 		self.searchMode = StringVar()
 		self.searchMode.set('keyword')
 		self.matchMode = StringVar()
-		self.matchMode.set('column')
+		self.matchMode.set('offset')
 		self.radioSet()
 
 		# Interface elements
 		ttk.Label(sModeFrame, text='Select Search Mode:').grid(columnspan=6, row=1, sticky=W)
-		self.keywordRBtn = ttk.Radiobutton(sModeFrame, text='Keyword', variable=self.searchMode, value='keyword', command=self.radioSet)
+		self.keywordRBtn = ttk.Radiobutton(sModeFrame, text='Keyword Variations', variable=self.searchMode, value='keyword', command=self.radioSet)
 		self.keywordRBtn.grid(columnspan=3, row=2, sticky=W)
 		self.exactRBtn = ttk.Radiobutton(sModeFrame, text='Exact Match', variable=self.searchMode, value='exact', command=self.radioSet)
 		self.exactRBtn.grid(columnspan=3, column=4, row=2, sticky=W)
 
 		ttk.Label(sModeFrame, text='').grid(column=0, row=3, sticky=(W, E)) # Divider
 		ttk.Label(sModeFrame, text='Select Match Mode:').grid(columnspan=6, row=4, sticky=W)
-		self.columnRBtn = ttk.Radiobutton(sModeFrame, text='From Another Column', variable=self.matchMode, value='column', command=self.radioSet)
+		self.columnRBtn = ttk.Radiobutton(sModeFrame, text='Matched Pattern', variable=self.matchMode, value='offset', command=self.radioSet)
 		self.columnRBtn.grid(columnspan=3, row=5, sticky=W)
-		self.offsetRBtn = ttk.Radiobutton(sModeFrame, text='Keyword Offset', variable=self.matchMode, value='offset', command=self.radioSet)
+		self.offsetRBtn = ttk.Radiobutton(sModeFrame, text='From Another Column', variable=self.matchMode, value='column', command=self.radioSet)
 		self.offsetRBtn.grid(columnspan=3, column=4, row=5, sticky=W)
 
 		for child in sModeFrame.winfo_children(): child.grid_configure(padx=5, pady=0)
@@ -165,7 +164,6 @@ class ParamSelection:
 		ParamSelection.offsetPattern = StringVar() # Holds text from pattern entry field
 		ParamSelection.vcmd = ParamSelection.paramFrame.register(self.updateHandler) # Validation binding
 		self.offsetPtrnLbl = StringVar() # Holds text of label above pattern entry
-		ParamSelection.curDraw = 'pattern'
 
 		# Set defaults
 		ParamSelection.searchCol.set('Column: A to XFD')
@@ -299,64 +297,63 @@ class ParamSelection:
 
 
 	def clickConfigure(self):
-		PatternDialog.renderBox(PatternDialog)
+		try:
+			print(PatternDialog.toplevel.state())
+		except:
+			pass
+		PatternDialog()
 
 
 class PatternDialog():
 	def __init__(self):
-		# Create and center the toplevel window
-		PatternDialog.toplevel = Toplevel()
-		PatternDialog.toplevel.title('Pattern Search Configuration')
-		PatternDialog.toplevel.withdraw()
-		PatternDialog.topFrame = Frame(PatternDialog.toplevel)
-		PatternDialog.midFrame = Frame(PatternDialog.toplevel)
-		PatternDialog.bottomFrame = Frame(PatternDialog.toplevel)
-		PatternDialog.topFrame.pack(fill=X, expand=True)
-		PatternDialog.midFrame.pack(fill=X, expand=True)
-		PatternDialog.bottomFrame.pack(side=BOTTOM, fill=X, expand=True)
+		try:
+			# Restore existing window if it exists
+			PatternDialog.toplevel.deiconify()
+		except AttributeError:
+			# Window does not exist. Create and center the toplevel window
+			PatternDialog.toplevel = Toplevel()
+			PatternDialog.toplevel.title('Pattern Search Configuration')
+			# Create icon from base64 code
+			Base64IconGen(PatternDialog.toplevel)
 
-		# Create icon from base64 code
-		Base64IconGen(PatternDialog.toplevel)
+			# Create subframes to store various widgets
+			PatternDialog.titleFrame = Frame(PatternDialog.toplevel)
+			PatternDialog.ruleFrame = Frame(PatternDialog.toplevel)
+			PatternDialog.buttonFrame = Frame(PatternDialog.toplevel)
+			# Pack subframes to top, mid, and bottom
+			PatternDialog.titleFrame.pack(side=TOP, fill=X, expand=True)
+			PatternDialog.ruleFrame.pack(fill=X, expand=True)
+			PatternDialog.buttonFrame.pack(side=BOTTOM, fill=X, expand=True)
+
+			# Add instruction label 
+			ttk.Label(PatternDialog.titleFrame, text='Match the following rules:').pack(side=TOP, anchor=W)
 
 		# Get screen dimensions
-		PatternDialog.rX = root.winfo_rootx()
-		PatternDialog.rY = root.winfo_rooty()
-		PatternDialog.rHeight = root.winfo_height()
-		PatternDialog.rWidth = root.winfo_width()
+		self.rX = root.winfo_rootx()
+		self.rY = root.winfo_rooty()
+		self.rHeight = root.winfo_height()
+		self.rWidth = root.winfo_width()
 
-		# Variables
-		PatternDialog.rulesDict = {}
-
-		# Draw the rest of the box
-		ParamSelection.curDraw = 'pattern'
-		self.drawPattern()
-
-
-	def renderBox(self):
-		# Pass drawing frame depending on offset mode
-		PatternDialog.toplevel.grab_set()
-		if ParamSelection.offsetMode.get() == ParamSelection.curDraw:
-			PatternDialog.toplevel.deiconify()
-		else:
-			if ParamSelection.offsetMode.get() == 'char':
-				self.drawChar(self)
-				ParamSelection.curDraw = 'char'
-			else:
-				self.drawPattern(self)
-				ParamSelection.curDraw = 'pattern'
-
-
-	def drawChar(self):
-		ttk.Label(PatternDialog.topFrame, text='Enter number of characters:').pack(side=TOP, anchor=W)
-
-		self.drawButtons()
-
-
-	def drawPattern(self):
-		ttk.Label(PatternDialog.topFrame, text='Match the following rules:').pack(side=TOP, anchor=W)
-
+		# Draw a rule selection row
 		RuleDialog()
-		self.drawButtons()
+
+		# Draw bottom buttons
+		cancelBtn = ttk.Button(PatternDialog.bottomFrame, text='Cancel', command=self.cancelDialog, style='cancelBtn.TButton')
+		cancelBtn.pack(side=LEFT)
+		doneBtn = ttk.Button(PatternDialog.bottomFrame, text='Done', command=self.doneDialog, style='doneBtn.TButton')
+		doneBtn.pack(side=RIGHT)
+
+		# Add padding to all items in the frame
+		for child in PatternDialog.toplevel.winfo_children(): child.pack_configure(padx=5, pady=5)
+
+		# Move windows to center of parent frame
+		root.update_idletasks()
+		size = list(int(item) for item in PatternDialog.toplevel.geometry().split('+')[0].split('x'))
+		geometry = "+%d+%d" % (self.rX + ((self.rWidth / 2) - (size[0] / 2)), self.rY + ((self.rHeight / 2) - (size[1] / 2)))
+		PatternDialog.toplevel.geometry(geometry)
+
+		# Everything appears to have gone well, lock the parent frame while top level is active
+		PatternDialog.toplevel.grab_set()
 
 
 	def addRule():
@@ -365,20 +362,6 @@ class PatternDialog():
 
 	def removeRule(self):
 		pass #ADD REMOVE
-
-
-	def drawButtons(self):
-		cancelBtn = ttk.Button(PatternDialog.bottomFrame, text='Cancel', command=self.cancelDialog, style='cancelBtn.TButton')
-		cancelBtn.pack(side=LEFT)
-		doneBtn = ttk.Button(PatternDialog.bottomFrame, text='Done', command=self.doneDialog, style='doneBtn.TButton')
-		doneBtn.pack(side=RIGHT)
-
-		for child in PatternDialog.toplevel.winfo_children(): child.pack_configure(padx=5, pady=5)
-
-		root.update_idletasks()
-		size = list(int(item) for item in PatternDialog.toplevel.geometry().split('+')[0].split('x'))
-		geometry = "+%d+%d" % (self.rX + ((self.rWidth / 2) - (size[0] / 2)), self.rY + ((self.rHeight / 2) - (size[1] / 2)))
-		PatternDialog.toplevel.geometry(geometry)
 
 
 	def cancelDialog(self):
@@ -615,6 +598,10 @@ class ExcelHandler(FileSelection, ParamSelection):
 
 class RegexGeneration:
 # Class to handle all regular expression and pattern generation
+	def __init__(self):
+		# Set up dictionary for permutation matching
+		RegexGeneration.rulesDict = {}
+
 	def genPerms(self, originTerm):
 	# Generate permutations to search for based on search term
 		if '.' not in originTerm:
@@ -657,6 +644,7 @@ class Base64IconGen():
 #************************************ Program Start ************************************#
 # Create objects
 Base64IconGen(root)
+regex =  RegexGeneration()
 filePane = FileSelection()
 sModePane = SearchSelection()
 paramPane = ParamSelection()
