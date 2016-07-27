@@ -191,19 +191,28 @@ class ParamSelection:
 		self.charRBtn.grid(column=1, row=4, sticky=W)
 		self.configBtn = ttk.Button(ParamSelection.paramFrame, text='Set Up Search Pattern', style='configBtn.TButton', command=self.clickConfigure)
 		self.configBtn.grid(columnspan=5, column=2, row=4, sticky=W)
+		self.ptrnEntry = ttk.Entry(ParamSelection.paramFrame, width=30, textvariable=ParamSelection.offsetPattern, validate='all', validatecommand=(ParamSelection.vcmd, '%V', '%W', '%P'))
+		self.ptrnEntry.grid(columnspan=5, column=2, row=4, sticky=W)
 		
-		ParamSelection.nameDict = {str(self.sColEntry):{'textvar':ParamSelection.searchCol, 'placeholder':'Column: A to XFD', 'entryName':self.sColEntry, 'type':'column'},
-						 str(self.pColEntry):{'textvar':ParamSelection.pasteCol, 'placeholder':'Column: A to XFD', 'entryName':self.pColEntry, 'type':'column'}}
+		self.nameDict = {str(self.sColEntry):{'textvar':ParamSelection.searchCol, 'placeholder':'Column: A to XFD', 'entryName':self.sColEntry, 'type':'column'},
+						 		   str(self.pColEntry):{'textvar':ParamSelection.pasteCol, 'placeholder':'Column: A to XFD', 'entryName':self.pColEntry, 'type':'column'},
+						 		   str(self.ptrnEntry):{'textvar':ParamSelection.offsetPattern, 'placeholder':'Must be a number (Ex 10)', 'entryName':self.ptrnEntry, 'type':'pattern'},
+								   'radioTriggerMapping':{'textvar':ParamSelection.offsetPattern, 'placeholder':'Must be a number (Ex 10)', 'entryName':self.ptrnEntry, 'type':'pattern'}}
 
 		for child in ParamSelection.paramFrame.winfo_children(): child.grid_configure(padx=5, pady=5)
+		self.configBtn.grid_configure(pady=2)
+		self.ptrnEntry.grid_remove()
 		ParamSelection.paramFrame.grid_remove()
 
 
 	def radioSet(self):
 		try:
 			if ParamSelection.offsetMode.get() == 'pattern':
-				self.updateHandler('radioChange', 'radioTriggerMapping', ParamSelection.offsetPattern.get())
+				self.ptrnEntry.grid_remove()
+				self.configBtn.grid()
 			else:
+				self.configBtn.grid_remove()
+				self.ptrnEntry.grid()
 				self.updateHandler('radioChange', 'radioTriggerMapping', ParamSelection.offsetPattern.get())
 		except KeyError:
 			return
@@ -211,7 +220,7 @@ class ParamSelection:
 
 	def updateHandler(self, reason, varName, entryValue): 
 	# Called on entry state change, decides where to pass task. Return True to allow edit, False to disallow
-		if reason == 'radioChange' and ParamSelection.curDraw == 'char': # Radio button was clicked, check new position
+		if reason == 'radioChange': # Radio button was clicked, check new position
 			if (not self.validateEntry(varName, entryValue) or ParamSelection.offsetPattern.get() == ''):
 				self.setPlaceholder(varName, True)
 
@@ -225,7 +234,7 @@ class ParamSelection:
 			if not self.validateEntry(varName, entryValue):
 				return False
 
-			elif ParamSelection.nameDict[varName]['type'] == 'pattern':
+			elif self.nameDict[varName]['type'] == 'pattern':
 				if entryValue != '':
 					self.toggleEnable('en')
 				else:
@@ -235,7 +244,7 @@ class ParamSelection:
 
 	def validateEntry(self, varName, curEntryVal):
 	# Validates the entry based on entry type. Returns True if pass, False if fail
-		if ParamSelection.nameDict[varName]['type'] == 'column':
+		if self.nameDict[varName]['type'] == 'column':
 			if not (curEntryVal.isalpha() or curEntryVal == ''):
 				return False
 			elif curEntryVal != '':
@@ -253,29 +262,29 @@ class ParamSelection:
 
 	def setPlaceholder(self, varName, forceSet):
 	# Sets the placeholder text of the entry. Can be forced to override current text
-		textvar = ParamSelection.nameDict[varName]['textvar']
+		textvar = self.nameDict[varName]['textvar']
 
 		if forceSet: # If force flag is set, override current value
-			textvar.set(ParamSelection.nameDict[varName]['placeholder'])
-			ParamSelection.nameDict[varName][str('entryName')].configure(foreground='grey')
+			textvar.set(self.nameDict[varName]['placeholder'])
+			self.nameDict[varName][str('entryName')].configure(foreground='grey')
 
 		elif textvar.get() == '': # Check if Entry is empty before setting value
-			if (ParamSelection.nameDict[varName]['type'] == 'pattern' and ParamSelection.offsetMode.get() == 'char'): # If pattern entry, make sure char is selected
-				textvar.set(ParamSelection.nameDict[varName]['placeholder'])
-				ParamSelection.nameDict[varName][str('entryName')].configure(foreground='grey')
+			if (self.nameDict[varName]['type'] == 'pattern' and ParamSelection.offsetMode.get() == 'char'): # If pattern entry, make sure char is selected
+				textvar.set(self.nameDict[varName]['placeholder'])
+				self.nameDict[varName][str('entryName')].configure(foreground='grey')
 
-			elif ParamSelection.nameDict[varName]['type'] == 'column': # Column entry
-				textvar.set(ParamSelection.nameDict[varName]['placeholder'])
-				ParamSelection.nameDict[varName][str('entryName')].configure(foreground='grey')
+			elif self.nameDict[varName]['type'] == 'column': # Column entry
+				textvar.set(self.nameDict[varName]['placeholder'])
+				self.nameDict[varName][str('entryName')].configure(foreground='grey')
 
 
 	def remPlaceholder(self, varName):
 	# Removes the placeholder text of the entry
-		textvar = ParamSelection.nameDict[varName]['textvar']
+		textvar = self.nameDict[varName]['textvar']
 
-		if textvar.get() == ParamSelection.nameDict[varName]['placeholder']:
+		if textvar.get() == self.nameDict[varName]['placeholder']:
 			textvar.set('')
-			ParamSelection.nameDict[varName][str('entryName')].configure(foreground='black')
+			self.nameDict[varName][str('entryName')].configure(foreground='black')
 
 
 	def toggleEnable(self, state):
@@ -340,12 +349,6 @@ class PatternDialog():
 	def drawChar(self):
 		ttk.Label(PatternDialog.topFrame, text='Enter number of characters:').pack(side=TOP, anchor=W)
 
-		self.ptrnEntry = ttk.Entry(PatternDialog.topFrame, width=30, textvariable=ParamSelection.offsetPattern, validate='all', validatecommand=(ParamSelection.vcmd, '%V', '%W', '%P'))
-		self.ptrnEntry.pack(side=TOP, anchor=W, padx=2, pady=5)
-		ParamSelection.nameDict[str(self.ptrnEntry)] = {'textvar':ParamSelection.offsetPattern, 'placeholder':'Must be a number (Ex 10)', 'entryName':self.ptrnEntry, 'type':'pattern'}
-		ParamSelection.nameDict['radioTriggerMapping'] = {'textvar':ParamSelection.offsetPattern, 'placeholder':'Must be a number (Ex 10)', 'entryName':self.ptrnEntry, 'type':'pattern'}
-		ParamSelection.setPlaceholder(ParamSelection, str(self.ptrnEntry), False)
-	
 		self.drawButtons()
 
 
