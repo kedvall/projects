@@ -362,19 +362,6 @@ class PatternDialog():
 		PatternDialog.toplevel.grab_set()
 
 
-	def addRule():
-		RuleDialog()
-
-
-	def removeRule(buttonID, name):
-		print('Name: ' + name)
-		print('ID: ' + str(buttonID))
-		print(PatternDialog.ruleDict)
-		for key, value in PatternDialog.ruleDict.items():
-			if str(buttonID) == key:
-				print(name + ' removed!')
-
-
 	def cancelDialog(self):
 		ParamSelection.offsetPattern.set('')
 		PatternDialog.toplevel.destroy()
@@ -411,17 +398,25 @@ class RuleDialog:
 		self.repeatCB.pack(side=LEFT, anchor=W, padx=5, pady=5)
 
 		# - button to remove rule
-		self.removeBtn = ttk.Button(self.innerFrame, text = '-', command=lambda: PatternDialog.removeRule(self.removeBtn, self.typeValue.get()), style='removeBtn.TButton')
+		self.removeBtn = ttk.Button(self.innerFrame, text = '-', command=self.removeRule, style='removeBtn.TButton')
 		self.removeBtn.config(width=3)
 		self.removeBtn.pack(side=LEFT, anchor=E, padx=5, pady=5)
 
 		# + button to add another rule
-		self.addBtn = ttk.Button(self.innerFrame, text = '+', command=PatternDialog.addRule, style='addBtn.TButton')
+		self.addBtn = ttk.Button(self.innerFrame, text = '+', command=self.addRule, style='addBtn.TButton')
 		self.addBtn.config(width=3)
 		self.addBtn.pack(side=LEFT, anchor=E, padx=5, pady=5)
 
 		# Add instance to dictionary
 		PatternDialog.ruleDict[str(self.removeBtn)] = currentframe()
+
+
+	def removeRule(self):
+		if len(PatternDialog.ruleDict) > 1:
+			self.innerFrame.destroy()
+
+	def addRule(self):
+		RuleDialog()
 
 
 class Search:
