@@ -393,14 +393,14 @@ class RuleDialog:
 		self.typeCB.pack(side=LEFT, anchor=W, padx=5, pady=5)
 
 		# 2nd rule section button, how it should be allowed to repeat
-		self.repeatCB = ttk.Combobox(self.innerFrame, textvariable=self.repeatValue, width=30, state='readonly')
+		self.repeatCB = ttk.Combobox(self.innerFrame, textvariable=self.repeatValue, width=16, state='readonly')
 		self.repeatCB['values'] = PatternDialog.valuesDict['repeatCB']
 		self.repeatCB.current(1)
 		self.repeatCB.bind('<<ComboboxSelected>>', self.valueChanged)
 		self.repeatCB.pack(side=LEFT, anchor=W, padx=5, pady=5)
 
 		# 3rd rule section button, repeat termination (if repeat until is selected)
-		self.terminateCB = ttk.Combobox(self.innerFrame, textvariable=self.terminateValue, width=30, state='readonly')
+		self.terminateCB = ttk.Combobox(self.innerFrame, textvariable=self.terminateValue, width=20, state='readonly')
 		self.terminateCB['values'] = PatternDialog.valuesDict['terminateCB']
 		self.terminateCB.current(0)
 		self.terminateCB.bind('<<ComboboxSelected>>', self.valueChanged)
@@ -418,13 +418,14 @@ class RuleDialog:
 
 		# Add instance to dictionary
 		PatternDialog.ruleDict[str(self.removeBtn)] = currentframe()
+		# Add values to dictionary
+		self.valueChanged(None)
 
 
 	def valueChanged(self, event):
-		for instance in PatternDialog.ruleDict.values():
-			RegexGeneration.rulesDict[self.typeCB] = self.typeValue.get()
-			RegexGeneration.rulesDict[self.repeatCB] = self.repeatValue.get()
-			RegexGeneration.rulesDict[self.terminateCB] = self.terminateValue.get()
+		RegexGeneration.rulesDict[self.typeCB] = self.typeValue.get()
+		RegexGeneration.rulesDict[self.repeatCB] = self.repeatValue.get()
+		RegexGeneration.rulesDict[self.terminateCB] = self.terminateValue.get()
 		print(RegexGeneration.rulesDict)
 
 
