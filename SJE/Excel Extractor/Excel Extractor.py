@@ -14,6 +14,7 @@ import sys, os, re, inspect, openpyxl, getpass, base64, base64ico
 import tkinter.messagebox
 from tkinter import *
 from tkinter import ttk, filedialog
+from inspect import currentframe
 from openpyxl.cell import get_column_letter, column_index_from_string
 
 
@@ -314,7 +315,7 @@ class PatternDialog():
 			Base64IconGen(PatternDialog.toplevel)
 
 			# Create variable to track number of rows
-			PatternDialog.ruleList = []
+			PatternDialog.ruleDict = {}
 			# Create dictionary for dialog drop downs
 			PatternDialog.valuesDict = {'typeCB':['Letter', 'Digit', 'Space Character', 'Specify Character'],
 							   'repeatCB':['Repeating', 'Repeating Until'],
@@ -334,7 +335,7 @@ class PatternDialog():
 			ttk.Label(PatternDialog.titleFrame, text='Match the following rules:').pack(side=TOP, anchor=W)
 
 			# Draw a rule selection row
-			PatternDialog.ruleList.append(RuleDialog())
+			RuleDialog()
 
 			# Draw bottom buttons
 			cancelBtn = ttk.Button(PatternDialog.buttonFrame, text='Cancel', command=self.cancelDialog, style='cancelBtn.TButton')
@@ -362,15 +363,16 @@ class PatternDialog():
 
 
 	def addRule():
-		PatternDialog.ruleList.append(RuleDialog())
+		RuleDialog()
 
 
-	def removeRule():
-		print(PatternDialog.ruleList)
-		print(str())
-		for instance in PatternDialog.ruleList:
-			if isinstance(self.removeBth, instance):
-				print('Instance found!')
+	def removeRule(buttonID, name):
+		print('Name: ' + name)
+		print('ID: ' + str(buttonID))
+		print(PatternDialog.ruleDict)
+		for key, value in PatternDialog.ruleDict.items():
+			if str(buttonID) == key:
+				print(name + ' removed!')
 
 
 	def cancelDialog(self):
@@ -399,15 +401,17 @@ class RuleDialog:
 		# 1st rule section button, type of character (or exact char) to match
 		self.typeCB = ttk.Combobox(self.innerFrame, textvariable=self.typeValue, width=18, state='readonly')
 		self.typeCB['values'] = PatternDialog.valuesDict['typeCB']
+		self.typeCB.current(0)
 		self.typeCB.pack(side=LEFT, anchor=W, padx=5, pady=5)
 
 		# 2nd rule section button, how it should be allowed to repeat
 		self.repeatCB = ttk.Combobox(self.innerFrame, textvariable=self.repeatValue, width=30, state='readonly')
 		self.repeatCB['values'] = PatternDialog.valuesDict['repeatCB']
+		self.repeatCB.current(0)
 		self.repeatCB.pack(side=LEFT, anchor=W, padx=5, pady=5)
 
-		# + button to add another rule
-		self.removeBtn = ttk.Button(self.innerFrame, text = '-', command=PatternDialog.removeRule, style='removeBtn.TButton')
+		# - button to remove rule
+		self.removeBtn = ttk.Button(self.innerFrame, text = '-', command=lambda: PatternDialog.removeRule(self.removeBtn, self.typeValue.get()), style='removeBtn.TButton')
 		self.removeBtn.config(width=3)
 		self.removeBtn.pack(side=LEFT, anchor=E, padx=5, pady=5)
 
@@ -415,6 +419,9 @@ class RuleDialog:
 		self.addBtn = ttk.Button(self.innerFrame, text = '+', command=PatternDialog.addRule, style='addBtn.TButton')
 		self.addBtn.config(width=3)
 		self.addBtn.pack(side=LEFT, anchor=E, padx=5, pady=5)
+
+		# Add instance to dictionary
+		PatternDialog.ruleDict[str(self.removeBtn)] = currentframe()
 
 
 class Search:
