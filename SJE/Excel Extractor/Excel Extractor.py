@@ -110,6 +110,7 @@ class FileSelection:
 			self.fileDisp.set('Successfully loaded ' + str(self.selectedSheet.get()) + '.')
 			ParamSelection.paramFrame.grid()
 			Search.searchFrame.grid()
+			PatternDialog()
 		except KeyError:
 			self.fileDisp.set('Error loading ' + str(self.selectedSheet.get()) + '!')
 		
@@ -289,50 +290,57 @@ class ParamSelection:
 
 
 	def clickConfigure(self):
-		PatternDialog()
+		PatternDialog.renderBox(PatternDialog)
 
 
 class PatternDialog():
 	def __init__(self):
-		# Close any previous toplevel instance (clicking button more than once)
-		try:
-			PatternDialog.toplevel.destroy()
-		except AttributeError:
-			pass
-
 		# Create and center the toplevel window
 		PatternDialog.toplevel = Toplevel()
 		PatternDialog.toplevel.title('Pattern Search Configuration')
-		self.topFrame = Frame(PatternDialog.toplevel)
-		self.bottomFrame = Frame(PatternDialog.toplevel)
-		self.topFrame.pack(fill=X, expand=True)
-		self.bottomFrame.pack(side=BOTTOM, fill=X, expand=True)
-
-		# Variables
-		PatternDialog.rulesDict = {}
+		PatternDialog.toplevel.withdraw()
+		PatternDialog.topFrame = Frame(PatternDialog.toplevel)
+		PatternDialog.midFrame = Frame(PatternDialog.toplevel)
+		PatternDialog.bottomFrame = Frame(PatternDialog.toplevel)
+		PatternDialog.topFrame.pack(fill=X, expand=True)
+		PatternDialog.midFrame.pack(fill=X, expand=True)
+		PatternDialog.bottomFrame.pack(side=BOTTOM, fill=X, expand=True)
 
 		# Create icon from base64 code
 		Base64IconGen(PatternDialog.toplevel)
 
 		# Get screen dimensions
-		self.rX = root.winfo_rootx()
-		self.rY = root.winfo_rooty()
-		self.rHeight = root.winfo_height()
-		self.rWidth = root.winfo_width()
+		PatternDialog.rX = root.winfo_rootx()
+		PatternDialog.rY = root.winfo_rooty()
+		PatternDialog.rHeight = root.winfo_height()
+		PatternDialog.rWidth = root.winfo_width()
 
+		# Variables
+		PatternDialog.rulesDict = {}
+
+		# Draw the rest of the box
+		ParamSelection.curDraw = 'pattern'
+		self.drawPattern()
+
+
+	def renderBox(self):
 		# Pass drawing frame depending on offset mode
-		if ParamSelection.offsetMode.get() == 'char':
-			self.drawChar()
-			ParamSelection.curDraw = 'char'
+		PatternDialog.toplevel.grab_set()
+		if ParamSelection.offsetMode.get() == ParamSelection.curDraw:
+			PatternDialog.toplevel.deiconify()
 		else:
-			self.drawPattern()
-			ParamSelection.curDraw = 'pattern'
+			if ParamSelection.offsetMode.get() == 'char':
+				self.drawChar(self)
+				ParamSelection.curDraw = 'char'
+			else:
+				self.drawPattern(self)
+				ParamSelection.curDraw = 'pattern'
 
-		
+
 	def drawChar(self):
-		ttk.Label(self.topFrame, text='Enter number of characters:').pack(side=TOP, anchor=W)
+		ttk.Label(PatternDialog.topFrame, text='Enter number of characters:').pack(side=TOP, anchor=W)
 
-		self.ptrnEntry = ttk.Entry(self.topFrame, width=30, textvariable=ParamSelection.offsetPattern, validate='all', validatecommand=(ParamSelection.vcmd, '%V', '%W', '%P'))
+		self.ptrnEntry = ttk.Entry(PatternDialog.topFrame, width=30, textvariable=ParamSelection.offsetPattern, validate='all', validatecommand=(ParamSelection.vcmd, '%V', '%W', '%P'))
 		self.ptrnEntry.pack(side=TOP, anchor=W, padx=2, pady=5)
 		ParamSelection.nameDict[str(self.ptrnEntry)] = {'textvar':ParamSelection.offsetPattern, 'placeholder':'Must be a number (Ex 10)', 'entryName':self.ptrnEntry, 'type':'pattern'}
 		ParamSelection.nameDict['radioTriggerMapping'] = {'textvar':ParamSelection.offsetPattern, 'placeholder':'Must be a number (Ex 10)', 'entryName':self.ptrnEntry, 'type':'pattern'}
@@ -342,34 +350,68 @@ class PatternDialog():
 
 
 	def drawPattern(self):
-		ttk.Label(self.topFrame, text='Match the following rules:').pack(side=TOP, anchor=W)
+		ttk.Label(PatternDialog.topFrame, text='Match the following rules:').pack(side=TOP, anchor=W)
 
+		RuleDialog()
 		self.drawButtons()
 
 
+	def addRule():
+		RuleDialog()
+
+
+	def removeRule(self):
+		pass #ADD REMOVE
+
+
 	def drawButtons(self):
-		cancelBtn = ttk.Button(self.bottomFrame, text='Cancel', command=self.cancelDialog, style='cancelBtn.TButton')
+		cancelBtn = ttk.Button(PatternDialog.bottomFrame, text='Cancel', command=self.cancelDialog, style='cancelBtn.TButton')
 		cancelBtn.pack(side=LEFT)
-		doneBtn = ttk.Button(self.bottomFrame, text='Done', command=self.doneDialog, style='doneBtn.TButton')
+		doneBtn = ttk.Button(PatternDialog.bottomFrame, text='Done', command=self.doneDialog, style='doneBtn.TButton')
 		doneBtn.pack(side=RIGHT)
 
 		for child in PatternDialog.toplevel.winfo_children(): child.pack_configure(padx=5, pady=5)
 
 		root.update_idletasks()
 		size = list(int(item) for item in PatternDialog.toplevel.geometry().split('+')[0].split('x'))
-		if size[0] < 325:
-			size[0] = 325
-		geometry = "%dx%d+%d+%d" % (size[0], size[1], self.rX + ((self.rWidth / 2) - (size[0] / 2)), self.rY + ((self.rHeight / 2) - (size[1] / 2)))
+		geometry = "+%d+%d" % (self.rX + ((self.rWidth / 2) - (size[0] / 2)), self.rY + ((self.rHeight / 2) - (size[1] / 2)))
 		PatternDialog.toplevel.geometry(geometry)
 
 
 	def cancelDialog(self):
 		ParamSelection.offsetPattern.set('')
 		PatternDialog.toplevel.destroy()
+		PatternDialog()
+		PatternDialog.toplevel.grab_release()
 
 
 	def doneDialog(self):
-		PatternDialog.toplevel.destroy()
+		PatternDialog.toplevel.withdraw()
+		PatternDialog.toplevel.grab_release()
+
+
+class RuleDialog:
+# Class to handle creation and destruction of rules
+	def __init__(self):
+		self.valuesDict = {'typeCB':['Letter', 'Digit', 'Space Character'], 'repeatCB':['Repeating', 'Repeating Until'], 'stopCB':['Space Character', 'Non-Space Character', 'Alphanumeric', 'Letter', 'Digit']}
+		self.typeValue = StringVar()
+		self.repeatValue = StringVar()
+		self.endValue = StringVar()
+
+		self.packFrame = ttk.Frame(PatternDialog.topFrame)
+
+		self.typeCB = ttk.Combobox(self.packFrame, textvariable=self.typeValue, width=30, state='readonly')
+		self.typeCB['values'] = self.valuesDict['typeCB']
+		self.typeCB.pack(side=LEFT, anchor=W, padx=5, pady=5)
+
+		self.repeatCB = ttk.Combobox(self.packFrame, textvariable=self.repeatValue, width=30, state='readonly')
+		self.repeatCB['values'] = self.valuesDict['repeatCB']
+		self.repeatCB.pack(side=LEFT, anchor=W, padx=5, pady=5)
+
+		self.addBtn = ttk.Button(self.packFrame, text = '+', command=PatternDialog.addRule, style='addBtn.TButton')
+		self.addBtn.pack(side=LEFT, anchor=E, padx=0, pady=0)
+
+		self.packFrame.pack(side=BOTTOM, fill=X, expand=True)
 
 
 class Search:
