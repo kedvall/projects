@@ -10,7 +10,7 @@
 
 #************************************ Program Setup ************************************#
 # Import Everything
-import sys, os, re, openpyxl, getpass, base64, base64ico
+import sys, os, re, inspect, openpyxl, getpass, base64, base64ico
 import tkinter.messagebox
 from tkinter import *
 from tkinter import ttk, filedialog
@@ -297,10 +297,6 @@ class ParamSelection:
 
 
 	def clickConfigure(self):
-		try:
-			print(PatternDialog.toplevel.state())
-		except:
-			pass
 		PatternDialog()
 
 
@@ -309,6 +305,7 @@ class PatternDialog():
 		try:
 			# Restore existing window if it exists
 			PatternDialog.toplevel.deiconify()
+
 		except (AttributeError, TclError) as e:
 			# Window does not exist. Create and center the toplevel window
 			PatternDialog.toplevel = Toplevel()
@@ -316,10 +313,18 @@ class PatternDialog():
 			# Create icon from base64 code
 			Base64IconGen(PatternDialog.toplevel)
 
+			# Create variable to track number of rows
+			PatternDialog.ruleList = []
+			# Create dictionary for dialog drop downs
+			PatternDialog.valuesDict = {'typeCB':['Letter', 'Digit', 'Space Character', 'Specify Character'],
+							   'repeatCB':['Repeating', 'Repeating Until'],
+							   'stopCB':['Space Character', 'Non-Space Character', 'Alphanumeric', 'Letter', 'Digit']}
+
 			# Create subframes to store various widgets
 			PatternDialog.titleFrame = ttk.Frame(PatternDialog.toplevel)
 			PatternDialog.ruleFrame = ttk.Frame(PatternDialog.toplevel)
 			PatternDialog.buttonFrame = ttk.Frame(PatternDialog.toplevel)
+
 			# Pack subframes to top, mid, and bottom
 			PatternDialog.titleFrame.pack(side=TOP, fill=X, expand=True)
 			PatternDialog.ruleFrame.pack(fill=X, expand=True)
@@ -328,20 +333,20 @@ class PatternDialog():
 			# Add instruction label 
 			ttk.Label(PatternDialog.titleFrame, text='Match the following rules:').pack(side=TOP, anchor=W)
 
+			# Draw a rule selection row
+			PatternDialog.ruleList.append(RuleDialog())
+
+			# Draw bottom buttons
+			cancelBtn = ttk.Button(PatternDialog.buttonFrame, text='Cancel', command=self.cancelDialog, style='cancelBtn.TButton')
+			cancelBtn.pack(side=LEFT)
+			doneBtn = ttk.Button(PatternDialog.buttonFrame, text='Done', command=self.doneDialog, style='doneBtn.TButton')
+			doneBtn.pack(side=RIGHT)
+
 		# Get screen dimensions
 		self.rX = root.winfo_rootx()
 		self.rY = root.winfo_rooty()
 		self.rHeight = root.winfo_height()
 		self.rWidth = root.winfo_width()
-
-		# Draw a rule selection row
-		RuleDialog()
-
-		# Draw bottom buttons
-		cancelBtn = ttk.Button(PatternDialog.buttonFrame, text='Cancel', command=self.cancelDialog, style='cancelBtn.TButton')
-		cancelBtn.pack(side=LEFT)
-		doneBtn = ttk.Button(PatternDialog.buttonFrame, text='Done', command=self.doneDialog, style='doneBtn.TButton')
-		doneBtn.pack(side=RIGHT)
 
 		# Add padding to all items in the frame
 		for child in PatternDialog.toplevel.winfo_children(): child.pack_configure(padx=5, pady=5)
@@ -357,11 +362,15 @@ class PatternDialog():
 
 
 	def addRule():
-		RuleDialog()
+		PatternDialog.ruleList.append(RuleDialog())
 
 
-	def removeRule(self):
-		pass #ADD REMOVE
+	def removeRule():
+		print(PatternDialog.ruleList)
+		print(str())
+		for instance in PatternDialog.ruleList:
+			if isinstance(self.removeBth, instance):
+				print('Instance found!')
 
 
 	def cancelDialog(self):
@@ -379,27 +388,28 @@ class RuleDialog:
 # Class to handle creation and destruction of rules rows
 	def __init__(self):
 		# Required variables
-		self.valuesDict = {'typeCB':['Letter', 'Digit', 'Space Character'],
-						   'repeatCB':['Repeating', 'Repeating Until'],
-						   'stopCB':['Space Character', 'Non-Space Character', 'Alphanumeric', 'Letter', 'Digit']}
 		self.typeValue = StringVar()
 		self.repeatValue = StringVar()
 		self.endValue = StringVar()
 
-		# Create inner frame for layout
+		# Create inner frame for layout and pack it
 		self.innerFrame = ttk.Frame(PatternDialog.ruleFrame)
-		# Pack newly created inner frame on bottom
 		self.innerFrame.pack()
 
 		# 1st rule section button, type of character (or exact char) to match
-		self.typeCB = ttk.Combobox(self.innerFrame, textvariable=self.typeValue, width=30, state='readonly')
-		self.typeCB['values'] = self.valuesDict['typeCB']
+		self.typeCB = ttk.Combobox(self.innerFrame, textvariable=self.typeValue, width=18, state='readonly')
+		self.typeCB['values'] = PatternDialog.valuesDict['typeCB']
 		self.typeCB.pack(side=LEFT, anchor=W, padx=5, pady=5)
 
 		# 2nd rule section button, how it should be allowed to repeat
 		self.repeatCB = ttk.Combobox(self.innerFrame, textvariable=self.repeatValue, width=30, state='readonly')
-		self.repeatCB['values'] = self.valuesDict['repeatCB']
+		self.repeatCB['values'] = PatternDialog.valuesDict['repeatCB']
 		self.repeatCB.pack(side=LEFT, anchor=W, padx=5, pady=5)
+
+		# + button to add another rule
+		self.removeBtn = ttk.Button(self.innerFrame, text = '-', command=PatternDialog.removeRule, style='removeBtn.TButton')
+		self.removeBtn.config(width=3)
+		self.removeBtn.pack(side=LEFT, anchor=E, padx=5, pady=5)
 
 		# + button to add another rule
 		self.addBtn = ttk.Button(self.innerFrame, text = '+', command=PatternDialog.addRule, style='addBtn.TButton')
