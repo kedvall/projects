@@ -309,7 +309,7 @@ class PatternDialog():
 		try:
 			# Restore existing window if it exists
 			PatternDialog.toplevel.deiconify()
-		except AttributeError:
+		except (AttributeError, TclError) as e:
 			# Window does not exist. Create and center the toplevel window
 			PatternDialog.toplevel = Toplevel()
 			PatternDialog.toplevel.title('Pattern Search Configuration')
@@ -317,9 +317,9 @@ class PatternDialog():
 			Base64IconGen(PatternDialog.toplevel)
 
 			# Create subframes to store various widgets
-			PatternDialog.titleFrame = Frame(PatternDialog.toplevel)
-			PatternDialog.ruleFrame = Frame(PatternDialog.toplevel)
-			PatternDialog.buttonFrame = Frame(PatternDialog.toplevel)
+			PatternDialog.titleFrame = ttk.Frame(PatternDialog.toplevel)
+			PatternDialog.ruleFrame = ttk.Frame(PatternDialog.toplevel)
+			PatternDialog.buttonFrame = ttk.Frame(PatternDialog.toplevel)
 			# Pack subframes to top, mid, and bottom
 			PatternDialog.titleFrame.pack(side=TOP, fill=X, expand=True)
 			PatternDialog.ruleFrame.pack(fill=X, expand=True)
@@ -338,9 +338,9 @@ class PatternDialog():
 		RuleDialog()
 
 		# Draw bottom buttons
-		cancelBtn = ttk.Button(PatternDialog.bottomFrame, text='Cancel', command=self.cancelDialog, style='cancelBtn.TButton')
+		cancelBtn = ttk.Button(PatternDialog.buttonFrame, text='Cancel', command=self.cancelDialog, style='cancelBtn.TButton')
 		cancelBtn.pack(side=LEFT)
-		doneBtn = ttk.Button(PatternDialog.bottomFrame, text='Done', command=self.doneDialog, style='doneBtn.TButton')
+		doneBtn = ttk.Button(PatternDialog.buttonFrame, text='Done', command=self.doneDialog, style='doneBtn.TButton')
 		doneBtn.pack(side=RIGHT)
 
 		# Add padding to all items in the frame
@@ -367,7 +367,6 @@ class PatternDialog():
 	def cancelDialog(self):
 		ParamSelection.offsetPattern.set('')
 		PatternDialog.toplevel.destroy()
-		PatternDialog()
 		PatternDialog.toplevel.grab_release()
 
 
@@ -377,27 +376,35 @@ class PatternDialog():
 
 
 class RuleDialog:
-# Class to handle creation and destruction of rules
+# Class to handle creation and destruction of rules rows
 	def __init__(self):
-		self.valuesDict = {'typeCB':['Letter', 'Digit', 'Space Character'], 'repeatCB':['Repeating', 'Repeating Until'], 'stopCB':['Space Character', 'Non-Space Character', 'Alphanumeric', 'Letter', 'Digit']}
+		# Required variables
+		self.valuesDict = {'typeCB':['Letter', 'Digit', 'Space Character'],
+						   'repeatCB':['Repeating', 'Repeating Until'],
+						   'stopCB':['Space Character', 'Non-Space Character', 'Alphanumeric', 'Letter', 'Digit']}
 		self.typeValue = StringVar()
 		self.repeatValue = StringVar()
 		self.endValue = StringVar()
 
-		self.packFrame = ttk.Frame(PatternDialog.topFrame)
+		# Create inner frame for layout
+		self.innerFrame = ttk.Frame(PatternDialog.ruleFrame)
+		# Pack newly created inner frame on bottom
+		self.innerFrame.pack()
 
-		self.typeCB = ttk.Combobox(self.packFrame, textvariable=self.typeValue, width=30, state='readonly')
+		# 1st rule section button, type of character (or exact char) to match
+		self.typeCB = ttk.Combobox(self.innerFrame, textvariable=self.typeValue, width=30, state='readonly')
 		self.typeCB['values'] = self.valuesDict['typeCB']
 		self.typeCB.pack(side=LEFT, anchor=W, padx=5, pady=5)
 
-		self.repeatCB = ttk.Combobox(self.packFrame, textvariable=self.repeatValue, width=30, state='readonly')
+		# 2nd rule section button, how it should be allowed to repeat
+		self.repeatCB = ttk.Combobox(self.innerFrame, textvariable=self.repeatValue, width=30, state='readonly')
 		self.repeatCB['values'] = self.valuesDict['repeatCB']
 		self.repeatCB.pack(side=LEFT, anchor=W, padx=5, pady=5)
 
-		self.addBtn = ttk.Button(self.packFrame, text = '+', command=PatternDialog.addRule, style='addBtn.TButton')
-		self.addBtn.pack(side=LEFT, anchor=E, padx=0, pady=0)
-
-		self.packFrame.pack(side=BOTTOM, fill=X, expand=True)
+		# + button to add another rule
+		self.addBtn = ttk.Button(self.innerFrame, text = '+', command=PatternDialog.addRule, style='addBtn.TButton')
+		self.addBtn.config(width=3)
+		self.addBtn.pack(side=LEFT, anchor=E, padx=5, pady=5)
 
 
 class Search:
