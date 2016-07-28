@@ -173,12 +173,12 @@ class ParamSelection:
 
 		# Interface elements
 		ttk.Label(ParamSelection.paramFrame, text='Which column would you like to search?').grid(columnspan=5, row=0, sticky=E)
-		self.sColEntry = ttk.Entry(ParamSelection.paramFrame, width=17, textvariable=ParamSelection.searchCol, foreground='grey', validate='all', validatecommand=(self.vcmd, '%V', '%W', '%P'))
-		self.sColEntry.grid(columnspan=2, column=5, row=0, sticky=W)
+		ParamSelection.sColEntry = ttk.Entry(ParamSelection.paramFrame, width=17, textvariable=ParamSelection.searchCol, foreground='grey', validate='all', validatecommand=(self.vcmd, '%V', '%W', '%P'))
+		ParamSelection.sColEntry.grid(columnspan=2, column=5, row=0, sticky=W)
 		
 		ttk.Label(ParamSelection.paramFrame, text='Which column would you like to copy the selected data to?').grid(columnspan=5, row=1, sticky=E)
-		self.pColEntry = ttk.Entry(ParamSelection.paramFrame, width=17, textvariable=ParamSelection.pasteCol, foreground='grey', validate='all', validatecommand=(self.vcmd, '%V', '%W', '%P'))
-		self.pColEntry.grid(columnspan=2, column=5, row=1, sticky=W)
+		ParamSelection.pColEntry = ttk.Entry(ParamSelection.paramFrame, width=17, textvariable=ParamSelection.pasteCol, foreground='grey', validate='all', validatecommand=(self.vcmd, '%V', '%W', '%P'))
+		ParamSelection.pColEntry.grid(columnspan=2, column=5, row=1, sticky=W)
 
 		ttk.Label(ParamSelection.paramFrame, text='').grid(columnspan=7, row=2, sticky=(W, E)) # Divider
 		ttk.Label(ParamSelection.paramFrame, text='Select Offset Type:').grid(columnspan=3, row=3, sticky=W)
@@ -193,8 +193,8 @@ class ParamSelection:
 		self.ptrnEntry = ttk.Entry(ParamSelection.paramFrame, width=30, textvariable=ParamSelection.offsetPattern, validate='all', validatecommand=(ParamSelection.vcmd, '%V', '%W', '%P'))
 		self.ptrnEntry.grid(columnspan=5, column=2, row=4, sticky=W)
 		
-		self.nameDict = {str(self.sColEntry):{'textvar':ParamSelection.searchCol, 'placeholder':'Column: A to XFD', 'entryName':self.sColEntry, 'type':'column'},
-						 		   str(self.pColEntry):{'textvar':ParamSelection.pasteCol, 'placeholder':'Column: A to XFD', 'entryName':self.pColEntry, 'type':'column'},
+		self.nameDict = {str(ParamSelection.sColEntry):{'textvar':ParamSelection.searchCol, 'placeholder':'Column: A to XFD', 'entryName':ParamSelection.sColEntry, 'type':'column'},
+						 		   str(ParamSelection.pColEntry):{'textvar':ParamSelection.pasteCol, 'placeholder':'Column: A to XFD', 'entryName':ParamSelection.pColEntry, 'type':'column'},
 						 		   str(self.ptrnEntry):{'textvar':ParamSelection.offsetPattern, 'placeholder':'Must be a number (Ex 10)', 'entryName':self.ptrnEntry, 'type':'pattern'},
 								   'radioTriggerMapping':{'textvar':ParamSelection.offsetPattern, 'placeholder':'Must be a number (Ex 10)', 'entryName':self.ptrnEntry, 'type':'pattern'}}
 
@@ -233,7 +233,7 @@ class ParamSelection:
 			if not self.validateEntry(varName, entryValue):
 				return False
 
-			elif self.nameDict[varName]['type'] == 'pattern':
+			elif (self.nameDict[varName]['type'] == 'pattern') and (ParamSelection.offsetMode.get() == 'char'):
 				if entryValue != '':
 					self.toggleEnable('en')
 				else:
@@ -366,11 +366,15 @@ class PatternDialog():
 		ParamSelection.offsetPattern.set('')
 		PatternDialog.toplevel.destroy()
 		PatternDialog.toplevel.grab_release()
+		PatternDialog.ruleDict = {}
+		RegexGeneration.rulesDict = {}
+		ParamSelection.toggleEnable(ParamSelection, 'dis')
 
 
 	def doneDialog(self):
 		PatternDialog.toplevel.withdraw()
 		PatternDialog.toplevel.grab_release()
+		ParamSelection.toggleEnable(ParamSelection, 'en')
 
 
 class RuleDialog:
@@ -426,11 +430,9 @@ class RuleDialog:
 		RegexGeneration.rulesDict[self.typeCB] = self.typeValue.get()
 		RegexGeneration.rulesDict[self.repeatCB] = self.repeatValue.get()
 		RegexGeneration.rulesDict[self.terminateCB] = self.terminateValue.get()
-		print(RegexGeneration.rulesDict)
 
 
 	def removeRule(self):
-		print(PatternDialog.ruleDict)
 		if len(PatternDialog.ruleDict) > 1:
 			PatternDialog.ruleDict.pop(str(self.removeBtn))
 			self.innerFrame.destroy()
@@ -543,7 +545,6 @@ class Search:
 			# Enable buttons
 			Search.startSearchBtn.configure(state='enabled')
 			Search.selectBtn.configure(state='enabled')
-			Search.exportBtn.configure(state='enabled')
 
 			# Draw result box if it's not already there
 			if not Search.drawCalled:
@@ -561,7 +562,7 @@ class Search:
 				if not (item in self.resultbox.get(0, "end")):
 					self.resultbox.insert(END, item)
 		else:
-			tkinter.messagebox.showinfo('Error', 'Please enter a term to search for.')
+			tkinter.messagebox.showerror('Error', 'Please enter a term to search for.')
 
 
 	def switchState(self):
@@ -576,6 +577,7 @@ class Search:
 	def startSearch(self):
 		self.translateSelection()
 		ExcelHandler.searchSheet(ExcelHandler)
+		Search.exportBtn.configure(state='enabled')
 		tkinter.messagebox.showinfo('Progress', 'Finished Search.')
 
 
@@ -596,12 +598,16 @@ class Search:
 class ExcelHandler(FileSelection, ParamSelection):
 # Class to handle traversing Excel sheets
 	def __init__(self, files, params):
-		RegexGeneration.parseOffset(RegexGeneration)
+		RegexGeneration.parsePattern(RegexGeneration)
 		ExcelHandler.filePath = files.filePath.get()
 		ExcelHandler.wb = files.wb
 		ExcelHandler.sheet = files.sheet
-		ExcelHandler.searchCol = column_index_from_string(str(params.searchCol.get()).upper())
-		ExcelHandler.pasteCol = column_index_from_string(str(params.pasteCol.get()).upper())
+		try:
+			ExcelHandler.searchCol = column_index_from_string(str(params.searchCol.get()).upper())
+			ExcelHandler.pasteCol = column_index_from_string(str(params.pasteCol.get()).upper())
+		except ValueError:
+			ParamSelection.sColEntry.focus_set()
+			tkinter.messagebox.showerror('Error', 'Please enter valid column names.')
 		
 
 	def findPerms(self):
@@ -657,9 +663,13 @@ class RegexGeneration:
 			RegexGeneration.permutRegex = re.compile(r'(' + searchStrings + ')+', re.I)
 
 
-	def parseOffset(self):
-		pattern = ParamSelection.offsetPattern.get()
-		RegexGeneration.patternRegex = re.compile(r'(' + pattern + ')', re.I)
+	def parsePattern(self):
+		if ParamSelection.offsetMode.get() == 'char':
+			print('char')
+		else:
+			print('pattern')
+		#pattern = ParamSelection.offsetPattern.get()
+		#RegexGeneration.patternRegex = re.compile(r'(' + pattern + ')', re.I)
 
 
 	def searchPtrn(self):
