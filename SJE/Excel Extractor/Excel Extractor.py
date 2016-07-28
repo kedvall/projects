@@ -502,6 +502,14 @@ class RuleDialog:
 				if len(RegexGeneration.rulesDict.keys()) < 3:
 					RegexGeneration.rulesDict['row 0'][0].joinCB.pack(side=LEFT, anchor=W, padx=5, pady=5)
 
+				# If this is the last row, omit the concatenation operator selection box
+				for rowNum in RegexGeneration.rulesDict.keys():
+					 if int(rowNum.split()[1]) > PatternDialog.maxRow:
+					 	PatternDialog.maxRow = int(rowNum.split()[1])
+				if int(ID.split()[1]) == PatternDialog.maxRow:
+					value[0].joinCB.pack_forget()
+			else:
+				value[0].joinCB.pack_forget()
 
 
 	def updateDict(self):
