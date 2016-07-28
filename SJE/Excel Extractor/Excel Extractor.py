@@ -34,6 +34,7 @@ style = ttk.Style() # Set the style
 #Base64IconGen(root)
 
 
+############################################################################################################################
 # Class declaration
 class FileSelection:
 # File Selection Frame (Upper left)
@@ -115,6 +116,7 @@ class FileSelection:
 			self.fileDisp.set('Error loading ' + str(self.selectedSheet.get()) + '!')
 		
 
+############################################################################################################################
 class SearchSelection:
 # Search Selection Frame (Lower left)
 	def __init__(self):
@@ -151,6 +153,7 @@ class SearchSelection:
 		match = self.matchMode.get()
 	
 
+############################################################################################################################
 class ParamSelection:
 # Parameter selection frame (Upper right)
 	def __init__(self):
@@ -173,11 +176,11 @@ class ParamSelection:
 
 		# Interface elements
 		ttk.Label(ParamSelection.paramFrame, text='Which column would you like to search?').grid(columnspan=5, row=0, sticky=E)
-		ParamSelection.sColEntry = ttk.Entry(ParamSelection.paramFrame, width=17, textvariable=ParamSelection.searchCol, foreground='grey', validate='all', validatecommand=(self.vcmd, '%V', '%W', '%P'))
+		ParamSelection.sColEntry = ttk.Entry(ParamSelection.paramFrame, width=17, textvariable=ParamSelection.searchCol, foreground='grey', validate='all', validatecommand=(ParamSelection.vcmd, '%V', '%W', '%P'))
 		ParamSelection.sColEntry.grid(columnspan=2, column=5, row=0, sticky=W)
 		
 		ttk.Label(ParamSelection.paramFrame, text='Which column would you like to copy the selected data to?').grid(columnspan=5, row=1, sticky=E)
-		ParamSelection.pColEntry = ttk.Entry(ParamSelection.paramFrame, width=17, textvariable=ParamSelection.pasteCol, foreground='grey', validate='all', validatecommand=(self.vcmd, '%V', '%W', '%P'))
+		ParamSelection.pColEntry = ttk.Entry(ParamSelection.paramFrame, width=17, textvariable=ParamSelection.pasteCol, foreground='grey', validate='all', validatecommand=(ParamSelection.vcmd, '%V', '%W', '%P'))
 		ParamSelection.pColEntry.grid(columnspan=2, column=5, row=1, sticky=W)
 
 		ttk.Label(ParamSelection.paramFrame, text='').grid(columnspan=7, row=2, sticky=(W, E)) # Divider
@@ -301,6 +304,7 @@ class ParamSelection:
 		PatternDialog()
 
 
+############################################################################################################################
 class PatternDialog():
 	def __init__(self):
 		try:
@@ -378,6 +382,7 @@ class PatternDialog():
 		ParamSelection.toggleEnable(ParamSelection, 'en')
 
 
+############################################################################################################################
 class RuleDialog:
 # Class to handle creation and destruction of rules rows
 	def __init__(self):
@@ -549,6 +554,7 @@ class RuleDialog:
 		self.lineConcatUpdate()
 
 
+############################################################################################################################
 class Search:
 # Search Frame (Lower right)
 	def __init__(self):
@@ -702,6 +708,7 @@ class Search:
 		tkinter.messagebox.showinfo('Export', text)
 
 
+############################################################################################################################
 class ExcelHandler(FileSelection, ParamSelection):
 # Class to handle traversing Excel sheets
 	def __init__(self, files, params):
@@ -749,6 +756,7 @@ class ExcelHandler(FileSelection, ParamSelection):
 			return
 
 
+############################################################################################################################
 class RegexGeneration:
 # Class to handle all regular expression and pattern generation
 	def __init__(self):
@@ -783,6 +791,7 @@ class RegexGeneration:
 		print('Pattern')
 
 
+############################################################################################################################
 class Base64IconGen():
 # Takes icon from base64 format and creates window icon
 	def __init__(self, window):

@@ -46,6 +46,7 @@ root.wm_iconbitmap(tempFile)
 os.remove(tempFile)
 
 
+############################################################################################################################
 # Class declaration
 class FileSelection:
 # File Selection Frame (Upper left)
@@ -126,32 +127,31 @@ class FileSelection:
 			self.fileDisp.set('Error loading ' + str(self.selectedSheet.get()) + '!')
 		
 
+############################################################################################################################
 class ColumnSelection:
 # Parameter selection frame (Upper right)
 
 	def __init__(self):
-		### Frame setup ###
+		### Main Frame setup ###
 		ColumnSelection.mainFrame = ttk.LabelFrame(root, text='Import Options: ', padding='3 3 12 12')
 		ColumnSelection.mainFrame.grid(columnspan=6, pady=10, row=3, sticky='N W S E')
 
-		# Required variables
-		ColumnSelection.columnsToImportDict = {}
+		### Required variables ###
+		ColumnSelection.columnsToImportDict = {} # Dictionary for user entered columns
+		ColumnSelection.curRow = 0 # Tracks the current row (for building column entry interface)
 
-		ParamSelection.vcmd = ParamSelection.paramFrame.register(self.updateHandler) # Validation binding
+		### Interface elements ###
+		ttk.Label(ColumnSelection.mainFrame, text='Select columns to import data from').grid(columnspan=6, row=ColumnSelection.curRow, padx=5, pady=5, sticky=W) # Instruction label
+		ColumnSelection.curRow += 1 # Increment row counter
 
-		# Interface elements
-		ttk.Label(ColumnSelection.mainFrame, text='Select columns to import data from').grid(columnspan=6, row=0, padx=5, pady=5, sticky=W)
-
+		# Add spacing to all widgets within this frame
 		for child in ColumnSelection.mainFrame.winfo_children(): child.grid_configure()
+		# Temporarily hid this frame
 		ColumnSelection.mainFrame.grid_remove()
 
 
 	def updateHandler(self, reason, varName, entryValue): 
 	# Called on entry state change, decides where to pass task. Return True to allow edit, False to disallow
-		if reason == 'radioChange': # Radio button was clicked, check new position
-			if (not self.validateEntry(varName, entryValue) or ParamSelection.offsetPattern.get() == ''):
-				self.setPlaceholder(varName, True)
-
 		elif reason == 'focusin':
 			self.remPlaceholder(varName)
 
@@ -230,16 +230,49 @@ class ColumnSelection:
 		PatternDialog()
 
 
+############################################################################################################################
 class ImportColumn:
 # Class to handle creation of import instances
 
 	def __init__(self):
-		# Variable to hold entered column
-		self.enteredColumnSV = StringVar()
+	# Create and display everything needed for user to enter import column name
+		### Required Variables ###
+		self.columnSV = StringVar() # Variable to hold entered column
+		self.entryFieldID = ''
 
-		# Create and display a column selection entry
-		self.columnEntry = ttk.Entry(ColumnSelection.mainFrame, width=17, textvariable=self.enteredColumnSV, validate='all', validatecommand=(self.vcmd))
+		### Interface Setup ###
+		self.entryFrame = ttk.Frame(ColumnSelection.mainFrame, padding='3 3') # Frame for easy layout
 
+		self.vcmd = self.entryFrame.register(self.validateEntry) # Register validate command on new frame
+
+		ttk.Label(self.entryFrame, text='Enter name of column to import data from:').grid(columnspan=4, row=ColumnSelection.curRow, sticky=W) # Column selection label
+
+		# Column selection entry
+		self.columnEntry = ttk.Entry(self.entryFrame, width=17, textvariable=self.columnSV, validate='all', validatecommand=(self.vcmd))
+		self.columnEntry.grid(columnspan=2, column=4, row=ColumnSelection.curRow, sticky=W)
+
+		# Add column entry button
+		self.addButton = ttk.Button(self.entryFrame, text='Add Another Import Column', command=self.addImport)
+		self.addButton.grid(row=ColumnSelection.curRow + 1, sticky=W)
+
+		ColumnSelection.curRow += 1 # Increment current row
+
+		ColumnSelection.columnsToImportDict[self.columnSV] = self.entryFieldID # Add column name and IFS field to dict as key value pair
+
+
+	def addImport(self):
+	# Add another import entry
+		ImportColumn()
+
+
+	def removeImport(self):
+	# Remove current import entry
+		del self.columnSV
+		self.entryFrame.destroy
+
+
+	def validateEntry(self):
+		pass # Validate data entry
 
 
 #************************************ Program Start ************************************#
