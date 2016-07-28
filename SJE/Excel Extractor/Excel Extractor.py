@@ -314,12 +314,11 @@ class PatternDialog():
 			# Create icon from base64 code
 			Base64IconGen(PatternDialog.toplevel)
 
+			# Counter to assign unique ID to each row
 			PatternDialog.rowID = 0
-			# Create dictionary to track instances of rule rows
-			PatternDialog.instanceDict = {}
 			# Create dictionary for dialog drop downs
 			PatternDialog.valuesDict = {'typeCB':['Letter', 'Digit', 'Space Character', 'Specify Character'],
-							   			'repeatCB':['Repeating', 'Repeat Until'],
+							   			'repeatCB':['Repeat', 'Repeat Until'],
 							   			'terminateCB':['Space Character', 'Non-Space Character', 'Alphanumeric', 'Letter', 'Digit'],
 							   			'joinCB':['End', 'Then', 'Or']}
 
@@ -385,7 +384,12 @@ class RuleDialog:
 		# Name this instance and add it to rule dictionary
 		self.name = 'row ' + str(name)
 		PatternDialog.rowID += 1
-		RegexGeneration.rulesDict[str(self.name)] = ['', '', '', '']
+		RegexGeneration.rulesDict[self.name] = []
+		RegexGeneration.rulesDict[self.name].append(self)
+		RegexGeneration.rulesDict[self.name].append('')
+		RegexGeneration.rulesDict[self.name].append('')
+		RegexGeneration.rulesDict[self.name].append('')
+		RegexGeneration.rulesDict[self.name].append('')
 
 		# Required variables
 		self.typeValue = StringVar()
@@ -396,13 +400,11 @@ class RuleDialog:
 		self.repeatEntryValue = StringVar()
 
 		# Create inner frame for layout and pack it
-		style.configure('innerFrame.TFrame', background='blue')
-		style.configure('optionFrame.TFrame', background='green')
 		self.innerFrame = ttk.Frame(PatternDialog.ruleFrame, style='innerFrame.TFrame')
 		self.innerFrame.pack()
 
 		# 1st rule section button, type of character (or exact char) to match
-		self.typeCB = ttk.Combobox(self.innerFrame, textvariable=self.typeValue, width=15, state='readonly')
+		self.typeCB = ttk.Combobox(self.innerFrame, textvariable=self.typeValue, width=16, state='readonly')
 		self.typeCB['values'] = PatternDialog.valuesDict['typeCB']
 		self.typeCB.current(0)
 		self.typeCB.bind('<<ComboboxSelected>>', self.valueChanged)
@@ -410,15 +412,14 @@ class RuleDialog:
 
 		# Placeholder frame
 		self.optionFrameOne = ttk.Frame(self.innerFrame, style='optionFrame.TFrame')
-		self.optionFrameOne.pack(side=LEFT, anchor=W, padx=5, pady=5)
+		self.optionFrameOne.pack(side=LEFT, anchor=W)
 
 		# Optional space to specify character
 		self.charEntry = ttk.Entry(self.optionFrameOne, width=3, textvariable=self.charEntryValue)
 		self.charEntry.pack(side=LEFT, anchor=W, padx=5, pady=5)
-		#self.charEntry.pack_forget()
 
 		# 2nd rule section button, how it should be allowed to repeat
-		self.repeatCB = ttk.Combobox(self.innerFrame, textvariable=self.repeatValue, width=14, state='readonly')
+		self.repeatCB = ttk.Combobox(self.innerFrame, textvariable=self.repeatValue, width=11, state='readonly')
 		self.repeatCB['values'] = PatternDialog.valuesDict['repeatCB']
 		self.repeatCB.current(1)
 		self.repeatCB.bind('<<ComboboxSelected>>', self.valueChanged)
@@ -426,25 +427,27 @@ class RuleDialog:
 
 		# Placeholder frame
 		self.optionFrameTwo = ttk.Frame(self.innerFrame, style='optionFrame.TFrame')
-		self.optionFrameTwo.pack(side=LEFT, anchor=W, padx=5, pady=5)
+		self.optionFrameTwo.pack(side=LEFT, anchor=W)
 
 		# Optional entry to specify occurrences
 		self.repeatEntry = ttk.Entry(self.optionFrameTwo, textvariable=self.repeatEntryValue)
 		self.repeatEntry.pack(side=LEFT, anchor=W, padx=2, pady=5)
 		self.repeatLbl = ttk.Label(self.optionFrameTwo, text='times')
 		self.repeatLbl.pack(side=LEFT, anchor=W, padx=2, pady=5)
-		#self.repeatEntry.pack_forget()
-		#self.repeatLbl.pack_forget()
 
 		# 3rd rule section button, repeat termination (if repeat until is selected)
-		self.terminateCB = ttk.Combobox(self.innerFrame, textvariable=self.terminateValue, width=19, state='readonly')
+		self.terminateCB = ttk.Combobox(self.optionFrameTwo, textvariable=self.terminateValue, width=19, state='readonly')
 		self.terminateCB['values'] = PatternDialog.valuesDict['terminateCB']
 		self.terminateCB.current(0)
 		self.terminateCB.bind('<<ComboboxSelected>>', self.valueChanged)
 		self.terminateCB.pack(side=LEFT, anchor=W, padx=5, pady=5)
 
+		# Placeholder frame
+		self.joinFrame = ttk.Frame(self.innerFrame, style='optionFrame.TFrame')
+		self.joinFrame.pack(side=LEFT, anchor=W)
+
 		# Optionally add a button to toggle AND / OR (if there is more than 1 row)
-		self.joinCB = ttk.Combobox(self.innerFrame, textvariable=self.joinValue, width=5, state='readonly')
+		self.joinCB = ttk.Combobox(self.joinFrame, textvariable=self.joinValue, width=5, state='readonly')
 		self.joinCB['values'] = PatternDialog.valuesDict['joinCB']
 		self.joinCB.current(0)
 		self.joinCB.bind('<<ComboboxSelected>>', self.valueChanged)
@@ -460,37 +463,66 @@ class RuleDialog:
 		self.addBtn.config(width=3)
 		self.addBtn.pack(side=LEFT, anchor=E, padx=5, pady=5)
 
-		# Add instance to instance dictionary
-		PatternDialog.instanceDict[str(self.removeBtn)] = currentframe()
 		# Add values to dictionary
 		self.valueChanged(None)
 
 
 	def valueChanged(self, event):
 		self.updateDict()
-		for key, value in RegexGeneration.rulesDict.items():
-			print('Key: ' + str(key) + '     Value: ' + str(value))
+		self.updateDisplay()
+
+
+	def updateDisplay(self):
+		print(RegexGeneration.rulesDict.items())
+		for ID, values in RegexGeneration.rulesDict.items():
+			print('On ID: ' + ID)
+			if 'Specify Character' in values:
+				print(str(ID) + ' Specify found')
+				self.optionFrameTwo.pack_propagate(True)
+				self.charEntry.pack(side=LEFT, anchor=W, padx=5, pady=5)
+			else:
+				print(str(ID) + ' Specify not found')
+				self.charEntry.pack_forget()
+				self.optionFrameOne.configure(width=1,height=1)
+
+			if 'Repeat' in values:
+				print(str(ID) + ' Repeat found')
+				self.optionFrameTwo.pack_propagate(True)
+				self.repeatEntry.pack(side=LEFT, anchor=W, padx=2, pady=5)
+				self.repeatLbl.pack(side=LEFT, anchor=W, padx=2, pady=5)
+				self.terminateCB.pack_forget()
+			else:
+				print(str(ID) + ' Repeat not found')
+				self.repeatEntry.pack_forget()
+				self.repeatLbl.pack_forget()
+				self.optionFrameTwo.configure(width=1,height=1)
+				self.terminateCB.pack(side=LEFT, anchor=W, padx=5, pady=5)
+
+			if len(RegexGeneration.rulesDict.keys()) > 1:
+				self.joinCB.pack(side=LEFT, anchor=W, padx=5, pady=5)
+				if len(RegexGeneration.rulesDict.keys()) < 3:
+					RegexGeneration.rulesDict['row 0'][0].joinCB.pack(side=LEFT, anchor=W, padx=5, pady=5)
+			else:
+				self.joinCB.pack_forget()
 
 
 	def updateDict(self):
 		#print(self.repeatEntry.winfo_ismapped())
-		RegexGeneration.rulesDict[self.name][0] = str(self.typeValue.get())
-		RegexGeneration.rulesDict[self.name][1] = str(self.repeatValue.get())
-		RegexGeneration.rulesDict[self.name][2] = str(self.terminateValue.get())
+		RegexGeneration.rulesDict[self.name][1] = str(self.typeValue.get())
+		RegexGeneration.rulesDict[self.name][2] = str(self.repeatValue.get())
+		RegexGeneration.rulesDict[self.name][3] = str(self.terminateValue.get())
 		try:
-			RegexGeneration.rulesDict[self.name][3] = str(self.joinValue.get())
+			RegexGeneration.rulesDict[self.name][4] = str(self.joinValue.get())
 		except AttributeError:
 			pass
 
 
 	def removeRule(self):
 		if len(PatternDialog.instanceDict) > 1:
-			PatternDialog.instanceDict.pop(str(self.removeBtn))
 			self.innerFrame.destroy()
 
 
 	def addRule(self):
-		self.joinCB.pack()
 		RuleDialog(PatternDialog.rowID)
 
 
