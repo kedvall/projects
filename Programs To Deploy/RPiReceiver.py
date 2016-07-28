@@ -10,13 +10,16 @@ import serial               # encapsulates the access for the serial port
 if __name__ == '__main__':
 
     serialConnection = serial.Serial(
-        port='/dev/ttyAMA0',
-        baudrate = 112500,
+        "/dev/ttyUSB0", # Use ttyAMA0 for GPIO
+        baudrate=57600,
         parity=serial.PARITY_NONE,
         stopbits=serial.STOPBITS_ONE,
         bytesize=serial.EIGHTBITS,
-        timeout=1
-    )
+        writeTimeout = 0,
+        timeout = 10,
+        rtscts=False,
+        dsrdtr=False,
+        xonxoff=False)
  
     # make stdin a non-blocking file
     fcntl.fcntl(sys.stdin, fcntl.F_SETFL, os.O_NONBLOCK)
