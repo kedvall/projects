@@ -316,11 +316,13 @@ class PatternDialog():
 
 			# Counter to assign unique ID to each row
 			PatternDialog.rowID = 0
+			# Variable to store the highest row number
+			PatternDialog.maxRow = 0
 			# Create dictionary for dialog drop downs
 			PatternDialog.valuesDict = {'typeCB':['Letter', 'Digit', 'Space Character', 'Specify Character'],
 							   			'repeatCB':['Repeat', 'Repeat Until'],
 							   			'terminateCB':['Space Character', 'Non-Space Character', 'Alphanumeric', 'Letter', 'Digit'],
-							   			'joinCB':['End', 'Then', 'Or']}
+							   			'joinCB':['Then', 'Or']}
 
 			# Create subframes to store various widgets
 			PatternDialog.titleFrame = ttk.Frame(PatternDialog.toplevel)
@@ -401,7 +403,7 @@ class RuleDialog:
 
 		# Create inner frame for layout and pack it
 		self.innerFrame = ttk.Frame(PatternDialog.ruleFrame, style='innerFrame.TFrame')
-		self.innerFrame.pack()
+		self.innerFrame.pack(anchor=W)
 
 		# 1st rule section button, type of character (or exact char) to match
 		self.typeCB = ttk.Combobox(self.innerFrame, textvariable=self.typeValue, width=16, state='readonly')
@@ -473,37 +475,33 @@ class RuleDialog:
 
 
 	def updateDisplay(self):
-		print(RegexGeneration.rulesDict.items())
-		for ID, values in RegexGeneration.rulesDict.items():
-			print('On ID: ' + ID)
-			if 'Specify Character' in values:
-				print(str(ID) + ' Specify found')
-				self.optionFrameTwo.pack_propagate(True)
-				self.charEntry.pack(side=LEFT, anchor=W, padx=5, pady=5)
+		for ID, value in RegexGeneration.rulesDict.items():
+			if 'Specify Character' in value:
+				value[0].optionFrameTwo.pack_propagate(True)
+				value[0].charEntry.pack(side=LEFT, anchor=W, padx=5, pady=5)
 			else:
-				print(str(ID) + ' Specify not found')
-				self.charEntry.pack_forget()
-				self.optionFrameOne.configure(width=1,height=1)
+				value[0].charEntry.pack_forget()
+				value[0].optionFrameOne.configure(width=1,height=1)
 
-			if 'Repeat' in values:
-				print(str(ID) + ' Repeat found')
-				self.optionFrameTwo.pack_propagate(True)
-				self.repeatEntry.pack(side=LEFT, anchor=W, padx=2, pady=5)
-				self.repeatLbl.pack(side=LEFT, anchor=W, padx=2, pady=5)
-				self.terminateCB.pack_forget()
+			if 'Repeat' in value:
+				value[0].optionFrameTwo.pack_propagate(True)
+				value[0].repeatEntry.pack(side=LEFT, anchor=W, padx=2, pady=5)
+				value[0].repeatLbl.pack(side=LEFT, anchor=W, padx=2, pady=5)
+				value[0].terminateCB.pack_forget()
 			else:
-				print(str(ID) + ' Repeat not found')
-				self.repeatEntry.pack_forget()
-				self.repeatLbl.pack_forget()
-				self.optionFrameTwo.configure(width=1,height=1)
-				self.terminateCB.pack(side=LEFT, anchor=W, padx=5, pady=5)
+				value[0].repeatEntry.pack_forget()
+				value[0].repeatLbl.pack_forget()
+				value[0].optionFrameTwo.configure(width=1,height=1)
+				value[0].terminateCB.pack(side=LEFT, anchor=W, padx=5, pady=5)
 
 			if len(RegexGeneration.rulesDict.keys()) > 1:
-				self.joinCB.pack(side=LEFT, anchor=W, padx=5, pady=5)
+				# Add line concatenation operators
+				value[0].joinCB.pack(side=LEFT, anchor=W, padx=5, pady=5)
+
+				# If this is the 2nd item added, also update the first row
 				if len(RegexGeneration.rulesDict.keys()) < 3:
 					RegexGeneration.rulesDict['row 0'][0].joinCB.pack(side=LEFT, anchor=W, padx=5, pady=5)
-			else:
-				self.joinCB.pack_forget()
+
 
 
 	def updateDict(self):
