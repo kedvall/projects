@@ -9,7 +9,7 @@ import serial               # encapsulates the access for the serial port
   
 if __name__ == '__main__':
     serial = serial.Serial()
-    serial.port = '/dev/ttyUSB0'
+    serial.port = '/dev/ttyAMA0'
     serial.baudrate = 112500
     serial.timeout = 1
     serial.writeTimeout = 1
