@@ -25,7 +25,7 @@ if __name__ == '__main__':
     fcntl.fcntl(sys.stdin, fcntl.F_SETFL, os.O_NONBLOCK)
  
     # post startup message to other XBee's and at stdout
-    serialConnection.write("RPi #1 is up and running.\r\n")
+    serialConnection.write(bytes(("RPi #1 is up and running.\r\n").encode('utf-8')))
     print("RPi #1 is up and running.")
  
     print("Entering loop to read and print messages (Ctrl-C to abort)...")
@@ -40,11 +40,11 @@ if __name__ == '__main__':
             # read data from the keyboard (i.e. stdin) and send via the XBee modem
             try:
                 line = sys.stdin.readline()
-                serialConnection.write(line)
+                serialConnection.write(bytes(line.encode('utf-8')))
             except IOError:
                 time.sleep(0.1)
                 continue
  
     except KeyboardInterrupt:
         print("\n*** Ctrl-C keyboard interrupt ***")
-        serialConnection.write("RPi #1 is going down.\r\n")
+        serialConnection.write(bytes(("RPi #1 is going down.\r\n").encode('utf-8')))
