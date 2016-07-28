@@ -316,8 +316,6 @@ class PatternDialog():
 
 			# Counter to assign unique ID to each row
 			PatternDialog.rowID = 0
-			# Variable to store the highest row number
-			PatternDialog.maxRow = 0
 			# Create dictionary for dialog drop downs
 			PatternDialog.valuesDict = {'typeCB':['Letter', 'Digit', 'Space Character', 'Specify Character'],
 							   			'repeatCB':['Repeat', 'Repeat Until'],
@@ -338,7 +336,7 @@ class PatternDialog():
 			ttk.Label(PatternDialog.titleFrame, text='Match the following rules:').pack(side=TOP, anchor=W)
 
 			# Draw a rule selection row
-			RuleDialog(PatternDialog.rowID)
+			RuleDialog()
 
 			# Draw bottom buttons
 			cancelBtn = ttk.Button(PatternDialog.buttonFrame, text='Cancel', command=self.cancelDialog, style='cancelBtn.TButton')
@@ -382,9 +380,9 @@ class PatternDialog():
 
 class RuleDialog:
 # Class to handle creation and destruction of rules rows
-	def __init__(self, name):
+	def __init__(self):
 		# Name this instance and add it to rule dictionary
-		self.name = 'row ' + str(name)
+		self.name = 'row ' + str(PatternDialog.rowID)
 		PatternDialog.rowID += 1
 		RegexGeneration.rulesDict[self.name] = []
 		RegexGeneration.rulesDict[self.name].append(self)
@@ -410,7 +408,7 @@ class RuleDialog:
 		self.typeCB['values'] = PatternDialog.valuesDict['typeCB']
 		self.typeCB.current(0)
 		self.typeCB.bind('<<ComboboxSelected>>', self.valueChanged)
-		self.typeCB.pack(side=LEFT, anchor=W, padx=5, pady=5)
+		self.typeCB.pack(side=LEFT, anchor=W, padx=2, pady=5)
 
 		# Placeholder frame
 		self.optionFrameOne = ttk.Frame(self.innerFrame, style='optionFrame.TFrame')
@@ -454,6 +452,7 @@ class RuleDialog:
 		self.joinCB.current(0)
 		self.joinCB.bind('<<ComboboxSelected>>', self.valueChanged)
 		self.joinCB.pack(side=LEFT, anchor=W, padx=5, pady=5)
+		self.joinCB.pack_forget()
 
 		# - button to remove rule
 		self.removeBtn = ttk.Button(self.innerFrame, text = '-', command=self.removeRule, style='removeBtn.TButton')
@@ -481,7 +480,7 @@ class RuleDialog:
 				value[0].charEntry.pack(side=LEFT, anchor=W, padx=5, pady=5)
 			else:
 				value[0].charEntry.pack_forget()
-				value[0].optionFrameOne.configure(width=1,height=1)
+				value[0].optionFrameOne.configure(width=1, height=1)
 
 			if 'Repeat' in value:
 				value[0].optionFrameTwo.pack_propagate(True)
@@ -491,25 +490,39 @@ class RuleDialog:
 			else:
 				value[0].repeatEntry.pack_forget()
 				value[0].repeatLbl.pack_forget()
-				value[0].optionFrameTwo.configure(width=1,height=1)
+				value[0].optionFrameTwo.configure(width=1, height=1)
 				value[0].terminateCB.pack(side=LEFT, anchor=W, padx=5, pady=5)
 
-			if len(RegexGeneration.rulesDict.keys()) > 1:
+
+	def lineConcatUpdate(self):
+		# Find the max and min row numbers
+		rowList = []
+		for rowNum in RegexGeneration.rulesDict.keys():
+			# Extract number from name
+			rowList.append(int(rowNum.split()[1]))
+			# Find max row
+			maxRow = max(rowList)
+			# Find min row
+			minRow = min(rowList)
+
+		if len(RegexGeneration.rulesDict.keys()) > 1:
+			for rowID, value in RegexGeneration.rulesDict.items():
 				# Add line concatenation operators
+				value[0].joinFrame.pack_propagate(True)
 				value[0].joinCB.pack(side=LEFT, anchor=W, padx=5, pady=5)
 
 				# If this is the 2nd item added, also update the first row
 				if len(RegexGeneration.rulesDict.keys()) < 3:
-					RegexGeneration.rulesDict['row 0'][0].joinCB.pack(side=LEFT, anchor=W, padx=5, pady=5)
+					value[0].joinFrame.pack_propagate(True)
+					value[0].joinCB.pack(side=LEFT, anchor=W, padx=5, pady=5)
 
 				# If this is the last row, omit the concatenation operator selection box
-				for rowNum in RegexGeneration.rulesDict.keys():
-					 if int(rowNum.split()[1]) > PatternDialog.maxRow:
-					 	PatternDialog.maxRow = int(rowNum.split()[1])
-				if int(ID.split()[1]) == PatternDialog.maxRow:
-					value[0].joinCB.pack_forget()
-			else:
-				value[0].joinCB.pack_forget()
+				if int(rowID.split()[1]) == maxRow:
+					RegexGeneration.rulesDict['row ' + str(maxRow)][0].joinFrame.configure(width=1, height=1)
+					RegexGeneration.rulesDict['row ' + str(maxRow)][0].joinCB.pack_forget()
+		else:
+			RegexGeneration.rulesDict['row ' + str(maxRow)][0].joinFrame.configure(width=1, height=1)
+			RegexGeneration.rulesDict['row ' + str(maxRow)][0].joinCB.pack_forget()
 
 
 	def updateDict(self):
@@ -524,12 +537,16 @@ class RuleDialog:
 
 
 	def removeRule(self):
-		if len(PatternDialog.instanceDict) > 1:
+		if len(RegexGeneration.rulesDict.keys()) > 1:
+			print(RegexGeneration.rulesDict)
+			RegexGeneration.rulesDict.pop(self.name)
 			self.innerFrame.destroy()
+			self.lineConcatUpdate()
 
 
 	def addRule(self):
-		RuleDialog(PatternDialog.rowID)
+		RuleDialog()
+		self.lineConcatUpdate()
 
 
 class Search:
