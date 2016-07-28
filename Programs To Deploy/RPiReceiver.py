@@ -9,7 +9,7 @@ import serial               # encapsulates the access for the serial port
   
 if __name__ == '__main__':
 
-   serialConnection = serial.Serial(
+    serialConnection = serial.Serial(
         port='/dev/ttyAMA0',
         baudrate = 112500,
         parity=serial.PARITY_NONE,
@@ -22,7 +22,7 @@ if __name__ == '__main__':
     fcntl.fcntl(sys.stdin, fcntl.F_SETFL, os.O_NONBLOCK)
  
     # post startup message to other XBee's and at stdout
-    serialConnection.writelines("RPi #1 is up and running.\r\n")
+    serialConnection.write("RPi #1 is up and running.\r\n")
     print("RPi #1 is up and running.")
  
     print("Entering loop to read and print messages (Ctrl-C to abort)...")
@@ -37,11 +37,11 @@ if __name__ == '__main__':
             # read data from the keyboard (i.e. stdin) and send via the XBee modem
             try:
                 line = sys.stdin.readline()
-                serialConnection.writelines(line)
+                serialConnection.write(line)
             except IOError:
                 time.sleep(0.1)
                 continue
  
     except KeyboardInterrupt:
         print("\n*** Ctrl-C keyboard interrupt ***")
-        serialConnection.writelines("RPi #1 is going down.\r\n")
+        serialConnection.write("RPi #1 is going down.\r\n")
