@@ -6,15 +6,7 @@ import sys                  # provides access to some variables used or maintain
 import time                 # provides various time-related functions
 import fcntl                # performs file control and I/O control on file descriptors
 import serial               # encapsulates the access for the serial port
-from pretty import switchColor, printc  # provides colored text for xterm & VT100 type terminals using ANSI escape sequences
- 
-# text colors to be used during terminal sessions
-ERROR_TEXT = 'bright red'
-CMD_INPUT_TEXT = 'normal'
-CMD_OUTPUT_TEXT = 'bright yellow'
-TERM_OUTPUT_TEXT = 'purple'
-TERM_INPUT_TEXT = 'bright purple'
- 
+  
 if __name__ == '__main__':
     serial = serial.Serial()
     serial.port = '/dev/ttyUSB0'
@@ -30,19 +22,16 @@ if __name__ == '__main__':
     serial.writelines("RPi #1 is up and running.\r\n")
     print("RPi #1 is up and running.")
  
-    switchColor(CMD_OUTPUT_TEXT)
     print("Entering loop to read and print messages (Ctrl-C to abort)...")
  
     try:
         while True:
             # read a line from XBee and convert it from b'xxx\r\n' to xxx and print at stdout
-            switchColor(TERM_OUTPUT_TEXT)
             line = serial.readline().decode('utf-8')
             if line:
                 print(line)
  
             # read data from the keyboard (i.e. stdin) and send via the XBee modem
-            switchColor(TERM_INPUT_TEXT)
             try:
                 line = sys.stdin.readline()
                 serial.writelines(line)
@@ -51,8 +40,5 @@ if __name__ == '__main__':
                 continue
  
     except KeyboardInterrupt:
-        printc("\n*** Ctrl-C keyboard interrupt ***", ERROR_TEXT)
+        print("\n*** Ctrl-C keyboard interrupt ***")
         serial.writelines("RPi #1 is going down.\r\n")
- 
-    finally:
-        switchColor(CMD_INPUT_TEXT)
