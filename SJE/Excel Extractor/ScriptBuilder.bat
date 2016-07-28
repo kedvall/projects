@@ -7,4 +7,6 @@ pyinstaller --noconfirm ^
 			--windowed ^
 			--name "Excel Extractor"^
 			--icon="Excel Extractor.ico" ^
-			ExcelDataScraper.py
+			"Excel Extractor.py"
+
+pause

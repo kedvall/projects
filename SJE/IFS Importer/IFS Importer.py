@@ -122,14 +122,130 @@ class FileSelection:
 			FileSelection.sheet = FileSelection.wb.get_sheet_by_name(self.selectedSheet.get())
 			self.fileDisp.set('Successfully loaded ' + str(self.selectedSheet.get()) + '.')
 			ParamSelection.paramFrame.grid()
-			Search.searchFrame.grid()
 		except KeyError:
 			self.fileDisp.set('Error loading ' + str(self.selectedSheet.get()) + '!')
 		
 
-#************************************ Program Start ************************************#
-# Create objects
-filePane = FileSelection()
+class ColumnSelection:
+# Parameter selection frame (Upper right)
 
-# Run GUI
+	def __init__(self):
+		### Frame setup ###
+		ColumnSelection.mainFrame = ttk.LabelFrame(root, text='Import Options: ', padding='3 3 12 12')
+		ColumnSelection.mainFrame.grid(columnspan=6, pady=10, row=3, sticky='N W S E')
+
+		# Required variables
+		ColumnSelection.columnsToImportDict = {}
+
+		ParamSelection.vcmd = ParamSelection.paramFrame.register(self.updateHandler) # Validation binding
+
+		# Interface elements
+		ttk.Label(ColumnSelection.mainFrame, text='Select columns to import data from').grid(columnspan=6, row=0, padx=5, pady=5, sticky=W)
+
+		for child in ColumnSelection.mainFrame.winfo_children(): child.grid_configure()
+		ColumnSelection.mainFrame.grid_remove()
+
+
+	def updateHandler(self, reason, varName, entryValue): 
+	# Called on entry state change, decides where to pass task. Return True to allow edit, False to disallow
+		if reason == 'radioChange': # Radio button was clicked, check new position
+			if (not self.validateEntry(varName, entryValue) or ParamSelection.offsetPattern.get() == ''):
+				self.setPlaceholder(varName, True)
+
+		elif reason == 'focusin':
+			self.remPlaceholder(varName)
+
+		elif reason == 'focusout':
+			self.setPlaceholder(varName, False)
+
+		elif reason == 'key':
+			if not self.validateEntry(varName, entryValue):
+				return False
+
+			elif (self.nameDict[varName]['type'] == 'pattern') and (ParamSelection.offsetMode.get() == 'char'):
+				if entryValue != '':
+					self.toggleEnable('en')
+				else:
+					self.toggleEnable('dis')
+		return True		
+
+
+	def validateEntry(self, varName, curEntryVal):
+	# Validates the entry based on entry type. Returns True if pass, False if fail
+		if self.nameDict[varName]['type'] == 'column':
+			if not (curEntryVal.isalpha() or curEntryVal == ''):
+				return False
+			elif curEntryVal != '':
+				try:
+					column_index_from_string(str(curEntryVal).upper())
+				except ValueError:
+					return False
+
+		elif ParamSelection.offsetMode.get() == 'char':
+			if not (curEntryVal.isdigit() or curEntryVal == ''):
+				return False
+
+		return True
+
+
+	def setPlaceholder(self, varName, forceSet):
+	# Sets the placeholder text of the entry. Can be forced to override current text
+		textvar = self.nameDict[varName]['textvar']
+
+		if forceSet: # If force flag is set, override current value
+			textvar.set(self.nameDict[varName]['placeholder'])
+			self.nameDict[varName][str('entryName')].configure(foreground='grey')
+
+		elif textvar.get() == '': # Check if Entry is empty before setting value
+			if (self.nameDict[varName]['type'] == 'pattern' and ParamSelection.offsetMode.get() == 'char'): # If pattern entry, make sure char is selected
+				textvar.set(self.nameDict[varName]['placeholder'])
+				self.nameDict[varName][str('entryName')].configure(foreground='grey')
+
+			elif self.nameDict[varName]['type'] == 'column': # Column entry
+				textvar.set(self.nameDict[varName]['placeholder'])
+				self.nameDict[varName][str('entryName')].configure(foreground='grey')
+
+
+	def remPlaceholder(self, varName):
+	# Removes the placeholder text of the entry
+		textvar = self.nameDict[varName]['textvar']
+
+		if textvar.get() == self.nameDict[varName]['placeholder']:
+			textvar.set('')
+			self.nameDict[varName][str('entryName')].configure(foreground='black')
+
+
+	def toggleEnable(self, state):
+		if state == 'en':
+			Search.termEntry.configure(state='enabled')
+			Search.searchOptionsBtn.configure(state='enabled')
+			Search.permutBtn.configure(state='enabled')
+		else:
+			Search.termEntry.configure(state='disabled')
+			Search.searchOptionsBtn.configure(state='disabled')
+			Search.permutBtn.configure(state='disabled')
+
+
+	def clickConfigure(self):
+		PatternDialog()
+
+
+class ImportColumn:
+# Class to handle creation of import instances
+
+	def __init__(self):
+		# Variable to hold entered column
+		self.enteredColumnSV = StringVar()
+
+		# Create and display a column selection entry
+		self.columnEntry = ttk.Entry(ColumnSelection.mainFrame, width=17, textvariable=self.enteredColumnSV, validate='all', validatecommand=(self.vcmd))
+
+
+
+#************************************ Program Start ************************************#
+### Create objects ###
+filePane = FileSelection()
+paramPane = ColumnSelection()
+
+### Run GUI ###
 root.mainloop()
