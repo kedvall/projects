@@ -18,6 +18,7 @@ def input_box(title,prompt):
     sleep(0.5)
     
     while ahk_interpreter.var_get('rep') == 'None':
+        print('sleep')
         sleep(0.2)
     
     rep = ahk_interpreter.var_get('rep')
