@@ -132,22 +132,32 @@ class ColumnSelection:
 # Parameter selection frame (Upper right)
 
 	def __init__(self):
-		### Main Frame setup ###
+		### Frame setup ###
 		ColumnSelection.mainFrame = ttk.LabelFrame(root, text='Import Options: ', padding='3 3 12 12')
 		ColumnSelection.mainFrame.grid(columnspan=6, pady=10, row=3, sticky='N W S E')
 
+		# Subframes to hold various elements
+		ColumnSelection.titleFrame = ttk.Frame(ColumnSelection.mainFrame)
+		ColumnSelection.titleFrame.pack(side=TOP, fill=X, expand=True)
+		ColumnSelection.entryFrame = ttk.Frame(ColumnSelection.mainFrame)
+		ColumnSelection.entryFrame.pack(fill=X, expand=True)
+		ColumnSelection.addBtnFrame = ttk.Frame(ColumnSelection.mainFrame)
+		ColumnSelection.addBtnFrame.pack(side=BOTTOM, fill=X, expand=True)
+
 		### Required variables ###
 		ColumnSelection.columnsToImportDict = {} # Dictionary for user entered columns
-		ColumnSelection.curRow = 0 # Tracks the current row (for building column entry interface)
 
 		### Interface elements ###
-		ttk.Label(ColumnSelection.mainFrame, text='Select columns to import data from:').grid(columnspan=6, row=ColumnSelection.curRow, padx=5, pady=5, sticky=W) # Instruction label
-		ColumnSelection.curRow += 1 # Increment row counter
+		ttk.Label(ColumnSelection.titleFrame, text='Select columns to import data from:').pack(anchor=W) # Instruction label
 
-		ImportColumn()
+		# Create a add button
+		EntryHandler.addButton = ttk.Button(ColumnSelection.addBtnFrame, text='Add Another Import Column', command=EntryHandler.addImport)
+		EntryHandler.addButton.pack(anchor=W, pady=5, padx=5)
+
+		ImportColumn() # Add entry field
 
 		# Add spacing to all widgets within this frame
-		for child in ColumnSelection.mainFrame.winfo_children(): child.grid_configure()
+		#for child in ColumnSelection.mainFrame.winfo_children(): child.grid_configure()
 		# Temporarily hid this frame
 		ColumnSelection.mainFrame.grid_remove()
 
@@ -225,7 +235,7 @@ class ImportColumn:
 
 		### Interface Setup ###
 		self.entryFrame = ttk.Frame(ColumnSelection.mainFrame, padding='3 3') # Frame for easy layout
-		self.entryFrame.grid(row=ColumnSelection.curRow, sticky=W)
+		self.entryFrame.pack(anchor=W)
 
 		self.vcmd = self.entryFrame.register(EntryHandler.validateColumnEntry) # Register validate command on new frame
 
@@ -235,23 +245,14 @@ class ImportColumn:
 		self.columnEntry = ttk.Entry(self.entryFrame, width=17, textvariable=self.columnSV, validate='all', validatecommand=(self.vcmd, '%V', '%W', '%P'))
 		self.columnEntry.grid(columnspan=2, column=4, row=0)
 
-		# Add column entry button
-		self.addButton = ttk.Button(self.entryFrame, text='Add Another Import Column', command=self.addImport)
-		self.addButton.grid(row=1, sticky=W)
-
 		# Add spacing to all widgets within this frame
 		for child in self.entryFrame.winfo_children(): 
 			child.grid_configure(padx=5, pady=5)
 
-		# Update necessary variables
-		ColumnSelection.curRow += 1 # Increment current row
-		ColumnSelection.columnsToImportDict[self.columnSV.get()] = self.entryFieldID # Add column name and IFS field to dict as key value pair
-
-
-	def addImport(self):
-	# Add another import entry
-		self.addButton.grid_remove()
-		ImportColumn() # Recursive call
+		### Update necessary variables ###
+		#if self.columnSV.get()
+		ColumnSelection.columnsToImportDict[self.columnSV.get()] = [] # Add column name to dict
+		ColumnSelection.columnsToImportDict[self.columnSV.get()].append(self.entryFieldID) 
 
 
 	def removeImport(self):
@@ -263,6 +264,11 @@ class ImportColumn:
 ############################################################################################################################
 class EntryHandler():
 # Class to handle various tasks for entry widgets
+
+	def addImport():
+	# Add another import entry
+		ImportColumn() # Add another button
+
 
 	def remPlaceholder(self, varName):
 	# Removes the placeholder text of the entry
@@ -294,6 +300,7 @@ class EntryHandler():
 					self.toggleEnable('dis')
 		return True	
 		pass # Validate data entry
+
 
 #************************************ Program Start ************************************#
 ### Create objects ###
