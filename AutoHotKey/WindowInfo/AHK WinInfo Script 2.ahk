@@ -23,46 +23,57 @@ and displays the Tooltip came from the AutoHotKey Help File.
 This script just gives you a more user-friendly way of exctracting
 the information you need for later use.
 */
+ParseText(textVar)
+{
+	searchText = EDIT
+	IfInString, textVar, %searchText%
+	{
+		Msgbox, String Found!
+		return
+	}
+}
+
 
 #singleinstance force
-^F11::
+Start:
 SetTimer, WatchCursor, 100
 return
 
 WatchCursor:
-MouseGetPos, , , id, control
-WinGetTitle, title, ahk_id %id%
-WinGetClass, class, ahk_id %id%
-ToolTip, ahk_id %id%`nahk_class %class%`n%title%`nControl: %control%
-data1 = ahk_class %class%|ahk_id %id%|%title%|Control: %control%
+	MouseGetPos, , , id, control
+	WinGetTitle, title, ahk_id %id%
+	WinGetClass, class, ahk_id %id%
+	ToolTip, ahk_id %id%`nahk_class %class%`n%title%`nControl: %control%
+	ParseText(control)
+	data1 = ahk_class %class%|ahk_id %id%|%title%|Control: %control%
 return
 
 ^F12::
-SetTimer, WatchCursor, Off
-ToolTip
-gosub, DDL
+	SetTimer, WatchCursor, Off
+	ToolTip
+	gosub, DDL
 return
 
 DDL:
-width = 0
-Loop, 4
-{
-if (strlen(data1) > width)
-   width := strlen(data1)
-}
-width := Round(strlen(data1) * 4.4) ; Attempt to Determine width needed by DropDownList
-StringReplace, data, data1, |, ||  ; Make 1st item in List Default Selection
-Gui, +AlwaysOnTop +ToolWindow
-Gui, font, s11, Arial
-Gui, Add, DropDownList, % "x20 y15 R4 w" . width . " gGrabit vWindata", %data%
-Gui, Show, % "h50 w" . width + 40
+	width = 0
+	Loop, 4
+	{
+		if (strlen(data1) > width)
+		   width := strlen(data1)
+	}
+	width := Round(strlen(data1) * 4.4) ; Attempt to Determine width needed by DropDownList
+	StringReplace, data, data1, |, ||  ; Make 1st item in List Default Selection
+	Gui, +AlwaysOnTop +ToolWindow
+	Gui, font, s11, Arial
+	Gui, Add, DropDownList, % "x20 y15 R4 w" . width . " gGrabit vWindata", %data%
+	Gui, Show, % "h50 w" . width + 40
 Return
 
 Grabit:
-Gui, Submit
-sleep, 100
-clipboard = %Windata%
-GuiClose:
-GuiEscape:
-Gui, Destroy
+	Gui, Submit
+	sleep, 100
+	clipboard = %Windata%
+	GuiClose:
+	GuiEscape:
+	Gui, Destroy
 return

@@ -1,3 +1,7 @@
+#! python3
+import pyautogui
+from pahk import Interpreter
+
 script = '''
 CoordMode, Mouse, Client
 ^!c::

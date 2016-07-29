@@ -14,6 +14,6 @@ def get_clipboard():
     del ahk_interpreter
     
     return clipboard 
-    
+   
 print (get_clipboard())
 sleep(30)
