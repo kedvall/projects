@@ -122,7 +122,7 @@ class FileSelection:
 		try:
 			FileSelection.sheet = FileSelection.wb.get_sheet_by_name(self.selectedSheet.get())
 			self.fileDisp.set('Successfully loaded ' + str(self.selectedSheet.get()) + '.')
-			ParamSelection.paramFrame.grid()
+			ColumnSelection.mainFrame.grid()
 		except KeyError:
 			self.fileDisp.set('Error loading ' + str(self.selectedSheet.get()) + '!')
 		
@@ -141,35 +141,17 @@ class ColumnSelection:
 		ColumnSelection.curRow = 0 # Tracks the current row (for building column entry interface)
 
 		### Interface elements ###
-		ttk.Label(ColumnSelection.mainFrame, text='Select columns to import data from').grid(columnspan=6, row=ColumnSelection.curRow, padx=5, pady=5, sticky=W) # Instruction label
+		ttk.Label(ColumnSelection.mainFrame, text='Select columns to import data from:').grid(columnspan=6, row=ColumnSelection.curRow, padx=5, pady=5, sticky=W) # Instruction label
 		ColumnSelection.curRow += 1 # Increment row counter
+
+		ImportColumn()
 
 		# Add spacing to all widgets within this frame
 		for child in ColumnSelection.mainFrame.winfo_children(): child.grid_configure()
 		# Temporarily hid this frame
 		ColumnSelection.mainFrame.grid_remove()
 
-
-	def updateHandler(self, reason, varName, entryValue): 
-	# Called on entry state change, decides where to pass task. Return True to allow edit, False to disallow
-		elif reason == 'focusin':
-			self.remPlaceholder(varName)
-
-		elif reason == 'focusout':
-			self.setPlaceholder(varName, False)
-
-		elif reason == 'key':
-			if not self.validateEntry(varName, entryValue):
-				return False
-
-			elif (self.nameDict[varName]['type'] == 'pattern') and (ParamSelection.offsetMode.get() == 'char'):
-				if entryValue != '':
-					self.toggleEnable('en')
-				else:
-					self.toggleEnable('dis')
-		return True		
-
-
+	'''
 	def validateEntry(self, varName, curEntryVal):
 	# Validates the entry based on entry type. Returns True if pass, False if fail
 		if self.nameDict[varName]['type'] == 'column':
@@ -228,6 +210,7 @@ class ColumnSelection:
 
 	def clickConfigure(self):
 		PatternDialog()
+	'''
 
 
 ############################################################################################################################
@@ -242,38 +225,75 @@ class ImportColumn:
 
 		### Interface Setup ###
 		self.entryFrame = ttk.Frame(ColumnSelection.mainFrame, padding='3 3') # Frame for easy layout
+		self.entryFrame.grid(row=ColumnSelection.curRow, sticky=W)
 
-		self.vcmd = self.entryFrame.register(self.validateEntry) # Register validate command on new frame
+		self.vcmd = self.entryFrame.register(EntryHandler.validateColumnEntry) # Register validate command on new frame
 
-		ttk.Label(self.entryFrame, text='Enter name of column to import data from:').grid(columnspan=4, row=ColumnSelection.curRow, sticky=W) # Column selection label
+		ttk.Label(self.entryFrame, text='Enter name of column to import data from:').grid(columnspan=4, row=0) # Column selection label
 
 		# Column selection entry
-		self.columnEntry = ttk.Entry(self.entryFrame, width=17, textvariable=self.columnSV, validate='all', validatecommand=(self.vcmd))
-		self.columnEntry.grid(columnspan=2, column=4, row=ColumnSelection.curRow, sticky=W)
+		self.columnEntry = ttk.Entry(self.entryFrame, width=17, textvariable=self.columnSV, validate='all', validatecommand=(self.vcmd, '%V', '%W', '%P'))
+		self.columnEntry.grid(columnspan=2, column=4, row=0)
 
 		# Add column entry button
 		self.addButton = ttk.Button(self.entryFrame, text='Add Another Import Column', command=self.addImport)
-		self.addButton.grid(row=ColumnSelection.curRow + 1, sticky=W)
+		self.addButton.grid(row=1, sticky=W)
 
+		# Add spacing to all widgets within this frame
+		for child in self.entryFrame.winfo_children(): 
+			child.grid_configure(padx=5, pady=5)
+
+		# Update necessary variables
 		ColumnSelection.curRow += 1 # Increment current row
-
-		ColumnSelection.columnsToImportDict[self.columnSV] = self.entryFieldID # Add column name and IFS field to dict as key value pair
+		ColumnSelection.columnsToImportDict[self.columnSV.get()] = self.entryFieldID # Add column name and IFS field to dict as key value pair
 
 
 	def addImport(self):
 	# Add another import entry
-		ImportColumn()
+		self.addButton.grid_remove()
+		ImportColumn() # Recursive call
 
 
 	def removeImport(self):
 	# Remove current import entry
 		del self.columnSV
-		self.entryFrame.destroy
+		self.entryFrame.destroy()
 
 
-	def validateEntry(self):
+############################################################################################################################
+class EntryHandler():
+# Class to handle various tasks for entry widgets
+
+	def remPlaceholder(self, varName):
+	# Removes the placeholder text of the entry
+		textvar = self.nameDict[varName]['textvar']
+
+		if textvar.get() == self.nameDict[varName]['placeholder']:
+			textvar.set('')
+			self.nameDict[varName][str('entryName')].configure(foreground='black')
+
+	
+	def validateColumnEntry(self, reason, widgetName, newColumnValue):
+	# Called on entry state change, allows or denies edit. Return True to allow edit, False to disallow
+		print('Reason: ' + reason + ' Name: ' + widgetName + ' newColumnValue: ' + newColumnValue)
+
+		if reason == 'focusin':
+			self.remPlaceholder(varName)
+
+		elif reason == 'focusout':
+			self.setPlaceholder(varName, False)
+
+		elif reason == 'key':
+			if not self.validateEntry(varName, entryValue):
+				return False
+
+			elif (self.nameDict[varName]['type'] == 'pattern') and (ParamSelection.offsetMode.get() == 'char'):
+				if entryValue != '':
+					self.toggleEnable('en')
+				else:
+					self.toggleEnable('dis')
+		return True	
 		pass # Validate data entry
-
 
 #************************************ Program Start ************************************#
 ### Create objects ###
