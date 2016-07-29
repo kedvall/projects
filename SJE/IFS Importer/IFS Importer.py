@@ -20,7 +20,7 @@
 
 #************************************ Program Setup ************************************#
 # Import everything
-import sys, os, re, subprocess, getpass, openpyxl, pyautogui, pahk, base64, base64ico
+import sys, os, re, subprocess, getpass, openpyxl, pyautogui, pyperclip, pahk, base64, base64ico
 import tkinter.messagebox
 from tkinter import *
 from tkinter import ttk, filedialog
@@ -260,75 +260,18 @@ class FieldSelection():
 # Class to handle field selection in IFS
 
 	def __init__(self):
-		# Define AHK script
-		ahk_script = '''
-		#Persistent
+		# Clear the clipboard
+		pyperclip.copy('')
 
-		searchText = EDIT
-		pgrmStatus = running
+		# Launch AHK script
+		try: 
+			subprocess.call(['GetField.exe'])
+		except FileNotFoundError:
+			print('Could not locate GetField. Try adding it to this directory')
 
-		parseText(textToSearch)
-		{
-			global 
-			IfInString, textToSearch, %searchText% 
-			{
-				selectionState = ## VALID ## entry field
-				return true
-			}
-
-			selectionState = ## INVALID ## (must be entry field)
-			return false
-		}
-
-
-		Start:
-			SetTimer, WatchCursor, 100
-		return
-
-		WatchCursor:
-			MouseGetPos, , , id, control
-			WinGetTitle, title, ahk_id %id%
-			ToolTip, %selectionState%`nHold Ctrl and click in the desired entry field`nWindow Title: %title%`nEntry Field ID: %control%
-			parseText(control)
-		return
-
-		^LButton::
-			if (parseText(control))
-			{
-				SetTimer, WatchCursor, Off
-				Tooltip
-				goto, processInput
-			}
-
-			else
-			{
-				MsgBox, Not a valid entry field!`nAre you sure you clicked an entry field?
-			}
-		return
-
-		processInput:
-			selectionInfo = %title%|%control%
-			pgrmStatus = done
-			MsgBox, Successfully added %selectionInfo%
-			ExitApp
-		'''
-
-		# Set up interpreter
-		ahk_interpreter = Interpreter()
-
-		# Run the script
-		ahk_interpreter.execute_script(ahk_script)
-		sleep(0.5)
-
-		while ahk_interpreter.var_get('pgrmStatus') == 'running':
-			sleep(0.2)
-
-		# Get variable and exit script
-		selection = ahk_interpreter.var_get('selectionInfo')
-		ahk_interpreter.terminate() # Terminate the running script
-		del ahk_interpreter # Delete this instance of AHK Interpreter
-
-		print(selection)
+		# Get the entry field info
+		self.FieldID = pyperclip.paste()
+		print('ID: ' + self.FieldID)
 
 
 #************************************ Program Start ************************************#
