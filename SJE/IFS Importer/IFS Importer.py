@@ -33,18 +33,6 @@ root = Tk()
 root.title('IFS Importer') # Set the name
 style = ttk.Style() # Set the style
 
-# Create icon from base64 code
-icondata = base64.b64decode(base64ico.importerIcon)
-# The temp file is icon.ico
-tempFile= "icon.ico"
-iconfile= open(tempFile,"wb")
-# Extract the icon
-iconfile.write(icondata)
-iconfile.close()
-root.wm_iconbitmap(tempFile)
-# Delete the tempfile
-os.remove(tempFile)
-
 
 ############################################################################################################################
 # Class declaration
@@ -136,6 +124,11 @@ class ColumnSelection:
 		ColumnSelection.mainFrame = ttk.LabelFrame(root, text='Import Options: ', padding='3 3 12 12')
 		ColumnSelection.mainFrame.grid(columnspan=6, pady=10, row=3, sticky='N W S E')
 
+		### Required variables ###
+		ColumnSelection.columnsToImportDict = {} # Dictionary for user entered columns
+		ColumnSelection.columnSV = StringVar() # Variable to hold entered column
+
+		### Interface elements ###
 		# Subframes to hold various elements
 		ColumnSelection.titleFrame = ttk.Frame(ColumnSelection.mainFrame)
 		ColumnSelection.titleFrame.pack(side=TOP, fill=X, expand=True)
@@ -144,25 +137,66 @@ class ColumnSelection:
 		ColumnSelection.addBtnFrame = ttk.Frame(ColumnSelection.mainFrame)
 		ColumnSelection.addBtnFrame.pack(side=BOTTOM, fill=X, expand=True)
 
-		### Required variables ###
-		ColumnSelection.columnsToImportDict = {} # Dictionary for user entered columns
+		ColumnSelection.vcmd = ColumnSelection.titleFrame.register(self.validatePNCol) # Register validate command on new frame
 
-		### Interface elements ###
-		ttk.Label(ColumnSelection.titleFrame, text='Select columns to import data from:').pack(anchor=W) # Instruction label
+		# Title frame
+		ttk.Label(ColumnSelection.titleFrame, text='Enter Excel column to search for IFS Inventory Part number:').grid(columnspan=4, row=0, sticky=W) # Column selection label
+		ColumnSelection.columnEntry = ttk.Entry(ColumnSelection.titleFrame, width=17, textvariable=ColumnSelection.columnSV, validate='key', validatecommand=(ColumnSelection.vcmd, '%P'))
+		ColumnSelection.columnEntry.grid(columnspan=2, column=4, row=0, sticky=W)
+		# Divider
+		ttk.Label(ColumnSelection.titleFrame, text='').grid(row=2, sticky='N S E W')
+
+		# Instruction label
+		ColumnSelection.titleLbl = ttk.Label(ColumnSelection.titleFrame, text='Select columns to import data from:')
+		ColumnSelection.titleLbl.grid(row=3, sticky=W) # Instruction label
+
+		# Add padding for title frame
+		for child in ColumnSelection.titleFrame.winfo_children(): 
+			child.grid_configure(padx=5, pady=5)
+		ColumnSelection.titleLbl.grid_configure(pady=0)
 
 		# Create a add button
 		ColumnSelection.addButton = ttk.Button(ColumnSelection.addBtnFrame, text='Add Another Import Column', command=self.addImport)
 		ColumnSelection.addButton.pack(anchor=W, pady=5, padx=5)
 		ColumnSelection.addButton.configure(state='disabled')
 
+		### Other Tasks ###
 		ImportColumn() # Add entry field
-
 		ColumnSelection.mainFrame.grid_remove() # Temporarily hid this frame
+
+		# Disable all widgets in entry Frame until valid Part Number column is entered
+		toggleWidgetState('off')
+
 
 	def addImport(self):
 	# Add another import entry
 		ImportColumn() # Add another button
 		ColumnSelection.addButton.configure(state='disabled')
+
+
+	def validatePNCol(self, columnValue):
+		if not (columnValue.isalpha() or columnValue == ''):
+			toggleWidgetState('off')
+			return False
+
+		elif columnValue != '':
+			try:
+				column_index_from_string(columnValue.upper())
+			except ValueError:
+				toggleWidgetState('off')
+				return False
+
+		toggleWidgetState('en')
+		return True
+
+
+	def toggleWidgetState(self, state):
+		if state == 'en':
+			for widget in ColumnSelection.entryFrame.winfo_children():
+				widget.configure(state='enable')
+		else:
+			for widget in ColumnSelection.entryFrame.winfo_children():
+				widget.configure(state='disable')
 
 
 ############################################################################################################################
@@ -181,7 +215,7 @@ class ImportColumn:
 
 		self.vcmd = self.entryFrame.register(self.validateColumnEntry) # Register validate command on new frame
 
-		ttk.Label(self.entryFrame, text='Enter name of column to import data from:').grid(columnspan=4, row=0) # Column selection label
+		ttk.Label(self.entryFrame, text='Enter column to import data from:').grid(columnspan=4, row=0) # Column selection label
 
 		# Column selection entry
 		self.columnEntry = ttk.Entry(self.entryFrame, width=17, textvariable=self.columnSV, validate='all', validatecommand=(self.vcmd, '%V', '%P'))
@@ -189,15 +223,12 @@ class ImportColumn:
 		self.setPlaceholder() # Set initial placeholder text
 
 		# IFS entry field selection button
-		self.fieldSelectBtn = ttk.Button(self.entryFrame, text='Choose Entry Field', command=self.setField)
+		self.fieldSelectBtn = ttk.Button(self.entryFrame, text='Select IFS Entry Field', command=self.setField)
 		self.fieldSelectBtn.grid(column=6, row=0)
 
 		# Add spacing to all widgets within this frame
 		for child in self.entryFrame.winfo_children(): 
 			child.grid_configure(padx=4, pady=5)
-
-		# Update necessary variables
-		self.updateVars()
 
 
 	def removeImportEntry(self):
@@ -207,15 +238,21 @@ class ImportColumn:
 
 
 	def setField(self):
-		FieldSelection()
+		# Launch program to get IFS entry field ID
+		self.entryFieldID = FieldSelection.getField(FieldSelection)
+		self.fieldID = self.entryFieldID.split('|')[1]
+		self.title = ((self.entryFieldID.split('|')[0]).split('-'))[0]
+
+		# Update necessary variables
+		self.updateVars()
 
 
 	def updateVars(self):
 		if (self.columnSV.get() != 'Column: A to XFD' and self.columnSV.get() != ''):
-			ColumnSelection.columnsToImportDict[self.columnSV.get()] = [] # Add column name to dict
-			ColumnSelection.columnsToImportDict[self.columnSV.get()].append(self.entryFieldID) # Add selected IFS field ID to dict
+			ColumnSelection.columnsToImportDict[self.columnSV.get()] = [] # Add column name to dict with list as key
 			ColumnSelection.columnsToImportDict[self.columnSV.get()].append(self) # Append instance to dict
-		print(ColumnSelection.columnsToImportDict)
+			ColumnSelection.columnsToImportDict[self.columnSV.get()].append(self.fieldID) # Add selected IFS field ID to dict
+			ColumnSelection.columnsToImportDict[self.columnSV.get()].append(self.title) # Add selected Title Name to dict
 
 
 	def validateColumnEntry(self, reason, columnValue):
@@ -259,7 +296,7 @@ class ImportColumn:
 class FieldSelection():
 # Class to handle field selection in IFS
 
-	def __init__(self):
+	def getField(self):
 		# Clear the clipboard
 		pyperclip.copy('')
 
@@ -271,11 +308,33 @@ class FieldSelection():
 
 		# Get the entry field info
 		self.FieldID = pyperclip.paste()
-		print('ID: ' + self.FieldID)
+		return self.FieldID
+
+
+############################################################################################################################
+class WriteData():
+# Copies data from Excel column and paste it into IFS
+	pass
+
+############################################################################################################################
+class Base64IconGen():
+# Takes icon from base64 format and creates window icon
+	def __init__(self, window):
+		icondata = base64.b64decode(base64ico.importerIcon)
+		# The temp file is icon.ico
+		tempFile= "icon.ico"
+		iconfile= open(tempFile,"wb")
+		# Extract the icon
+		iconfile.write(icondata)
+		iconfile.close()
+		window.wm_iconbitmap(tempFile)
+		# Delete the tempfile
+		os.remove(tempFile)
 
 
 #************************************ Program Start ************************************#
 ### Create objects ###
+Base64IconGen(root)
 filePane = FileSelection()
 selectionPane = ColumnSelection()
 
