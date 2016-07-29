@@ -151,77 +151,18 @@ class ColumnSelection:
 		ttk.Label(ColumnSelection.titleFrame, text='Select columns to import data from:').pack(anchor=W) # Instruction label
 
 		# Create a add button
-		EntryHandler.addButton = ttk.Button(ColumnSelection.addBtnFrame, text='Add Another Import Column', command=EntryHandler.addImport)
-		EntryHandler.addButton.pack(anchor=W, pady=5, padx=5)
-		EntryHandler.addButton.configure(state='disabled')
+		ColumnSelection.addButton = ttk.Button(ColumnSelection.addBtnFrame, text='Add Another Import Column', command=self.addImport)
+		ColumnSelection.addButton.pack(anchor=W, pady=5, padx=5)
+		ColumnSelection.addButton.configure(state='disabled')
 
 		ImportColumn() # Add entry field
 
-		# Add spacing to all widgets within this frame
-		#for child in ColumnSelection.mainFrame.winfo_children(): child.grid_configure()
-		# Temporarily hid this frame
-		ColumnSelection.mainFrame.grid_remove()
+		ColumnSelection.mainFrame.grid_remove() # Temporarily hid this frame
 
-	'''
-	def validateEntry(self, varName, curEntryVal):
-	# Validates the entry based on entry type. Returns True if pass, False if fail
-		if self.nameDict[varName]['type'] == 'column':
-			if not (curEntryVal.isalpha() or curEntryVal == ''):
-				return False
-			elif curEntryVal != '':
-				try:
-					column_index_from_string(str(curEntryVal).upper())
-				except ValueError:
-					return False
-
-		elif ParamSelection.offsetMode.get() == 'char':
-			if not (curEntryVal.isdigit() or curEntryVal == ''):
-				return False
-
-		return True
-
-
-	def setPlaceholder(self, varName, forceSet):
-	# Sets the placeholder text of the entry. Can be forced to override current text
-		textvar = self.nameDict[varName]['textvar']
-
-		if forceSet: # If force flag is set, override current value
-			textvar.set(self.nameDict[varName]['placeholder'])
-			self.nameDict[varName][str('entryName')].configure(foreground='grey')
-
-		elif textvar.get() == '': # Check if Entry is empty before setting value
-			if (self.nameDict[varName]['type'] == 'pattern' and ParamSelection.offsetMode.get() == 'char'): # If pattern entry, make sure char is selected
-				textvar.set(self.nameDict[varName]['placeholder'])
-				self.nameDict[varName][str('entryName')].configure(foreground='grey')
-
-			elif self.nameDict[varName]['type'] == 'column': # Column entry
-				textvar.set(self.nameDict[varName]['placeholder'])
-				self.nameDict[varName][str('entryName')].configure(foreground='grey')
-
-
-	def remPlaceholder(self, varName):
-	# Removes the placeholder text of the entry
-		textvar = self.nameDict[varName]['textvar']
-
-		if textvar.get() == self.nameDict[varName]['placeholder']:
-			textvar.set('')
-			self.nameDict[varName][str('entryName')].configure(foreground='black')
-
-
-	def toggleEnable(self, state):
-		if state == 'en':
-			Search.termEntry.configure(state='enabled')
-			Search.searchOptionsBtn.configure(state='enabled')
-			Search.permutBtn.configure(state='enabled')
-		else:
-			Search.termEntry.configure(state='disabled')
-			Search.searchOptionsBtn.configure(state='disabled')
-			Search.permutBtn.configure(state='disabled')
-
-
-	def clickConfigure(self):
-		PatternDialog()
-	'''
+	def addImport(self):
+	# Add another import entry
+		ImportColumn() # Add another button
+		ColumnSelection.addButton.configure(state='disabled')
 
 
 ############################################################################################################################
@@ -293,7 +234,7 @@ class ImportColumn:
 				except ValueError:
 					return False
 
-			EntryHandler.addButton.configure(state='enabled')
+			ColumnSelection.addButton.configure(state='enabled')
 			return True
 
 
@@ -311,26 +252,10 @@ class ImportColumn:
 			self.columnEntry.configure(foreground='black')
 
 
-############################################################################################################################
-class EntryHandler():
-# Class to handle various tasks for entry widgets
-
-	def addImport():
-	# Add another import entry
-		ImportColumn() # Add another button
-		EntryHandler.addButton.configure(state='disabled')
-
-
-
-
-	
-	
-
-
 #************************************ Program Start ************************************#
 ### Create objects ###
 filePane = FileSelection()
-paramPane = ColumnSelection()
+selectionPane = ColumnSelection()
 
 ### Run GUI ###
 root.mainloop()
