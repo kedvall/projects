@@ -189,7 +189,7 @@ class ImportColumn:
 		self.setPlaceholder() # Set initial placeholder text
 
 		# IFS entry field selection button
-		self.fieldSelectBtn = ttk.Button(self.entryFrame, text='Choose Entry Field')
+		self.fieldSelectBtn = ttk.Button(self.entryFrame, text='Choose Entry Field', command=self.setField)
 		self.fieldSelectBtn.grid(column=6, row=0)
 
 		# Add spacing to all widgets within this frame
@@ -204,6 +204,10 @@ class ImportColumn:
 	# Remove current import entry
 		del self.columnSV
 		self.entryFrame.destroy()
+
+
+	def setField(self):
+		FieldSelection()
 
 
 	def updateVars(self):
@@ -250,6 +254,81 @@ class ImportColumn:
 		if self.columnSV.get() == 'Column: A to XFD':
 			self.columnSV.set('')
 			self.columnEntry.configure(foreground='black')
+
+
+class FieldSelection():
+# Class to handle field selection in IFS
+
+	def __init__(self):
+		# Define AHK script
+		ahk_script = '''
+		#Persistent
+
+		searchText = EDIT
+		pgrmStatus = running
+
+		parseText(textToSearch)
+		{
+			global 
+			IfInString, textToSearch, %searchText% 
+			{
+				selectionState = ## VALID ## entry field
+				return true
+			}
+
+			selectionState = ## INVALID ## (must be entry field)
+			return false
+		}
+
+
+		Start:
+			SetTimer, WatchCursor, 100
+		return
+
+		WatchCursor:
+			MouseGetPos, , , id, control
+			WinGetTitle, title, ahk_id %id%
+			ToolTip, %selectionState%`nHold Ctrl and click in the desired entry field`nWindow Title: %title%`nEntry Field ID: %control%
+			parseText(control)
+		return
+
+		^LButton::
+			if (parseText(control))
+			{
+				SetTimer, WatchCursor, Off
+				Tooltip
+				goto, processInput
+			}
+
+			else
+			{
+				MsgBox, Not a valid entry field!`nAre you sure you clicked an entry field?
+			}
+		return
+
+		processInput:
+			selectionInfo = %title%|%control%
+			pgrmStatus = done
+			MsgBox, Successfully added %selectionInfo%
+			ExitApp
+		'''
+
+		# Set up interpreter
+		ahk_interpreter = Interpreter()
+
+		# Run the script
+		ahk_interpreter.execute_script(ahk_script)
+		sleep(0.5)
+
+		while ahk_interpreter.var_get('pgrmStatus') == 'running':
+			sleep(0.2)
+
+		# Get variable and exit script
+		selection = ahk_interpreter.var_get('selectionInfo')
+		ahk_interpreter.terminate() # Terminate the running script
+		del ahk_interpreter # Delete this instance of AHK Interpreter
+
+		print(selection)
 
 
 #************************************ Program Start ************************************#
