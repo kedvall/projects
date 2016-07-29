@@ -153,6 +153,7 @@ class ColumnSelection:
 		# Create a add button
 		EntryHandler.addButton = ttk.Button(ColumnSelection.addBtnFrame, text='Add Another Import Column', command=EntryHandler.addImport)
 		EntryHandler.addButton.pack(anchor=W, pady=5, padx=5)
+		EntryHandler.addButton.configure(state='disabled')
 
 		ImportColumn() # Add entry field
 
@@ -231,34 +232,83 @@ class ImportColumn:
 	# Create and display everything needed for user to enter import column name
 		### Required Variables ###
 		self.columnSV = StringVar() # Variable to hold entered column
-		self.entryFieldID = ''
+		self.entryFieldID = '' # Variable for the name of the IFS entry field
 
 		### Interface Setup ###
 		self.entryFrame = ttk.Frame(ColumnSelection.mainFrame, padding='3 3') # Frame for easy layout
 		self.entryFrame.pack(anchor=W)
 
-		self.vcmd = self.entryFrame.register(EntryHandler.validateColumnEntry) # Register validate command on new frame
+		self.vcmd = self.entryFrame.register(self.validateColumnEntry) # Register validate command on new frame
 
 		ttk.Label(self.entryFrame, text='Enter name of column to import data from:').grid(columnspan=4, row=0) # Column selection label
 
 		# Column selection entry
-		self.columnEntry = ttk.Entry(self.entryFrame, width=17, textvariable=self.columnSV, validate='all', validatecommand=(self.vcmd, '%V', '%W', '%P'))
+		self.columnEntry = ttk.Entry(self.entryFrame, width=17, textvariable=self.columnSV, validate='all', validatecommand=(self.vcmd, '%V', '%P'))
 		self.columnEntry.grid(columnspan=2, column=4, row=0)
+		self.setPlaceholder() # Set initial placeholder text
+
+		# IFS entry field selection button
+		self.fieldSelectBtn = ttk.Button(self.entryFrame, text='Choose Entry Field')
+		self.fieldSelectBtn.grid(column=6, row=0)
 
 		# Add spacing to all widgets within this frame
 		for child in self.entryFrame.winfo_children(): 
-			child.grid_configure(padx=5, pady=5)
+			child.grid_configure(padx=4, pady=5)
 
-		### Update necessary variables ###
-		#if self.columnSV.get()
-		ColumnSelection.columnsToImportDict[self.columnSV.get()] = [] # Add column name to dict
-		ColumnSelection.columnsToImportDict[self.columnSV.get()].append(self.entryFieldID) 
+		# Update necessary variables
+		self.updateVars()
 
 
-	def removeImport(self):
+	def removeImportEntry(self):
 	# Remove current import entry
 		del self.columnSV
 		self.entryFrame.destroy()
+
+
+	def updateVars(self):
+		if (self.columnSV.get() != 'Column: A to XFD' and self.columnSV.get() != ''):
+			ColumnSelection.columnsToImportDict[self.columnSV.get()] = [] # Add column name to dict
+			ColumnSelection.columnsToImportDict[self.columnSV.get()].append(self.entryFieldID) # Add selected IFS field ID to dict
+			ColumnSelection.columnsToImportDict[self.columnSV.get()].append(self) # Append instance to dict
+		print(ColumnSelection.columnsToImportDict)
+
+
+	def validateColumnEntry(self, reason, columnValue):
+	# Called on entry state change, allows or denies edit. Return True to allow edit, False to disallow
+		if reason == 'focusin':
+			self.remPlaceholder()
+			return True
+
+		elif reason == 'focusout':
+			self.setPlaceholder()
+			return True
+
+		elif reason == 'key':
+			if not (columnValue.isalpha() or columnValue == ''):
+				return False
+
+			elif columnValue != '':
+				try:
+					column_index_from_string(columnValue.upper())
+				except ValueError:
+					return False
+
+			EntryHandler.addButton.configure(state='enabled')
+			return True
+
+
+	def setPlaceholder(self):
+	# Sets the placeholder text of the entry
+		if self.columnSV.get() == '': # Check if Entry is empty before setting value
+			self.columnSV.set('Column: A to XFD')
+			self.columnEntry.configure(foreground='grey')
+
+
+	def remPlaceholder(self):
+	# Removes placeholder text of the entry
+		if self.columnSV.get() == 'Column: A to XFD':
+			self.columnSV.set('')
+			self.columnEntry.configure(foreground='black')
 
 
 ############################################################################################################################
@@ -268,38 +318,13 @@ class EntryHandler():
 	def addImport():
 	# Add another import entry
 		ImportColumn() # Add another button
+		EntryHandler.addButton.configure(state='disabled')
 
 
-	def remPlaceholder(self, varName):
-	# Removes the placeholder text of the entry
-		textvar = self.nameDict[varName]['textvar']
 
-		if textvar.get() == self.nameDict[varName]['placeholder']:
-			textvar.set('')
-			self.nameDict[varName][str('entryName')].configure(foreground='black')
 
 	
-	def validateColumnEntry(self, reason, widgetName, newColumnValue):
-	# Called on entry state change, allows or denies edit. Return True to allow edit, False to disallow
-		print('Reason: ' + reason + ' Name: ' + widgetName + ' newColumnValue: ' + newColumnValue)
-
-		if reason == 'focusin':
-			self.remPlaceholder(varName)
-
-		elif reason == 'focusout':
-			self.setPlaceholder(varName, False)
-
-		elif reason == 'key':
-			if not self.validateEntry(varName, entryValue):
-				return False
-
-			elif (self.nameDict[varName]['type'] == 'pattern') and (ParamSelection.offsetMode.get() == 'char'):
-				if entryValue != '':
-					self.toggleEnable('en')
-				else:
-					self.toggleEnable('dis')
-		return True	
-		pass # Validate data entry
+	
 
 
 #************************************ Program Start ************************************#
