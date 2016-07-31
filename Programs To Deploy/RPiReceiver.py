@@ -9,17 +9,20 @@ import serial               # encapsulates the access for the serial port
   
 if __name__ == '__main__':
 
-    serialConnection = serial.Serial(
-        "/dev/ttyUSB0", # Use ttyAMA0 for GPIO
-        baudrate=57600,
-        parity=serial.PARITY_NONE,
-        stopbits=serial.STOPBITS_ONE,
-        bytesize=serial.EIGHTBITS,
-        writeTimeout = 0,
-        timeout = 10,
-        rtscts=False,
-        dsrdtr=False,
-        xonxoff=False)
+    try:
+        serialConnection = serial.Serial(
+            "/dev/ttyUSB0", # Use ttyAMA0 for GPIO
+            baudrate=57600,
+            parity=serial.PARITY_NONE,
+            stopbits=serial.STOPBITS_ONE,
+            bytesize=serial.EIGHTBITS,
+            writeTimeout = 0,
+            timeout = 10,
+            rtscts=False,
+            dsrdtr=False,
+            xonxoff=False)
+    except:
+        print('Could not find /dev/ttyUSB0. Are you sure XBee is plugged in?')
  
     # make stdin a non-blocking file
     fcntl.fcntl(sys.stdin, fcntl.F_SETFL, os.O_NONBLOCK)
