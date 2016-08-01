@@ -28,7 +28,7 @@ WatchCursor:
 	parseText(control)
 return
 
-^LButton::
+~^LButton::
 	if (parseText(control))
 	{
 		SetTimer, WatchCursor, Off
@@ -45,4 +45,5 @@ return
 processInput:
 	selectionInfo = %title%|%control%
 	Clipboard = %selectionInfo%
+
 	ExitApp

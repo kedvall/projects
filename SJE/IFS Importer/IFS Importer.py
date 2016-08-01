@@ -305,9 +305,9 @@ class FieldSelection():
 # Class to handle field selection in IFS
 
 	def activateWindow(self):
-		# Open IFS
+		# Activate IFS
 		try: 
-			subprocess.call(['ActivateIFS.exe'])
+			subprocess.call(['helper\ActivateIFS.exe'])
 		except FileNotFoundError:
 			print('Could not locate ActivateIFS.exe. Try adding it to this directory')
 
@@ -321,13 +321,19 @@ class FieldSelection():
 
 		# Get Field ID
 		try: 
-			subprocess.call(['GetField.exe'])
+			subprocess.call(['helper\GetField.exe'])
 		except FileNotFoundError:
 			print('Could not locate GetField.exe. Try adding it to this directory')
 
 		# Get the entry field info
 		self.FieldID = pyperclip.paste()
 		return self.FieldID
+
+		# Activate IFS Importer
+		try: 
+			subprocess.call(['helper\ActivateImporter.exe'])
+		except FileNotFoundError:
+			print('Could not locate ActivateImporter.exe. Try adding it to this directory')
 
 
 ############################################################################################################################
@@ -347,7 +353,7 @@ class WriteData():
 	def activateWindow(self):
 		# Open IFS
 		try: 
-			subprocess.call(['ActivateInventoryPart.exe'])
+			subprocess.call(['helper\ActivateInventoryPart.exe'])
 		except FileNotFoundError:
 			print('Could not locate ActivateInventoryPart.exe. Try adding it to this directory')
 
@@ -374,7 +380,7 @@ class WriteData():
 			print(propertyDict[1])
 			pyperclip.copy(propertyDict[1])
 			try: 
-				subprocess.call(['FocusControl.exe'])
+				subprocess.call(['helper\FocusControl.exe'])
 			except FileNotFoundError:
 				print('Could not locate FocusControl.exe. Try adding it to this directory')
 
