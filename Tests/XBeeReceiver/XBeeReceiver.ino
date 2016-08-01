@@ -1,6 +1,3 @@
- //#include <SoftwareSerial.h>
- //SoftwareSerial mySerial(10, 11); // RX, TX
-
 //declace a String to hold what we're inputting
 String incomingString = "";
 
@@ -19,10 +16,6 @@ void loop () {
 	// Check if there's incoming serial data.
 	if (Serial.available() > 0) {
 		char ch = Serial.read();
-
-	// Check for Null terminator
-	if (ch == '\0')
-		Serial.println("Newline!");
     
 	// show the byte on serial monitor
 	Serial.print(ch);

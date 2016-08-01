@@ -25,18 +25,18 @@ void loop()
 	//digitalWrite(9, LOW);
   	//delay(500); //Delay for Serial to resume after sleeping
 
-	String toPrint = "";
-  toPrint += micros();
+  String toPrint = "";
+  toPrint += millis() / 1000;
   toPrint += " seconds, state: ";
-  if (micros() < 5000000)
+  if (millis() < 3000)
     toPrint += "l";
-  if (micros() > 5000000 && micros() < 10000000)
+  if (millis() > 3000 && millis() < 6000)
     toPrint += "h";
-  if (micros() > 10000000 && micros() < 15000000)
+  if (millis() > 6000 && millis() < 9000)
     toPrint += "l";
-  if (micros() > 15000000 && micros() < 20000000)
+  if (millis() > 9000 && millis() < 11000)
     toPrint += "h";
-  if (micros() > 20000000)
+  if (millis() > 11000)
     toPrint += "l";
 
 	//Send via XBee

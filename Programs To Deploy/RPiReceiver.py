@@ -12,7 +12,7 @@ if __name__ == '__main__':
     try:
         serialConnection = serial.Serial(
             "/dev/ttyUSB0", # Use ttyAMA0 for GPIO
-            baudrate=57600,
+            baudrate=9600,
             parity=serial.PARITY_NONE,
             stopbits=serial.STOPBITS_ONE,
             bytesize=serial.EIGHTBITS,
@@ -21,33 +21,27 @@ if __name__ == '__main__':
             rtscts=False,
             dsrdtr=False,
             xonxoff=False)
-    except:
+    except serial.SerialException:
         print('Could not find /dev/ttyUSB0. Are you sure XBee is plugged in?')
+        print('Exiting...')
+        sys.exit()
  
     # make stdin a non-blocking file
     fcntl.fcntl(sys.stdin, fcntl.F_SETFL, os.O_NONBLOCK)
  
     # post startup message to other XBee's and at stdout
-    serialConnection.write(bytes(("RPi #1 is up and running.\r\n").encode('utf-8')))
-    print("RPi #1 is up and running.")
- 
-    print("Entering loop to read and print messages (Ctrl-C to abort)...")
+    print("Receiver1 is up and running.")
+    print("Entering loop to read and print messages (Ctrl-C to exit)...")
  
     try:
         while True:
             # read a line from XBee and convert it from b'xxx\r\n' to xxx and print at stdout
-            line = serialConnection.readline().decode('utf-8')
-            if line:
-                print(line)
- 
-            # read data from the keyboard (i.e. stdin) and send via the XBee modem
             try:
-                line = sys.stdin.readline()
-                serialConnection.write(bytes(line.encode('utf-8')))
-            except IOError:
-                time.sleep(0.1)
-                continue
- 
+                line = serialConnection.readline().decode('utf-8')
+            except UnicodeDecodeError:
+                print('*** Invalid Character in Data Stream ***')
+            if line:
+                print(line, end='')
+
     except KeyboardInterrupt:
-        print("\n*** Ctrl-C keyboard interrupt ***")
-        serialConnection.write(bytes(("RPi #1 is going down.\r\n").encode('utf-8')))
+        print("\n*** Keyboard Interrupt - Exiting... ***")
