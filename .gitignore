@@ -8,3 +8,4 @@ SJE/**/build/
 SJE/**/dist/
 **.spec
 **.ico
+**.exe
