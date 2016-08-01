@@ -127,6 +127,8 @@ class ColumnSelection:
 		### Required variables ###
 		ColumnSelection.columnsToImportDict = {} # Dictionary for user entered columns
 		ColumnSelection.columnSV = StringVar() # Variable to hold entered column
+		ColumnSelection.overwriteSV = StringVar() # Determines if existing text will be overwritten
+		ColumnSelection.clearSV = StringVar() ### for testing ###
 
 		### Interface elements ###
 		# Subframes to hold various elements
@@ -169,9 +171,24 @@ class ColumnSelection:
 		ColumnSelection.importButton.pack(side=RIGHT, anchor=E, pady=5, padx=5)
 		ColumnSelection.importButton.configure(state='disabled')
 
+		# Clear check box (for testing) 
+		ColumnSelection.clearCB = ttk.Checkbutton(ColumnSelection.buttonFrame, text='Clear Values', variable=ColumnSelection.clearSV, onvalue='clear', offvalue='ignore') ### for testing ###
+		ColumnSelection.clearCB.pack(side=RIGHT, anchor=E, pady=5, padx=5)
+
+		# Overwrite Existing check box
+		ColumnSelection.overwriteCB = ttk.Checkbutton(ColumnSelection.buttonFrame, text='Overwrite Existing', command=self.overwriteWarning, variable=ColumnSelection.overwriteSV, onvalue='overwrite', offvalue='ignore') # Overwrite existing IFS text (if present)
+		ColumnSelection.overwriteCB.pack(side=RIGHT, anchor=E, pady=5, padx=5)
+
 		### Other Tasks ###
 		ImportColumn() # Add entry field
 		ColumnSelection.mainFrame.grid_remove() # Temporarily hid this frame
+
+
+	def overwriteWarning(self):
+		if ColumnSelection.overwriteSV.get() == 'overwrite':
+			overwrite = tkinter.messagebox.askquestion('Overwrite confirmation', "This will OVERWRITE existing text in IFS!\nPlease be ABSOLUTELY SURE you know what you're doing!\nAsk someone before proceeding or deselect this option.\n\nDo you really want to proceed with overwrite on?")
+			if overwrite != 'yes':
+				ColumnSelection.overwriteCB.invoke()
 
 
 	def addImport(self):
@@ -242,8 +259,6 @@ class ImportColumn:
 	def setField(self):
 		# Launch program to get IFS entry field ID
 		self.entryFieldID = FieldSelection.getField(FieldSelection)
-		self.fieldID = self.entryFieldID.split('|')[1]
-		self.title = ((self.entryFieldID.split('|')[0]).split('-'))[0]
 
 		if (self.entryFieldID):
 			# Change Field Select button text
@@ -260,8 +275,7 @@ class ImportColumn:
 		if (self.columnSV.get() != 'Column: A to XFD' and self.columnSV.get() != ''):
 			ColumnSelection.columnsToImportDict[self.columnSV.get()] = [] # Add column name to dict with list as key
 			ColumnSelection.columnsToImportDict[self.columnSV.get()].append(self) # Append instance to dict
-			ColumnSelection.columnsToImportDict[self.columnSV.get()].append(self.fieldID) # Add selected IFS field ID to dict
-			ColumnSelection.columnsToImportDict[self.columnSV.get()].append(self.title) # Add selected Title Name to dict
+			ColumnSelection.columnsToImportDict[self.columnSV.get()].append(self.entryFieldID) # Add selected IFS field ID to dict
 
 
 	def validateColumnEntry(self, reason, columnValue):
@@ -317,13 +331,10 @@ class FieldSelection():
 		pyperclip.copy('')
 
 		# Get Field ID
-		while pyperclip.paste() == '':
-			try: 
-				subprocess.call(['helper\GetField.exe'], timeout=15)
-			except FileNotFoundError:
-				print('Could not locate GetField.exe. Try adding it to this directory')
-			except subprocess.TimeoutExpired:
-				tkinter.messagebox.showwarning('Error Selecting IFS Field', 'Either there was an error getting the field ID,\nor no IFS entry field was clicked within 15 seconds.\n\nPlease try again. ')
+		try: 
+			subprocess.call(['helper\GetControlID.exe'])
+		except FileNotFoundError:
+			print('Could not locate GetControlID.exe. Try adding it to this directory')
 
 		# Get the entry field info
 		self.FieldID = pyperclip.paste()
@@ -374,8 +385,6 @@ class WriteData():
 		else:
 			pyperclip.copy(str(curCell.value))
 
-		print('ID: ' + pyperclip.paste())
-
 		# Perform a search
 		pyautogui.hotkey('f3')
 		sleep(0.5)
@@ -388,6 +397,15 @@ class WriteData():
 	def pasteData(self, rowNum):
 		# Iterate though all selected data entry columns
 		for columnName, propertyDict in ColumnSelection.columnsToImportDict.items():
+			# Check if IFS control is empty
+			pyperclip.copy(propertyDict[1])
+			try: 
+				subprocess.call(['helper\GetControlValue.exe'])
+			except FileNotFoundError:
+				print('Could not locate GetControlValue.exe. Try adding it to this directory')
+			# Store text in IFS control	
+			controlText = pyperclip.paste()
+
 			# Set focus to correct IFS control
 			pyperclip.copy(propertyDict[1])
 			try: 
@@ -398,13 +416,25 @@ class WriteData():
 			# Get value of current cell
 			curCell = FileSelection.sheet.cell(row=rowNum, column=column_index_from_string(columnName))
 			pyperclip.copy(str(curCell.value))
-			print('\tValue: ' + pyperclip.paste() + ' from column: ' + columnName)
 
-			# Paste value into IFS
-			pyautogui.hotkey('ctrl', 'v')
-			pyautogui.hotkey('ctrl', 's')
-			sleep(0.5)
+			### for testing ###
+			if ColumnSelection.clearSV.get() == 'clear':
+				pyperclip.copy('')
+				pyautogui.hotkey('ctrl', 'v')
+				pyautogui.hotkey('ctrl', 's')
+				sleep(0.5)
+				return
 
+			# Nothing in field, free to paste
+			if controlText == '' or ColumnSelection.overwriteSV.get() == 'overwrite':
+				# Paste value into IFS
+				pyautogui.hotkey('ctrl', 'v')
+				pyautogui.hotkey('ctrl', 's')
+				sleep(0.5)
+
+			# Data is already in there skip
+			else:
+				print('Already has text, skipping')
 
 ############################################################################################################################
 class Base64IconGen():
