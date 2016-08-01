@@ -178,11 +178,10 @@ class ColumnSelection:
 	# Add another import entry
 		ImportColumn() # Add another button
 		ColumnSelection.addButton.configure(state='disabled')
-		print(ColumnSelection.columnsToImportDict)
 
 
 	def startImport(self):
-		if ColumnSelection.columnEntry != "":
+		if ColumnSelection.columnSV.get() != '':
 			WriteData()
 		else:
 			tkinter.messagebox.showerror('Error', 'Please enter column to search for part ID')
@@ -318,10 +317,13 @@ class FieldSelection():
 		pyperclip.copy('')
 
 		# Get Field ID
-		try: 
-			subprocess.call(['helper\GetField.exe'])
-		except FileNotFoundError:
-			print('Could not locate GetField.exe. Try adding it to this directory')
+		while pyperclip.paste() == '':
+			try: 
+				subprocess.call(['helper\GetField.exe'], timeout=20)
+			except FileNotFoundError:
+				print('Could not locate GetField.exe. Try adding it to this directory')
+			except subprocess.TimeoutExpired:
+				tkinter.messagebox.showwarning('Error Selecting IFS Field', 'Either there was an error getting the field ID,\nor no IFS entry field was clicked within 20 seconds.\n\nPlease try again. ')
 
 		# Get the entry field info
 		self.FieldID = pyperclip.paste()
@@ -343,14 +345,12 @@ class WriteData():
 		self.activateWindow()
 
 		# Iterate though spreadsheet row by row
-		try:
-			for rowNum in range(1, FileSelection.sheet.max_row + 1):
-				searchByID(self, rowNum)
-				pasteData(self, rowNum)
-				
-		except KeyboardInterrupt:
-			print('Keyboard Interrupt triggered. Exiting...')
-			sys.exit()
+		for rowNum in range(1, FileSelection.sheet.max_row + 1):
+			validID = self.searchByID(rowNum)
+			if validID:
+				self.pasteData(rowNum)
+			else:
+				pass
 
 
 	def activateWindow(self):
@@ -362,42 +362,48 @@ class WriteData():
 
 
 	def searchByID(self, rowNum):
-			curCell = FileSelection.sheet.cell(row=rowNum, column=column_index_from_string(ColumnSelection.columnSV.get()))
-			pyperclip.copy(curCell.value)
-			pyautogui.typewrite('f3')
-			sleep(0.5)
-			pyautogui.hotkey('ctrl', 'v')
-			pyautogui.typewrite('enter')
+		# Make cell object
+		curCell = FileSelection.sheet.cell(row=rowNum, column=column_index_from_string(ColumnSelection.columnSV.get().upper()))
+
+		# Ensure there is an ID associated with the current row
+		if curCell.value == None:
+			print('Cell at ' + str(curCell.column) + str(curCell.row) + ' is empty, skipping')
+			return False
+		else:
+			pyperclip.copy(str(curCell.value))
+
+		print('ID: ' + pyperclip.paste())
+		return True
+
+		'''
+		# Perform a search
+		pyautogui.typewrite('f3')
+		sleep(0.5)
+		pyautogui.hotkey('ctrl', 'v')
+		pyautogui.typewrite('enter')
+		'''
 
 
 	def pasteData(self, rowNum):
 		# Iterate though all selected data entry columns
-		try:
-			for columnName, propertyDict in ColumnSelection.columnsToImportDict.items():
-				print('Key: ' + str(columnName))
-				print('value' + str(propertyDict))
+		for columnName, propertyDict in ColumnSelection.columnsToImportDict.items():
+			# Get value of current cell
+			curCell = FileSelection.sheet.cell(row=rowNum, column=column_index_from_string(columnName))
+			pyperclip.copy(str(curCell.value))
 
-				# Make sure Inventory Part window is active
-				self.activateWindow(self)
+			print('\tValue: ' + pyperclip.paste() + ' from column: ' + columnName)
 
-				# Set focus to correct IFS control
-				print(propertyDict[1])
-				pyperclip.copy(propertyDict[1])
-				try: 
-					subprocess.call(['helper\FocusControl.exe'])
-				except FileNotFoundError:
-					print('Could not locate FocusControl.exe. Try adding it to this directory')
+			'''
+			# Set focus to correct IFS control
+			pyperclip.copy(propertyDict[1])
+			try: 
+				subprocess.call(['helper\FocusControl.exe'])
+			except FileNotFoundError:
+				print('Could not locate FocusControl.exe. Try adding it to this directory')
 
-				# Get value of current cell
-				curCell = FileSelection.sheet.cell(row=rowNum, column=column_index_from_string(columnName))
-				pyperclip.copy(curCell.value)
-
-				# Paste value into IFS
-				pyautogui.hotkey('ctrl', 'v')
-
-		except KeyboardInterrupt:
-			print('Keyboard Interrupt triggered. Exiting...')
-			sys.exit()
+			# Paste value into IFS
+			pyautogui.hotkey('ctrl', 'v')
+			'''
 
 
 ############################################################################################################################
