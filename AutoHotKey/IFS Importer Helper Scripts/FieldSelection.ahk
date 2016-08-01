@@ -1,7 +1,7 @@
 #Persistent
+#SingleInstance, force
 
 searchText = EDIT
-pgrmStatus = running
 
 parseText(textToSearch)
 {
@@ -44,6 +44,5 @@ return
 
 processInput:
 	selectionInfo = %title%|%control%
-	pgrmStatus = done
-	MsgBox, Successfully added %selectionInfo%
+	Clipboard = %selectionInfo%
 	ExitApp
