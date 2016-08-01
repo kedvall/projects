@@ -134,8 +134,8 @@ class ColumnSelection:
 		ColumnSelection.titleFrame.pack(side=TOP, fill=X, expand=True)
 		ColumnSelection.entryFrame = ttk.Frame(ColumnSelection.mainFrame)
 		ColumnSelection.entryFrame.pack(fill=X, expand=True)
-		ColumnSelection.addBtnFrame = ttk.Frame(ColumnSelection.mainFrame)
-		ColumnSelection.addBtnFrame.pack(side=BOTTOM, fill=X, expand=True)
+		ColumnSelection.buttonFrame = ttk.Frame(ColumnSelection.mainFrame)
+		ColumnSelection.buttonFrame.pack(side=BOTTOM, fill=X, expand=True)
 
 		ColumnSelection.vcmd = ColumnSelection.titleFrame.register(self.validatePNCol) # Register validate command on new frame
 
@@ -143,8 +143,9 @@ class ColumnSelection:
 		ttk.Label(ColumnSelection.titleFrame, text='Enter Excel column to search for IFS Inventory Part number:').grid(columnspan=4, row=0, sticky=W) # Column selection label
 		ColumnSelection.columnEntry = ttk.Entry(ColumnSelection.titleFrame, width=17, textvariable=ColumnSelection.columnSV, validate='key', validatecommand=(ColumnSelection.vcmd, '%P'))
 		ColumnSelection.columnEntry.grid(columnspan=2, column=4, row=0, sticky=W)
-		# Divider
-		ttk.Label(ColumnSelection.titleFrame, text='').grid(row=2, sticky='N S E W')
+		
+		ColumnSelection.divider = ttk.Label(ColumnSelection.titleFrame, text='')
+		ColumnSelection.divider.grid(row=2, sticky='N S E W') # Divider
 
 		# Instruction label
 		ColumnSelection.titleLbl = ttk.Label(ColumnSelection.titleFrame, text='Select columns to import data from:')
@@ -154,49 +155,47 @@ class ColumnSelection:
 		for child in ColumnSelection.titleFrame.winfo_children(): 
 			child.grid_configure(padx=5, pady=5)
 		ColumnSelection.titleLbl.grid_configure(pady=0)
+		ColumnSelection.divider.grid_configure(pady=0)
+
+		ttk.Label(ColumnSelection.buttonFrame, text='').pack(side=TOP) # Divider
 
 		# Create a add button
-		ColumnSelection.addButton = ttk.Button(ColumnSelection.addBtnFrame, text='Add Another Import Column', command=self.addImport)
-		ColumnSelection.addButton.pack(anchor=W, pady=5, padx=5)
+		ColumnSelection.addButton = ttk.Button(ColumnSelection.buttonFrame, text='Add Another Import Column', command=self.addImport)
+		ColumnSelection.addButton.pack(side=LEFT, anchor=W, pady=5, padx=5)
 		ColumnSelection.addButton.configure(state='disabled')
+
+		# Create Import button
+		ColumnSelection.importButton = ttk.Button(ColumnSelection.buttonFrame, text='Start Import', command=self.startImport)
+		ColumnSelection.importButton.pack(side=RIGHT, anchor=E, pady=5, padx=5)
+		ColumnSelection.importButton.configure(state='disabled')
 
 		### Other Tasks ###
 		ImportColumn() # Add entry field
 		ColumnSelection.mainFrame.grid_remove() # Temporarily hid this frame
-
-		# Disable all widgets in entry Frame until valid Part Number column is entered
-		toggleWidgetState('off')
 
 
 	def addImport(self):
 	# Add another import entry
 		ImportColumn() # Add another button
 		ColumnSelection.addButton.configure(state='disabled')
+		print(ColumnSelection.columnsToImportDict)
+
+
+	def startImport(self):
+		WriteData(ColumnSelection.columnsToImportDict)
 
 
 	def validatePNCol(self, columnValue):
 		if not (columnValue.isalpha() or columnValue == ''):
-			toggleWidgetState('off')
 			return False
 
 		elif columnValue != '':
 			try:
 				column_index_from_string(columnValue.upper())
 			except ValueError:
-				toggleWidgetState('off')
 				return False
 
-		toggleWidgetState('en')
 		return True
-
-
-	def toggleWidgetState(self, state):
-		if state == 'en':
-			for widget in ColumnSelection.entryFrame.winfo_children():
-				widget.configure(state='enable')
-		else:
-			for widget in ColumnSelection.entryFrame.winfo_children():
-				widget.configure(state='disable')
 
 
 ############################################################################################################################
@@ -224,6 +223,7 @@ class ImportColumn:
 
 		# IFS entry field selection button
 		self.fieldSelectBtn = ttk.Button(self.entryFrame, text='Select IFS Entry Field', command=self.setField)
+		self.fieldSelectBtn.configure(state='disabled')
 		self.fieldSelectBtn.grid(column=6, row=0)
 
 		# Add spacing to all widgets within this frame
@@ -243,8 +243,15 @@ class ImportColumn:
 		self.fieldID = self.entryFieldID.split('|')[1]
 		self.title = ((self.entryFieldID.split('|')[0]).split('-'))[0]
 
+		if (self.entryFieldID):
+			# Change Field Select button text
+			self.fieldSelectBtn.configure(text='Change Selection')
+
 		# Update necessary variables
 		self.updateVars()
+
+		# Enable search
+		ColumnSelection.importButton.configure(state='enabled')
 
 
 	def updateVars(self):
@@ -276,6 +283,7 @@ class ImportColumn:
 					return False
 
 			ColumnSelection.addButton.configure(state='enabled')
+			self.fieldSelectBtn.configure(state='enabled')
 			return True
 
 
@@ -300,6 +308,40 @@ class FieldSelection():
 		# Clear the clipboard
 		pyperclip.copy('')
 
+		# Open IFS
+		try: 
+			subprocess.call(['OpenIFS.exe'])
+		except FileNotFoundError:
+			print('Could not locate OpenIFS.exe. Try adding it to this directory')
+
+		# Get Field ID
+		try: 
+			subprocess.call(['GetField.exe'])
+		except FileNotFoundError:
+			print('Could not locate GetField.exe. Try adding it to this directory')
+
+		# Get the entry field info
+		self.FieldID = pyperclip.paste()
+		return self.FieldID
+
+
+############################################################################################################################
+class WriteData():
+# Copies data from Excel column and paste it into IFS using helper scripts
+
+	def __init__(self, columnsDict):
+		for key, value in ColumnSelection.columnsToImportDict.items():
+			print('Key: ' + str(key))
+			print('value' + str(value))
+
+		self.activateWindow(columnsDict)
+
+
+	def activateWindow(self, columnsDict):
+		'''
+		# Copy window title to clipboard
+		pyperclip.copy('')
+
 		# Launch AHK script
 		try: 
 			subprocess.call(['GetField.exe'])
@@ -309,12 +351,8 @@ class FieldSelection():
 		# Get the entry field info
 		self.FieldID = pyperclip.paste()
 		return self.FieldID
+		'''
 
-
-############################################################################################################################
-class WriteData():
-# Copies data from Excel column and paste it into IFS
-	pass
 
 ############################################################################################################################
 class Base64IconGen():
