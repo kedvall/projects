@@ -319,21 +319,23 @@ class FieldSelection():
 		# Get Field ID
 		while pyperclip.paste() == '':
 			try: 
-				subprocess.call(['helper\GetField.exe'], timeout=20)
+				subprocess.call(['helper\GetField.exe'], timeout=15)
 			except FileNotFoundError:
 				print('Could not locate GetField.exe. Try adding it to this directory')
 			except subprocess.TimeoutExpired:
-				tkinter.messagebox.showwarning('Error Selecting IFS Field', 'Either there was an error getting the field ID,\nor no IFS entry field was clicked within 20 seconds.\n\nPlease try again. ')
+				tkinter.messagebox.showwarning('Error Selecting IFS Field', 'Either there was an error getting the field ID,\nor no IFS entry field was clicked within 15 seconds.\n\nPlease try again. ')
 
 		# Get the entry field info
 		self.FieldID = pyperclip.paste()
-		return self.FieldID
 
 		# Activate IFS Importer
 		try: 
 			subprocess.call(['helper\ActivateImporter.exe'])
 		except FileNotFoundError:
 			print('Could not locate ActivateImporter.exe. Try adding it to this directory')
+
+		# return the field's ID
+		return self.FieldID
 
 
 ############################################################################################################################
@@ -373,27 +375,19 @@ class WriteData():
 			pyperclip.copy(str(curCell.value))
 
 		print('ID: ' + pyperclip.paste())
-		return True
 
-		'''
 		# Perform a search
-		pyautogui.typewrite('f3')
+		pyautogui.hotkey('f3')
 		sleep(0.5)
 		pyautogui.hotkey('ctrl', 'v')
-		pyautogui.typewrite('enter')
-		'''
+		pyautogui.hotkey('enter')
+		sleep(0.5)
 
+		return True
 
 	def pasteData(self, rowNum):
 		# Iterate though all selected data entry columns
 		for columnName, propertyDict in ColumnSelection.columnsToImportDict.items():
-			# Get value of current cell
-			curCell = FileSelection.sheet.cell(row=rowNum, column=column_index_from_string(columnName))
-			pyperclip.copy(str(curCell.value))
-
-			print('\tValue: ' + pyperclip.paste() + ' from column: ' + columnName)
-
-			'''
 			# Set focus to correct IFS control
 			pyperclip.copy(propertyDict[1])
 			try: 
@@ -401,9 +395,15 @@ class WriteData():
 			except FileNotFoundError:
 				print('Could not locate FocusControl.exe. Try adding it to this directory')
 
+			# Get value of current cell
+			curCell = FileSelection.sheet.cell(row=rowNum, column=column_index_from_string(columnName))
+			pyperclip.copy(str(curCell.value))
+			print('\tValue: ' + pyperclip.paste() + ' from column: ' + columnName)
+
 			# Paste value into IFS
 			pyautogui.hotkey('ctrl', 'v')
-			'''
+			pyautogui.hotkey('ctrl', 's')
+			sleep(0.5)
 
 
 ############################################################################################################################
