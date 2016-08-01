@@ -182,7 +182,10 @@ class ColumnSelection:
 
 
 	def startImport(self):
-		WriteData(ColumnSelection.columnsToImportDict)
+		if ColumnSelection.columnEntry != "":
+			WriteData()
+		else:
+			tkinter.messagebox.showerror('Error', 'Please enter column to search for part ID')
 
 
 	def validatePNCol(self, columnValue):
@@ -304,17 +307,12 @@ class ImportColumn:
 class FieldSelection():
 # Class to handle field selection in IFS
 
-	def activateWindow(self):
+	def getField(self):
 		# Activate IFS
 		try: 
 			subprocess.call(['helper\ActivateIFS.exe'])
 		except FileNotFoundError:
 			print('Could not locate ActivateIFS.exe. Try adding it to this directory')
-
-
-	def getField(self):
-		# Open IFS
-		self.activateWindow(self)
 
 		# Clear the clipboard
 		pyperclip.copy('')
@@ -345,9 +343,14 @@ class WriteData():
 		self.activateWindow()
 
 		# Iterate though spreadsheet row by row
-		for rowNum in range(1, FileSelection.sheet.max_row + 1):
-			searchByID(self, rowNum)
-			pasteData(self, rowNum)
+		try:
+			for rowNum in range(1, FileSelection.sheet.max_row + 1):
+				searchByID(self, rowNum)
+				pasteData(self, rowNum)
+				
+		except KeyboardInterrupt:
+			print('Keyboard Interrupt triggered. Exiting...')
+			sys.exit()
 
 
 	def activateWindow(self):
@@ -369,27 +372,32 @@ class WriteData():
 
 	def pasteData(self, rowNum):
 		# Iterate though all selected data entry columns
-		for columnName, propertyDict in ColumnSelection.columnsToImportDict.items():
-			print('Key: ' + str(columnName))
-			print('value' + str(propertyDict))
+		try:
+			for columnName, propertyDict in ColumnSelection.columnsToImportDict.items():
+				print('Key: ' + str(columnName))
+				print('value' + str(propertyDict))
 
-			# Make sure Inventory Part window is active
-			self.activateWindow(self)
+				# Make sure Inventory Part window is active
+				self.activateWindow(self)
 
-			# Set focus to correct IFS control
-			print(propertyDict[1])
-			pyperclip.copy(propertyDict[1])
-			try: 
-				subprocess.call(['helper\FocusControl.exe'])
-			except FileNotFoundError:
-				print('Could not locate FocusControl.exe. Try adding it to this directory')
+				# Set focus to correct IFS control
+				print(propertyDict[1])
+				pyperclip.copy(propertyDict[1])
+				try: 
+					subprocess.call(['helper\FocusControl.exe'])
+				except FileNotFoundError:
+					print('Could not locate FocusControl.exe. Try adding it to this directory')
 
-			# Get value of current cell
-			curCell = FileSelection.sheet.cell(row=rowNum, column=column_index_from_string(columnName))
-			pyperclip.copy(curCell.value)
+				# Get value of current cell
+				curCell = FileSelection.sheet.cell(row=rowNum, column=column_index_from_string(columnName))
+				pyperclip.copy(curCell.value)
 
-			# Paste value into IFS
-			pyautogui.hotkey('ctrl', 'v')
+				# Paste value into IFS
+				pyautogui.hotkey('ctrl', 'v')
+
+		except KeyboardInterrupt:
+			print('Keyboard Interrupt triggered. Exiting...')
+			sys.exit()
 
 
 ############################################################################################################################
