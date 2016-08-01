@@ -304,15 +304,20 @@ class ImportColumn:
 class FieldSelection():
 # Class to handle field selection in IFS
 
-	def getField(self):
-		# Clear the clipboard
-		pyperclip.copy('')
-
+	def activateWindow(self):
 		# Open IFS
 		try: 
-			subprocess.call(['OpenIFS.exe'])
+			subprocess.call(['ActivateIFS.exe'])
 		except FileNotFoundError:
-			print('Could not locate OpenIFS.exe. Try adding it to this directory')
+			print('Could not locate ActivateIFS.exe. Try adding it to this directory')
+
+
+	def getField(self):
+		# Open IFS
+		self.activateWindow(self)
+
+		# Clear the clipboard
+		pyperclip.copy('')
 
 		# Get Field ID
 		try: 
@@ -329,29 +334,56 @@ class FieldSelection():
 class WriteData():
 # Copies data from Excel column and paste it into IFS using helper scripts
 
-	def __init__(self, columnsDict):
-		for key, value in ColumnSelection.columnsToImportDict.items():
-			print('Key: ' + str(key))
-			print('value' + str(value))
+	def __init__(self):
+		# Make IFS window active
+		self.activateWindow()
 
-		self.activateWindow(columnsDict)
+		# Iterate though spreadsheet row by row
+		for rowNum in range(1, FileSelection.sheet.max_row + 1):
+			searchByID(self, rowNum)
+			pasteData(self, rowNum)
 
 
-	def activateWindow(self, columnsDict):
-		'''
-		# Copy window title to clipboard
-		pyperclip.copy('')
-
-		# Launch AHK script
+	def activateWindow(self):
+		# Open IFS
 		try: 
-			subprocess.call(['GetField.exe'])
+			subprocess.call(['ActivateInventoryPart.exe'])
 		except FileNotFoundError:
-			print('Could not locate GetField. Try adding it to this directory')
+			print('Could not locate ActivateInventoryPart.exe. Try adding it to this directory')
 
-		# Get the entry field info
-		self.FieldID = pyperclip.paste()
-		return self.FieldID
-		'''
+
+	def searchByID(self, rowNum):
+			curCell = FileSelection.sheet.cell(row=rowNum, column=column_index_from_string(ColumnSelection.columnSV.get()))
+			pyperclip.copy(curCell.value)
+			pyautogui.typewrite('f3')
+			sleep(0.5)
+			pyautogui.hotkey('ctrl', 'v')
+			pyautogui.typewrite('enter')
+
+
+	def pasteData(self, rowNum):
+		# Iterate though all selected data entry columns
+		for columnName, propertyDict in ColumnSelection.columnsToImportDict.items():
+			print('Key: ' + str(columnName))
+			print('value' + str(propertyDict))
+
+			# Make sure Inventory Part window is active
+			self.activateWindow(self)
+
+			# Set focus to correct IFS control
+			print(propertyDict[1])
+			pyperclip.copy(propertyDict[1])
+			try: 
+				subprocess.call(['FocusControl.exe'])
+			except FileNotFoundError:
+				print('Could not locate FocusControl.exe. Try adding it to this directory')
+
+			# Get value of current cell
+			curCell = FileSelection.sheet.cell(row=rowNum, column=column_index_from_string(columnName))
+			pyperclip.copy(curCell.value)
+
+			# Paste value into IFS
+			pyautogui.hotkey('ctrl', 'v')
 
 
 ############################################################################################################################
