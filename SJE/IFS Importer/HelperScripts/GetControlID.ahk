@@ -19,7 +19,7 @@ Loop
 	}
 
 	; Set tool tip based on control ID
-	ToolTip, %selectionState%`nHold Ctrl and click in the desired entry field
+	ToolTip, %selectionState%`nClick the desired field then press Shift + Enter
 
 } Until breakLoop = 1
 
