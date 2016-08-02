@@ -130,6 +130,7 @@ class ColumnSelection:
 		ColumnSelection.overwriteSV = StringVar() # Determines if existing text will be overwritten
 		ColumnSelection.clearSV = StringVar() ### for testing ###
 		ColumnSelection.skippedList = []
+		ColumnSelection.mismatchList = []
 
 		### Interface elements ###
 		# Subframes to hold various elements
@@ -446,17 +447,104 @@ class WriteData():
 
 	def completionHandle(self):
 		if len(ColumnSelection.skippedList) > 0:
-			message = 'All fields were successfully imported.\nSome values have been skipped due to preexisting text, they are listed below.\n\nSkipped IFS Parts: ' + ', '.join(ColumnSelection.skippedList)
+			self.message = 'All fields were successfully imported.\nSome values have been skipped due to preexisting text, they are listed below.\n\nSkipped IFS Parts: ' + ', '.join(ColumnSelection.skippedList)
 		else:
-			message = 'All fields were successfully imported.'
+			self.message = 'All fields were successfully imported.'
 
-		tkinter.messagebox.showinfo('Import Results', message)
+		tkinter.messagebox.showinfo('Import Results', self.message)
 
-		ans = tkinter.messagebox.askquestion('Data Validation', 'Start data validation check?')
-		if ans == 'yes':
-			print('Yes!')
+		self.ans = tkinter.messagebox.askquestion('Data Validation', 'Start data validation check?')
+		if self.ans == 'yes':
+			ValidateData()
+			return
 		else:
-			print('No!')
+			return
+
+
+class ValidateData():
+# Check existing IFS value against Excel value
+
+	def __init__(self):
+		# Make IFS window active
+		self.activateWindow()
+
+		# Iterate though spreadsheet row by row
+		for rowNum in range(1, FileSelection.sheet.max_row + 1):
+			validID = self.searchByID(rowNum)
+			if validID:
+				self.checkData(rowNum, self.IDTag)
+			else:
+				pass
+
+		# Message display on import completion
+		self.completionHandle()
+
+
+	def activateWindow(self):
+		# Activate IFS
+		try: 
+			subprocess.call(['helper\ActivateInventoryPart.exe'])
+		except FileNotFoundError:
+			print('Could not locate ActivateInventoryPart.exe. Try adding it to this directory')
+
+
+	def searchByID(self, rowNum):
+		# Make cell object
+		curCell = FileSelection.sheet.cell(row=rowNum, column=column_index_from_string(ColumnSelection.columnSV.get().upper()))
+
+		# Ensure there is an ID associated with the current row
+		if curCell.value == None:
+			print('Cell at ' + str(curCell.column) + str(curCell.row) + ' is empty, skipping')
+			return False
+		else:
+			pyperclip.copy(str(curCell.value))
+			self.IDTag = pyperclip.paste()
+
+		# Perform a search
+		pyautogui.hotkey('f3')
+		sleep(0.5)
+		pyautogui.hotkey('ctrl', 'v')
+		pyautogui.hotkey('enter')
+		sleep(0.5)
+
+		return True
+
+	def checkData(self, rowNum, IDTag):
+		# Iterate though all selected data entry columns
+		for columnName, propertyDict in ColumnSelection.columnsToImportDict.items():
+			# Get value of IFS control
+			pyperclip.copy(propertyDict[1])
+			try: 
+				subprocess.call(['helper\GetControlValue.exe'])
+			except FileNotFoundError:
+				print('Could not locate GetControlValue.exe. Try adding it to this directory')
+			# Store text in IFS control	
+			controlText = str(pyperclip.paste())
+
+			# Get value of current cell
+			curCell = FileSelection.sheet.cell(row=rowNum, column=column_index_from_string(columnName))
+			excelText = str(curCell.value)
+
+			# Compare values
+			if controlText == excelText:
+				print(IDTag + ' checked. PASS')
+
+			# Data does not match
+			else:
+				if IDTag not in ColumnSelection.mismatchList:
+					ColumnSelection.mismatchList.append(IDTag)
+				print('Excel IFS mismatch')
+
+
+	def completionHandle(self):
+		if len(ColumnSelection.mismatchList) > 0:
+			self.message = 'Non-equal IFS and Excel fields detected,\nthis may be due to preexisting text.\nMismatched fields are listed below.\n\nMismatched IFS IDs: ' + ', '.join(ColumnSelection.mismatchList)
+		else:
+			self.message = 'All fields were successfully verified.'
+
+		tkinter.messagebox.showinfo('Import Results', self.message)
+
+		return
 
 
 ############################################################################################################################
