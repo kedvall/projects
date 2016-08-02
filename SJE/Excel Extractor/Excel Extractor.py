@@ -30,12 +30,8 @@ root.title('Excel Extractor') # Set the name
 style = ttk.Style() # Set the style
 
 
-# Create icon from base64 code
-#Base64IconGen(root)
-
-
-############################################################################################################################
 # Class declaration
+############################################################################################################################
 class FileSelection:
 # File Selection Frame (Upper left)
 
@@ -321,9 +317,9 @@ class PatternDialog():
 			# Counter to assign unique ID to each row
 			PatternDialog.rowID = 0
 			# Create dictionary for dialog drop downs
-			PatternDialog.valuesDict = {'typeCB':['Letter', 'Digit', 'Space Character', 'Specify Character'],
+			PatternDialog.valuesDict = {'typeCB':['Any Char', 'Letter', 'Digit', 'Space Character', 'Specify Character'],
 							   			'repeatCB':['Repeat', 'Repeat Until'],
-							   			'terminateCB':['Space Character', 'Non-Space Character', 'Alphanumeric', 'Letter', 'Digit'],
+							   			'terminateCB':['Space Character', 'Alphanumeric', 'Letter', 'Digit'],
 							   			'joinCB':['Then', 'Or']}
 
 			# Create subframes to store various widgets
@@ -380,6 +376,7 @@ class PatternDialog():
 		PatternDialog.toplevel.withdraw()
 		PatternDialog.toplevel.grab_release()
 		ParamSelection.toggleEnable(ParamSelection, 'en')
+		RegexGeneration.parsePattern(self)
 
 
 ############################################################################################################################
@@ -543,7 +540,6 @@ class RuleDialog:
 
 	def removeRule(self):
 		if len(RegexGeneration.rulesDict.keys()) > 1:
-			print(RegexGeneration.rulesDict)
 			RegexGeneration.rulesDict.pop(self.name)
 			self.innerFrame.destroy()
 			self.lineConcatUpdate()
@@ -769,22 +765,25 @@ class RegexGeneration:
 			searchStrings = originTerm.split()
 			searchStrings = '([\\-_ /])*'.join(searchStrings)
 			RegexGeneration.permutRegex = re.compile(r'(' + searchStrings + ')+', re.I)
+			RegexGeneration.generatedPerm = searchStrings
 
 		else:
 			searchStrings = originTerm.split()
 			searchStrings = '([\\-_ /])*'.join(searchStrings)
 			searchStrings = originTerm.split('.')
 			searchStrings = '([\\-_ /])*'.join(searchStrings)
+			RegexGeneration.generatedPerm = searchStrings
 			RegexGeneration.permutRegex = re.compile(r'(' + searchStrings + ')+', re.I)
 
 
 	def parsePattern(self):
 		if ParamSelection.offsetMode.get() == 'char':
 			print('char')
+
 		else:
-			print('pattern')
-		#pattern = ParamSelection.offsetPattern.get()
-		#RegexGeneration.patternRegex = re.compile(r'(' + pattern + ')', re.I)
+			pattern = ''
+			pattern = '\d{6}'
+			RegexGeneration.permutRegex = re.compile(r'(' + pattern + ')+', re.I)
 
 
 	def searchPtrn(self):
@@ -809,7 +808,7 @@ class Base64IconGen():
 
 #************************************ Program Start ************************************#
 # Create objects
-Base64IconGen(root)
+Base64IconGen(root) # Create icon
 regex =  RegexGeneration()
 filePane = FileSelection()
 sModePane = SearchSelection()
