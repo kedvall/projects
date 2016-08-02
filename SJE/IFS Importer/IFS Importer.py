@@ -327,7 +327,7 @@ class FieldSelection():
 		try: 
 			subprocess.call(['helper\ActivateIFS.exe'])
 		except FileNotFoundError:
-			print('Could not locate ActivateIFS.exe. Try adding it to this directory')
+			print('Could not locate ActivateIFS.exe')
 
 		# Clear the clipboard
 		pyperclip.copy('')
@@ -336,7 +336,7 @@ class FieldSelection():
 		try: 
 			subprocess.call(['helper\GetControlID.exe'])
 		except FileNotFoundError:
-			print('Could not locate GetControlID.exe. Try adding it to this directory')
+			print('Could not locate GetControlID.exe')
 
 		# Get the entry field info
 		self.FieldID = pyperclip.paste()
@@ -345,7 +345,7 @@ class FieldSelection():
 		try: 
 			subprocess.call(['helper\ActivateImporter.exe'])
 		except FileNotFoundError:
-			print('Could not locate ActivateImporter.exe. Try adding it to this directory')
+			print('Could not locate ActivateImporter.exe')
 
 		# return the field's ID
 		return self.FieldID
@@ -376,7 +376,7 @@ class WriteData():
 		try: 
 			subprocess.call(['helper\ActivateInventoryPart.exe'])
 		except FileNotFoundError:
-			print('Could not locate ActivateInventoryPart.exe. Try adding it to this directory')
+			print('Could not locate ActivateInventoryPart.exe')
 
 
 	def searchByID(self, rowNum):
@@ -385,7 +385,7 @@ class WriteData():
 
 		# Ensure there is an ID associated with the current row
 		if curCell.value == None:
-			print('Cell at ' + str(curCell.column) + str(curCell.row) + ' is empty, skipping')
+			# print('Cell at ' + str(curCell.column) + str(curCell.row) + ' is empty, skipping') ### Debugging ###
 			return False
 		else:
 			pyperclip.copy(str(curCell.value))
@@ -408,7 +408,7 @@ class WriteData():
 			try: 
 				subprocess.call(['helper\GetControlValue.exe'])
 			except FileNotFoundError:
-				print('Could not locate GetControlValue.exe. Try adding it to this directory')
+				print('Could not locate GetControlValue.exe')
 			# Store text in IFS control	
 			controlText = pyperclip.paste()
 
@@ -417,7 +417,7 @@ class WriteData():
 			try: 
 				subprocess.call(['helper\FocusControl.exe'])
 			except FileNotFoundError:
-				print('Could not locate FocusControl.exe. Try adding it to this directory')
+				print('Could not locate FocusControl.exe')
 
 			# Get value of current cell
 			curCell = FileSelection.sheet.cell(row=rowNum, column=column_index_from_string(columnName))
@@ -442,7 +442,7 @@ class WriteData():
 			else:
 				if IDTag not in ColumnSelection.skippedList:
 					ColumnSelection.skippedList.append(IDTag)
-				print('Already has text, skipping')
+				# print('Already has text, skipping') ### Debugging ###
 
 
 	def completionHandle(self):
@@ -485,7 +485,7 @@ class ValidateData():
 		try: 
 			subprocess.call(['helper\ActivateInventoryPart.exe'])
 		except FileNotFoundError:
-			print('Could not locate ActivateInventoryPart.exe. Try adding it to this directory')
+			print('Could not locate ActivateInventoryPart.exe')
 
 
 	def searchByID(self, rowNum):
@@ -494,7 +494,7 @@ class ValidateData():
 
 		# Ensure there is an ID associated with the current row
 		if curCell.value == None:
-			print('Cell at ' + str(curCell.column) + str(curCell.row) + ' is empty, skipping')
+			# print('Cell at ' + str(curCell.column) + str(curCell.row) + ' is empty, skipping') ### Debugging ###
 			return False
 		else:
 			pyperclip.copy(str(curCell.value))
@@ -517,7 +517,7 @@ class ValidateData():
 			try: 
 				subprocess.call(['helper\GetControlValue.exe'])
 			except FileNotFoundError:
-				print('Could not locate GetControlValue.exe. Try adding it to this directory')
+				print('Could not locate GetControlValue.exe')
 			# Store text in IFS control	
 			controlText = str(pyperclip.paste())
 
@@ -527,18 +527,19 @@ class ValidateData():
 
 			# Compare values
 			if controlText == excelText:
-				print(IDTag + ' checked. PASS')
+				# print(IDTag + ' checked. PASS' ### Debugging ###
+				pass
 
 			# Data does not match
 			else:
 				if IDTag not in ColumnSelection.mismatchList:
 					ColumnSelection.mismatchList.append(IDTag)
-				print('Excel IFS mismatch')
+				# print('Excel IFS mismatch') ### Debugging ###
 
 
 	def completionHandle(self):
 		if len(ColumnSelection.mismatchList) > 0:
-			self.message = 'Non-equal IFS and Excel fields detected,\nthis may be due to preexisting text.\nMismatched fields are listed below.\n\nMismatched IFS IDs: ' + ', '.join(ColumnSelection.mismatchList)
+			self.message = 'Mismatched IFS and Excel fields detected,\nthis may be due to preexisting text.\nMismatched fields are listed below.\n\nMismatched IFS IDs: ' + ', '.join(ColumnSelection.mismatchList)
 		else:
 			self.message = 'All fields were successfully verified.'
 
