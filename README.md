@@ -1,2 +1,2 @@
 # Company Software
-Software written for various companies
+Showcase of software written for companies

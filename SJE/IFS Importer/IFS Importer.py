@@ -129,6 +129,7 @@ class ColumnSelection:
 		ColumnSelection.columnSV = StringVar() # Variable to hold entered column
 		ColumnSelection.overwriteSV = StringVar() # Determines if existing text will be overwritten
 		ColumnSelection.clearSV = StringVar() ### for testing ###
+		ColumnSelection.skippedList = []
 
 		### Interface elements ###
 		# Subframes to hold various elements
@@ -361,13 +362,16 @@ class WriteData():
 		for rowNum in range(1, FileSelection.sheet.max_row + 1):
 			validID = self.searchByID(rowNum)
 			if validID:
-				self.pasteData(rowNum)
+				self.pasteData(rowNum, self.IDTag)
 			else:
 				pass
 
+		# Message display on import completion
+		self.completionHandle()
+
 
 	def activateWindow(self):
-		# Open IFS
+		# Activate IFS
 		try: 
 			subprocess.call(['helper\ActivateInventoryPart.exe'])
 		except FileNotFoundError:
@@ -384,6 +388,7 @@ class WriteData():
 			return False
 		else:
 			pyperclip.copy(str(curCell.value))
+			self.IDTag = pyperclip.paste()
 
 		# Perform a search
 		pyautogui.hotkey('f3')
@@ -394,7 +399,7 @@ class WriteData():
 
 		return True
 
-	def pasteData(self, rowNum):
+	def pasteData(self, rowNum, IDTag):
 		# Iterate though all selected data entry columns
 		for columnName, propertyDict in ColumnSelection.columnsToImportDict.items():
 			# Check if IFS control is empty
@@ -423,7 +428,7 @@ class WriteData():
 				pyautogui.hotkey('ctrl', 'v')
 				pyautogui.hotkey('ctrl', 's')
 				sleep(0.5)
-				return
+				continue
 
 			# Nothing in field, free to paste
 			if controlText == '' or ColumnSelection.overwriteSV.get() == 'overwrite':
@@ -434,7 +439,25 @@ class WriteData():
 
 			# Data is already in there skip
 			else:
+				if IDTag not in ColumnSelection.skippedList:
+					ColumnSelection.skippedList.append(IDTag)
 				print('Already has text, skipping')
+
+
+	def completionHandle(self):
+		if len(ColumnSelection.skippedList) > 0:
+			message = 'All fields were successfully imported.\nSome values have been skipped due to preexisting text, they are listed below.\n\nSkipped IFS Parts: ' + ', '.join(ColumnSelection.skippedList)
+		else:
+			message = 'All fields were successfully imported.'
+
+		tkinter.messagebox.showinfo('Import Results', message)
+
+		ans = tkinter.messagebox.askquestion('Data Validation', 'Start data validation check?')
+		if ans == 'yes':
+			print('Yes!')
+		else:
+			print('No!')
+
 
 ############################################################################################################################
 class Base64IconGen():

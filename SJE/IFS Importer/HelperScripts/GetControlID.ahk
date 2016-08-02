@@ -28,7 +28,7 @@ Sleep, 100
 
 ExitApp
 
-~^Lbutton::
++Enter::
 	breakLoop = 1
 	return
 
