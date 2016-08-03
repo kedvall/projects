@@ -317,7 +317,7 @@ class PatternDialog():
 			# Counter to assign unique ID to each row
 			PatternDialog.rowID = 0
 			# Create dictionary for dialog drop downs
-			PatternDialog.valuesDict = {'typeCB':['Any Char', 'Letter', 'Digit', 'Space Character', 'Specify Character'],
+			PatternDialog.valuesDict = {'typeCB':['Any Character', 'Letter', 'Digit', 'Space Character', 'Specify Character'],
 							   			'repeatCB':['Repeat', 'Repeat Until'],
 							   			'terminateCB':['Space Character', 'Alphanumeric', 'Letter', 'Digit'],
 							   			'joinCB':['Then', 'Or']}
@@ -376,7 +376,7 @@ class PatternDialog():
 		PatternDialog.toplevel.withdraw()
 		PatternDialog.toplevel.grab_release()
 		ParamSelection.toggleEnable(ParamSelection, 'en')
-		RegexGeneration.parsePattern(self)
+		RegexGeneration.parsePattern(self, self.charEntryValue, self.repeatEntryValue, self.joinValue)
 
 
 ############################################################################################################################
@@ -532,10 +532,8 @@ class RuleDialog:
 		RegexGeneration.rulesDict[self.name][1] = str(self.typeValue.get())
 		RegexGeneration.rulesDict[self.name][2] = str(self.repeatValue.get())
 		RegexGeneration.rulesDict[self.name][3] = str(self.terminateValue.get())
-		try:
-			RegexGeneration.rulesDict[self.name][4] = str(self.joinValue.get())
-		except AttributeError:
-			pass
+		RegexGeneration.rulesDict[self.name][4] = str(self.joinValue.get())
+
 
 
 	def removeRule(self):
@@ -776,18 +774,51 @@ class RegexGeneration:
 			RegexGeneration.permutRegex = re.compile(r'(' + searchStrings + ')+', re.I)
 
 
-	def parsePattern(self):
+	def parsePattern(self, enteredChar, repeatNum, joinValue):
 		if ParamSelection.offsetMode.get() == 'char':
 			print('char')
 
 		else:
 			pattern = ''
-			pattern = '\d{6}'
-			RegexGeneration.permutRegex = re.compile(r'(' + pattern + ')+', re.I)
+			for row, setting in sorted(RegexGeneration.rulesDict.items()):
+				# Evaluate tybeCB field
+				if setting[1] == 'Any Character':
+					pattern += '.'
+				elif setting[1] == 'Letter':
+					pattern += '[a-zA-z]'
+				elif setting[1] == 'Digit':
+					pattern += '\d'
+				elif setting[1] == 'Space Character':
+					pattern _+= '\s'
+				elif setting[1] == 'Specify Character':
+					pattern += str(enteredChar)
+
+				# Evaluate terminateCB field
+				if setting[2] == 'Repeat Until':
+					if setting[3] == 'Space Character':
+						terminator = '\s'
+					elif setting[3] == 'Aplhanumeric':
+						terminator = '\w'
+					elif setting[3] == 'Letter':
+						terminator = '[a-zA-z]'
+					elif setting[3] == 'Digit':
+						terminator = '\d'
+
+				# Evaluate repeatCB field
+				if setting[2] == 'Repeat':
+					pattern = '(' + pattern + '){' + str(repeatNum) + '}'
+				elif setting[2] == 'Repeat Until':
+					pattern = '(' + pattern + ')+?'
+				
+				# Evaluate joinCB field
+				if setting[4] == 'Then':
+
+				if setting[4] == 'Or':
 
 
-	def searchPtrn(self):
-		print('Pattern')
+
+
+
 
 
 ############################################################################################################################
