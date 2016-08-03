@@ -8,16 +8,6 @@
 #########################################################################################
 
 
-#                                                                                       #
-# ************************************************************************************* #
-# DATA VALIDATION:                                                                      #
-#   - Puts data into IFS, then goes through IFS entries (read-only) and check against   #
-#     precomputed Excel values                                                          #
-#   - No new data is extracted                                                          #
-# ************************************************************************************* #
-#                                                                                       #
-
-
 #************************************ Program Setup ************************************#
 # Import everything
 import sys, os, re, subprocess, getpass, openpyxl, pyautogui, pyperclip, pahk, base64, base64ico
