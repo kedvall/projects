@@ -376,7 +376,7 @@ class PatternDialog():
 		PatternDialog.toplevel.withdraw()
 		PatternDialog.toplevel.grab_release()
 		ParamSelection.toggleEnable(ParamSelection, 'en')
-		RegexGeneration.parsePattern(self)
+		RegexGeneration.parsePattern(RegexGeneration)
 
 
 ############################################################################################################################
@@ -388,7 +388,6 @@ class RuleDialog:
 		PatternDialog.rowID += 1
 		RegexGeneration.rulesDict[self.name] = [''] * 7
 		RegexGeneration.rulesDict[self.name][0] = (self)
-		print(str(RegexGeneration.rulesDict))
 
 		# Required variables
 		self.typeValue = StringVar()
@@ -817,6 +816,9 @@ class RegexGeneration:
 					if setting[4] == 'Or':
 						pattern = '|' + pattern
 						RegexGeneration.initialSearchPattern += pattern
+
+		# Actually generate the pattern
+		self.generateSearchPattern(self)
 
 
 	def generateSearchPattern(self):
