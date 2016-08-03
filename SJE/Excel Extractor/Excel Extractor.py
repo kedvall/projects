@@ -376,7 +376,7 @@ class PatternDialog():
 		PatternDialog.toplevel.withdraw()
 		PatternDialog.toplevel.grab_release()
 		ParamSelection.toggleEnable(ParamSelection, 'en')
-		RegexGeneration.parsePattern(self, self.charEntryValue, self.repeatEntryValue, self.joinValue)
+		RegexGeneration.parsePattern(self)
 
 
 ############################################################################################################################
@@ -532,8 +532,9 @@ class RuleDialog:
 		RegexGeneration.rulesDict[self.name][1] = str(self.typeValue.get())
 		RegexGeneration.rulesDict[self.name][2] = str(self.repeatValue.get())
 		RegexGeneration.rulesDict[self.name][3] = str(self.terminateValue.get())
-		RegexGeneration.rulesDict[self.name][4] = str(self.joinValue.get())
-
+		RegexGeneration.rulesDict[self.name][4] = str(self.charEntryValue.get())
+		RegexGeneration.rulesDict[self.name][5] = str(self.repeatEntryValue.get())
+		RegexGeneration.rulesDict[self.name][6] = str(self.joinValue.get())
 
 
 	def removeRule(self):
@@ -756,6 +757,7 @@ class RegexGeneration:
 	def __init__(self):
 		# Set up dictionary for permutation matching
 		RegexGeneration.rulesDict = {}
+		RegexGeneration.initialSearchPattern = ''
 
 	def genPerms(self, originTerm):
 	# Generate permutations to search for based on search term
@@ -774,7 +776,7 @@ class RegexGeneration:
 			RegexGeneration.permutRegex = re.compile(r'(' + searchStrings + ')+', re.I)
 
 
-	def parsePattern(self, enteredChar, repeatNum, joinValue):
+	def parsePattern(self):
 		if ParamSelection.offsetMode.get() == 'char':
 			print('char')
 
@@ -791,9 +793,10 @@ class RegexGeneration:
 				elif setting[1] == 'Space Character':
 					pattern _+= '\s'
 				elif setting[1] == 'Specify Character':
-					pattern += str(enteredChar)
+					pattern += str(setting[4])
 
 				# Evaluate terminateCB field
+				terminator = ''
 				if setting[2] == 'Repeat Until':
 					if setting[3] == 'Space Character':
 						terminator = '\s'
@@ -806,19 +809,22 @@ class RegexGeneration:
 
 				# Evaluate repeatCB field
 				if setting[2] == 'Repeat':
-					pattern = '(' + pattern + '){' + str(repeatNum) + '}'
+					pattern = '(' + pattern + '){' + str(setting[5]) + '}'
 				elif setting[2] == 'Repeat Until':
-					pattern = '(' + pattern + ')+?'
+					pattern = '(' + pattern + ')+?' + '(?=' + terminator ')'
 				
 				# Evaluate joinCB field
-				if setting[4] == 'Then':
+				if len(RegexGeneration.rulesDict.keys()) > 1:
+					if setting[4] == 'Then':
+						RegexGeneration.initialSearchPattern += pattern
+					if setting[4] == 'Or':
+						pattern = '|' + pattern
+						RegexGeneration.initialSearchPattern += pattern
 
-				if setting[4] == 'Or':
 
-
-
-
-
+	def generateSearchPattern(self):
+		RegexGeneration.searchPatternRegex = re.compile(RegexGeneration.initialSearchPattern, re.I)
+		print('Generated pattern: ' + RegexGeneration.searchPatternRegex.pattern)
 
 
 ############################################################################################################################
