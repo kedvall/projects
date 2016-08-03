@@ -18,7 +18,7 @@ from openpyxl.cell import get_column_letter, column_index_from_string
 
 # Set up GUI
 root = Tk() # Create blank window
-root.title('Excel Extractor') # Set the name
+root.title('Excel Data Mapper') # Set the name
 style = ttk.Style() # Set the style
 
 
