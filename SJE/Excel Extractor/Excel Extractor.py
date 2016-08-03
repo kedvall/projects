@@ -386,12 +386,9 @@ class RuleDialog:
 		# Name this instance and add it to rule dictionary
 		self.name = 'row ' + str(PatternDialog.rowID)
 		PatternDialog.rowID += 1
-		RegexGeneration.rulesDict[self.name] = []
-		RegexGeneration.rulesDict[self.name].append(self)
-		RegexGeneration.rulesDict[self.name].append('')
-		RegexGeneration.rulesDict[self.name].append('')
-		RegexGeneration.rulesDict[self.name].append('')
-		RegexGeneration.rulesDict[self.name].append('')
+		RegexGeneration.rulesDict[self.name] = [''] * 7
+		RegexGeneration.rulesDict[self.name][0] = (self)
+		print(str(RegexGeneration.rulesDict))
 
 		# Required variables
 		self.typeValue = StringVar()
@@ -791,7 +788,7 @@ class RegexGeneration:
 				elif setting[1] == 'Digit':
 					pattern += '\d'
 				elif setting[1] == 'Space Character':
-					pattern _+= '\s'
+					pattern += '\s'
 				elif setting[1] == 'Specify Character':
 					pattern += str(setting[4])
 
@@ -811,7 +808,7 @@ class RegexGeneration:
 				if setting[2] == 'Repeat':
 					pattern = '(' + pattern + '){' + str(setting[5]) + '}'
 				elif setting[2] == 'Repeat Until':
-					pattern = '(' + pattern + ')+?' + '(?=' + terminator ')'
+					pattern = '(' + pattern + ')+?' + '(?=' + terminator + ')'
 				
 				# Evaluate joinCB field
 				if len(RegexGeneration.rulesDict.keys()) > 1:
