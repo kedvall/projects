@@ -8,7 +8,7 @@
 # format and converts it to vertical format for import to IFS. 			#
 #########################################################################
 # Import necessary modules
-import openpyxl, os, sys, prettyprint, base64, base64ico
+import openpyxl, os, sys, getpass, base64, base64ico
 import tkinter.messagebox
 from tkinter import *
 from tkinter import ttk, filedialog
@@ -98,8 +98,7 @@ class FileSelection:
 		try:
 			FileSelection.sheet = FileSelection.wb.get_sheet_by_name(self.selectedSheet.get())
 			self.fileDisp.set('Successfully loaded ' + str(self.selectedSheet.get()) + '.')
-			ParamSelection.paramFrame.grid()
-			Search.searchFrame.grid()
+			SwapValues.mainFrame.grid()
 		except KeyError:
 			self.fileDisp.set('Error loading ' + str(self.selectedSheet.get()) + '!')
 		
@@ -161,7 +160,7 @@ class SwapValues():
 		startRow = 2
 		printRow = startRow
 
-		setupFrame() # Configure frame
+		self.setupFrame() # Configure frame
 
 
 	def setupFrame(self):
@@ -179,25 +178,28 @@ class SwapValues():
 		SwapValues.buttonFrame = ttk.Frame(SwapValues.mainFrame)
 		SwapValues.buttonFrame.pack(side=BOTTOM, fill=X, expand=True)
 
-		SwapValues.vcmd = SwapValues.titleFrame.register(self.validateYear) # Register validate command on new frame
+		SwapValues.vcmd = SwapValues.mainFrame.register(self.validateYear) # Register validate command on new frame
 
 		# Year entry field
-		ttk.Label(SwapValues.titleFrame, text='Enter year to print to the Excel sheet:').grid(columnspan=4, row=0, sticky=W)
+		ttk.Label(SwapValues.entryFrame, text='Enter year to print to the Excel sheet:').grid(columnspan=4, row=0, sticky=W)
 		SwapValues.yearEntry = ttk.Entry(SwapValues.entryFrame, width=5, textvariable=SwapValues.yearSV, validate='key', validatecommand=(SwapValues.vcmd, '%P'))
 		SwapValues.yearEntry.grid(columnspan=2, column=4, row=0, sticky=W)
 
 		# Create a settings button
-		SwapValues.addButton = ttk.Button(SwapValues.buttonFrame, text='Swap Settings', command=self.settings)
+		SwapValues.addButton = ttk.Button(SwapValues.buttonFrame, text='Swap Settings', command=self.showSettings)
 		SwapValues.addButton.pack(side=LEFT, anchor=W, pady=5, padx=5)
 
 		# Create Start Swap button
-		SwapValues.importButton = ttk.Button(SwapValues.buttonFrame, text='Start Swap', command=self.startSwap)
+		SwapValues.importButton = ttk.Button(SwapValues.buttonFrame, text='Start Swap', command=self.swapValues)
 		SwapValues.importButton.pack(side=RIGHT, anchor=E, pady=5, padx=5)
 		SwapValues.importButton.configure(state='disabled')
 
-		# Add padding for main frame
-		for child in SwapValues.mainFrame.winfo_children(): 
+		# Add padding for frames
+		for child in SwapValues.entryFrame.winfo_children(): 
 			child.grid_configure(padx=5, pady=5)
+
+		for child in SwapValues.buttonFrame.winfo_children(): 
+			child.pack_configure(padx=5, pady=5)
 
 		SwapValues.mainFrame.grid_remove() # Temporarily hid this frame
 
@@ -207,86 +209,72 @@ class SwapValues():
 			SwapValues.importButton.configure(state='disabled')
 			return False
 
-		SwapValues.importButton.configure(state='enabled')
+		if yearValue != '':
+			SwapValues.importButton.configure(state='enabled')
+
 		return True
 
 
-	def getVal(mappedVal):
-		if mappedVal == None:
+	def getVal(valueToMap):
+		if valueToMap == None:
 			return None
-		elif mappedVal == 'yearVal':
-			return year
-		elif mappedVal == 'periodVal':
-			return budgetPeriod
-		elif mappedVal == 'budgetMap':
-			return sheet.cell(row=rowNum, column=budgetMRule[str(budgetPeriod)]).value
+		elif valueToMap == 'yearVal':
+			return SwapValues.yearSV.get()
+		elif valueToMap == 'periodVal':
+			return self.budgetPeriod
+		elif valueToMap == 'budgetMap':
+			return FileSelection.sheet.cell(row=rowNum, column=self.periodRulesDict[str(self.budgetPeriod)]).value
 		else:
-			return sheet.cell(row=rowNum, column=column_index_from_string(mappedVal)).value
+			return FileSelection.sheet.cell(row=rowNum, column=column_index_from_string(valueToMap)).value
 
 
-	def startSwapped(self):
+	def swapValues(self):
+	# Swap columns based on matching rules
+		# Check date
 		if len(SwapValues.yearSV.get()) != 4:
 			tkinter.messagebox.showerror('Date Error', 'Please enter the full date (Ex 2016 not 16)')
 
+		# Prep workbook and sheet
+		SwapValues.newWb = openpyxl.Workbook()
+		SwapValues.newSheet = SwapValues.newWb.get_sheet_by_name('Sheet')
+		SwapValues.newSheet.title = 'Swapped Sheet'
 
-	# Ask user what they want to do
-	while True:
-		print('Press Enter or type Swap to begin converting spreadsheet,')
-		print('\ttype Header to see header settings for new Excel sheet, or ')
-		print('\ttype Map to see column mapping: ', end='')
-		userInput = input().lower()
+		# Format sheet with correct headers
+		for key, value in sorted(self.headersDict.items()):
+			SwapValues.newSheet.cell(row=startRow, column=column_index_from_string(key)).value = value
 
-		# Check input for validity
-		if userInput == 'swap' or userInput == '':
-			clear()
-			print('Preparing to convert sheet...')
-			break
-		elif userInput == 'header':
-			clear()
-			print('Current header settings: (Press Enter to exit)')
-			print('\n'.join([' = '.join([key, str(val)]) for key, val in sorted(headers.items())]))
-			userInput = input()
-			clear()
-		elif userInput == 'map':
-			clear()
-			print('Current column mapping table: (Press Enter to exit)')
-			print('\n'.join([' -> '.join([key, str(val)]) for key, val in sorted(mRule.items())]))
-			userInput = input()
-			clear()
-		else:
-			clear()
-			print(userInput + ' is not a command. Valid commands are Swap, Header, and Map')
-			print()
+		# Pull data from matching defined place
+		for rowNum in range(1, FileSelection.sheet.max_row):
+			for self.budgetPeriod in range(1, 13):
+				printRow += 1
+				for key, value in sorted(self.mappingRulesDict.items()):
+					SwapValues.newSheet.cell(row=printRow, column=column_index_from_string(key)).value = self.getVal(value)
 
-	# Swap columns based on matching rules
-	# Prep workbook and sheet
-	nWb = openpyxl.Workbook()
-	nSheet = nWb.get_sheet_by_name('Sheet')
-	nSheet.title = 'Swapped Sheet'
+		# Export new workbook
+		self.exportSheet()
 
-	# Format sheet with correct headers
-	for key, value in sorted(headers.items()):
-		nSheet.cell(row=startRow, column=column_index_from_string(key)).value = value
+	
+	def exportSheet(self):
+		print('Export path: ' + FileSelection.filePath.get())
+		exportPath = os.path.dirname(FileSelection.filePath.get()) + os.sep + 'swapped_' + os.path.basename(FileSelection.filePath.get())
+		newWB.save(exportPath)
+		text = 'Exported to ' + exportPath
+		tkinter.messagebox.showinfo('Export', text)
 
-	# Pull data from mRule defined place
-	for rowNum in range(1, sheet.max_row):
-		for budgetPeriod in range(1, 13):
-			printRow += 1
-			for key, value in sorted(mRule.items()):
-				# print(str(key) + ':' + str(value) + ' = ' + str(getVal(value)))
-				nSheet.cell(row=printRow, column=column_index_from_string(key)).value = getVal(value)
 
-	# Save the new file
-	saveName = os.path.dirname(filePath) + os.sep + 'Swapped_' + wbName
-	nWb.save(saveName)
-	print('Done. Saved to ' + saveName)
+	def showSettings(self):
+		message = '\n'.join([' = '.join([key, str(val)]) for key, val in sorted(self.headersDict.items())])
+		tkinter.messagebox.showinfo('Current header settings', message)
+
+		message = '\n'.join([' -> '.join([key, str(val)]) for key, val in sorted(self.mappingRulesDict.items())])
+		tkinter.messagebox.showinfo('Current column mapping table', message)
 
 
 ############################################################################################################################
 class Base64IconGen():
 # Takes icon from base64 format and creates window icon
 	def __init__(self, window):
-		icondata = base64.b64decode(base64ico.swapicon)
+		icondata = base64.b64decode(base64ico.swapIcon)
 		# The temp file is icon.ico
 		tempFile= "icon.ico"
 		iconfile= open(tempFile,"wb")
@@ -302,6 +290,7 @@ class Base64IconGen():
 # Create objects
 Base64IconGen(root) # Create icon
 swap = SwapValues() # Generate settings from dictionaries
+filePane = FileSelection() # Open file selection dialog
 
 # Run GUI
 root.mainloop()
