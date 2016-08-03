@@ -157,8 +157,8 @@ class SwapValues():
 						    'O':'TEXT'}
 
 		# Other settings
-		startRow = 2
-		printRow = startRow
+		self.startRow = 2
+		self.printRow = self.startRow
 
 		self.setupFrame() # Configure frame
 
@@ -215,7 +215,7 @@ class SwapValues():
 		return True
 
 
-	def getVal(valueToMap):
+	def getVal(self, valueToMap, rowNum):
 		if valueToMap == None:
 			return None
 		elif valueToMap == 'yearVal':
@@ -234,39 +234,40 @@ class SwapValues():
 		if len(SwapValues.yearSV.get()) != 4:
 			tkinter.messagebox.showerror('Date Error', 'Please enter the full date (Ex 2016 not 16)')
 
-		# Prep workbook and sheet
-		SwapValues.newWb = openpyxl.Workbook()
-		SwapValues.newSheet = SwapValues.newWb.get_sheet_by_name('Sheet')
-		SwapValues.newSheet.title = 'Swapped Sheet'
+		# Perform swap if date format is correct
+		else:
+			# Prep workbook and sheet
+			SwapValues.newWb = openpyxl.Workbook()
+			SwapValues.newSheet = SwapValues.newWb.get_sheet_by_name('Sheet')
+			SwapValues.newSheet.title = 'Swapped Sheet'
 
-		# Format sheet with correct headers
-		for key, value in sorted(self.headersDict.items()):
-			SwapValues.newSheet.cell(row=startRow, column=column_index_from_string(key)).value = value
+			# Format sheet with correct headers
+			for key, value in sorted(self.headersDict.items()):
+				SwapValues.newSheet.cell(row=self.startRow, column=column_index_from_string(key)).value = value
 
-		# Pull data from matching defined place
-		for rowNum in range(1, FileSelection.sheet.max_row):
-			for self.budgetPeriod in range(1, 13):
-				printRow += 1
-				for key, value in sorted(self.mappingRulesDict.items()):
-					SwapValues.newSheet.cell(row=printRow, column=column_index_from_string(key)).value = self.getVal(value)
+			# Pull data from matching defined place
+			for rowNum in range(1, FileSelection.sheet.max_row):
+				for self.budgetPeriod in range(1, 13):
+					self.printRow += 1
+					for key, value in sorted(self.mappingRulesDict.items()):
+						SwapValues.newSheet.cell(row=self.printRow, column=column_index_from_string(key)).value = self.getVal(value, rowNum)
 
-		# Export new workbook
-		self.exportSheet()
+			# Export new workbook
+			self.exportSheet()
 
 	
 	def exportSheet(self):
-		print('Export path: ' + FileSelection.filePath.get())
 		exportPath = os.path.dirname(FileSelection.filePath.get()) + os.sep + 'swapped_' + os.path.basename(FileSelection.filePath.get())
-		newWB.save(exportPath)
+		SwapValues.newWb.save(exportPath)
 		text = 'Exported to ' + exportPath
 		tkinter.messagebox.showinfo('Export', text)
 
 
 	def showSettings(self):
-		message = '\n'.join([' = '.join([key, str(val)]) for key, val in sorted(self.headersDict.items())])
+		message = '\n'.join(['\t=\t'.join([key, str(val)]) for key, val in sorted(self.headersDict.items())])
 		tkinter.messagebox.showinfo('Current header settings', message)
 
-		message = '\n'.join([' -> '.join([key, str(val)]) for key, val in sorted(self.mappingRulesDict.items())])
+		message = '\n'.join(['\t->\t'.join([key, str(val)]) for key, val in sorted(self.mappingRulesDict.items())])
 		tkinter.messagebox.showinfo('Current column mapping table', message)
 
 
