@@ -708,8 +708,8 @@ class Search:
 		text = 'Exported to ' + exportPath + '\n\nStart another extraction?'
 		ans = tkinter.messagebox.askquestion('Export', text)
 
-		if ans == 'yes':
-			ObjectManagement.reset()
+		if ans == 'no':
+			sys.exit()
 
 
 ############################################################################################################################
@@ -896,45 +896,26 @@ class Base64IconGen():
 		os.remove(tempFile)
 
 
-############################################################################################################################
-class ObjectManagement():
-# Manages creation and deletion of object classes
-
-	def createObjects():
-		ObjectManagement.regex =  RegexGeneration()
-		ObjectManagement.filePane = FileSelection()
-		ObjectManagement.seachModePane = SearchSelection()
-		ObjectManagement.paramPane = ParamSelection()
-		ObjectManagement.searchPane = Search()
-
-
-	def deleteObjects():
-		del ObjectManagement.regex
-		del ObjectManagement.filePane
-		del ObjectManagement.seachModePane
-		del ObjectManagement.paramPane
-		del ObjectManagement.searchPane
-
-
-	def reset():
-		global root
-		ObjectManagement.deleteObjects() # Delete all objects
-
-		# Reset root window
-		root.destroy()
-		root = Tk() # Create blank window
-		root.title('Excel Extractor') # Set the name
-		Base64IconGen(root)
-
-		ObjectManagement.createObjects() # Create new objects
-
-
 #************************************ Program Start ************************************#
 # Create objects
-ObjectManagement.createObjects()
+regex =  RegexGeneration()
+filePane = FileSelection()
+seachModePane = SearchSelection()
+paramPane = ParamSelection()
+searchPane = Search()
 
 # Create icon
 Base64IconGen(root)
+
+# Move windows to center of parent frame
+root.update_idletasks()
+w = root.winfo_screenwidth()
+h = root.winfo_screenheight()
+size = list(int(item) for item in root.geometry().split('+')[0].split('x'))
+x = w/2 - (size[0]/2 + 300)
+y = h/2 - (size[1]/2 + 150)
+geometry = "+%d+%d" % (x, y)
+root.geometry(geometry)
 
 # Run GUI
 root.mainloop()
