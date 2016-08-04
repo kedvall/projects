@@ -532,15 +532,12 @@ class RuleDialog:
 
 
 	def updateDict(self, name, index, mode):
-		print('Self: ' + str(self) + ' name: ' + str(name) + ' index: ' + str(index) + ' mode: ' + str(mode))
 		RegexGeneration.rulesDict[self.name][1] = str(self.typeValue.get())
 		RegexGeneration.rulesDict[self.name][2] = str(self.repeatValue.get())
 		RegexGeneration.rulesDict[self.name][3] = str(self.terminateValue.get())
 		RegexGeneration.rulesDict[self.name][4] = str(self.charEntryValue.get())
 		RegexGeneration.rulesDict[self.name][5] = str(self.repeatEntryValue.get())
-		print('Char: ' + str(self.repeatEntryValue.get()))
 		RegexGeneration.rulesDict[self.name][6] = str(self.joinValue.get())
-		print(RegexGeneration.rulesDict[self.name])
 
 
 	def removeRule(self):
@@ -703,11 +700,25 @@ class Search:
 
 
 	def exportSheet(self):
+		# Get directory and filename of original file
 		exportPath = os.path.dirname(ExcelHandler.filePath) + os.sep + 'extracted_' + os.path.basename(ExcelHandler.filePath)
+		checkPath = exportPath
+		appendNum = 1
+
+		# Add numbers to end of new filename until it is unique
+		while os.path.exists(checkPath):
+			checkPath = exportPath
+			split = os.path.splitext(checkPath)
+			checkPath = split[0] + str(appendNum) + split[1]
+			appendNum += 1
+
+		# Save new file
+		exportPath = checkPath
 		ExcelHandler.wb.save(exportPath)
+
+		# Ask to exit
 		text = 'Exported to ' + exportPath + '\n\nStart another extraction?'
 		ans = tkinter.messagebox.askquestion('Export', text)
-
 		if ans == 'no':
 			sys.exit()
 
@@ -907,7 +918,7 @@ searchPane = Search()
 # Create icon
 Base64IconGen(root)
 
-# Move windows to center of parent frame
+# Draw window in center of screen
 root.update_idletasks()
 w = root.winfo_screenwidth()
 h = root.winfo_screenheight()
