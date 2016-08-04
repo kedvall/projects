@@ -897,6 +897,7 @@ class Base64IconGen():
 	def __init__(self, window):
 		icondata = base64.b64decode(base64ico.extractorIcon)
 		# The temp file is icon.ico
+		os.chdir('C:\\Users' + os.sep + getpass.getuser() + os.sep + 'AppData\\Local\\Temp')
 		tempFile= "icon.ico"
 		iconfile= open(tempFile,"wb")
 		# Extract the icon
