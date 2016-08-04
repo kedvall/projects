@@ -705,8 +705,11 @@ class Search:
 	def exportSheet(self):
 		exportPath = os.path.dirname(ExcelHandler.filePath) + os.sep + 'extracted_' + os.path.basename(ExcelHandler.filePath)
 		ExcelHandler.wb.save(exportPath)
-		text = 'Exported to ' + exportPath
-		tkinter.messagebox.showinfo('Export', text)
+		text = 'Exported to ' + exportPath + '\n\nStart another extraction?'
+		ans = tkinter.messagebox.askquestion('Export', text)
+
+		if ans == 'yes':
+			ObjectManagement.reset()
 
 
 ############################################################################################################################
@@ -895,14 +898,45 @@ class Base64IconGen():
 		os.remove(tempFile)
 
 
+############################################################################################################################
+class ObjectManagement():
+# Manages creation and deletion of object classes
+
+	def createObjects():
+		ObjectManagement.regex =  RegexGeneration()
+		ObjectManagement.filePane = FileSelection()
+		ObjectManagement.seachModePane = SearchSelection()
+		ObjectManagement.paramPane = ParamSelection()
+		ObjectManagement.searchPane = Search()
+
+
+	def deleteObjects():
+		del ObjectManagement.regex
+		del ObjectManagement.filePane
+		del ObjectManagement.seachModePane
+		del ObjectManagement.paramPane
+		del ObjectManagement.searchPane
+
+
+	def reset():
+		global root
+		ObjectManagement.deleteObjects() # Delete all objects
+
+		# Reset root window
+		root.destroy()
+		root = Tk() # Create blank window
+		root.title('Excel Extractor') # Set the name
+		Base64IconGen(root)
+
+		ObjectManagement.createObjects() # Create new objects
+
+
 #************************************ Program Start ************************************#
 # Create objects
-Base64IconGen(root) # Create icon
-regex =  RegexGeneration()
-filePane = FileSelection()
-sModePane = SearchSelection()
-paramPane = ParamSelection()
-searchPane = Search()
+ObjectManagement.createObjects()
+
+# Create icon
+Base64IconGen(root)
 
 # Run GUI
 root.mainloop()
