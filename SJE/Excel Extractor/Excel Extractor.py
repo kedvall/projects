@@ -318,7 +318,7 @@ class PatternDialog():
 			PatternDialog.rowID = 0
 			# Create dictionary for dialog drop downs
 			PatternDialog.valuesDict = {'typeCB':['Any Character', 'Letter', 'Digit', 'Space Character', 'Specify Character'],
-							   			'repeatCB':['Repeat', 'Repeat Until'],
+							   			'repeatCB':['Repeated', 'Repeat Until'],
 							   			'terminateCB':['Space Character', 'Alphanumeric', 'Letter', 'Digit'],
 							   			'joinCB':['Then', 'Or']}
 
@@ -483,7 +483,7 @@ class RuleDialog:
 				value[0].charEntry.pack_forget()
 				value[0].optionFrameOne.configure(width=1, height=1)
 
-			if 'Repeat' in value:
+			if 'Repeated' in value:
 				value[0].optionFrameTwo.pack_propagate(True)
 				value[0].repeatEntry.pack(side=LEFT, anchor=W, padx=2, pady=5)
 				value[0].repeatLbl.pack(side=LEFT, anchor=W, padx=2, pady=5)
@@ -745,10 +745,11 @@ class ExcelHandler(FileSelection, ParamSelection):
 
 	def matchItem(self, searchCell, pasteCell):
 		try:
-			result = RegexGeneration.patternRegex.search(searchCell.value)
+			result = RegexGeneration.searchPatternRegex.search(searchCell.value)
 			if result != None:
 				pasteCell.value = result.group()
 		except TypeError:
+			print('TypeError!')
 			return
 
 
@@ -828,10 +829,11 @@ class RegexGeneration:
 
 				# Evaluate repeatCB field
 				print(setting[2])
-				if setting[2] == 'Repeat':
+				if setting[2] == 'Repeated':
 					pattern = '(' + pattern + '){' + str(setting[5]) + '}' # Repeat pattern x times
 				elif setting[2] == 'Repeat Until':
-					pattern = '(' + pattern + ')+?' + '(?=' + terminator + ')' # Look for terminator pattern
+					pattern = '(' + pattern + ')+?' + '(?=' + terminator + ')|(' + pattern + ')+?' + '(?=$)' # Look for terminator pattern
+					#pattern = '(' + pattern + ')+?' + '(?=$)' # Look for terminator pattern
 				print('Pattern: ' + pattern)
 				
 				# Evaluate joinCB field
