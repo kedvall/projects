@@ -376,6 +376,7 @@ class PatternDialog():
 		PatternDialog.toplevel.withdraw()
 		PatternDialog.toplevel.grab_release()
 		ParamSelection.toggleEnable(ParamSelection, 'en')
+
 		RegexGeneration.parsePattern(RegexGeneration)
 
 
@@ -395,7 +396,9 @@ class RuleDialog:
 		self.terminateValue = StringVar()
 		self.joinValue = StringVar()
 		self.charEntryValue = StringVar()
+		self.charEntryValue.trace('w', self.updateDict)
 		self.repeatEntryValue = StringVar()
+		self.repeatEntryValue.trace('w', self.updateDict)
 
 		# Create inner frame for layout and pack it
 		self.innerFrame = ttk.Frame(PatternDialog.ruleFrame, style='innerFrame.TFrame')
@@ -467,7 +470,7 @@ class RuleDialog:
 
 
 	def valueChanged(self, event):
-		self.updateDict()
+		self.updateDict(None, None, None)
 		self.updateDisplay()
 
 
@@ -523,13 +526,14 @@ class RuleDialog:
 			RegexGeneration.rulesDict['row ' + str(maxRow)][0].joinCB.pack_forget()
 
 
-	def updateDict(self):
-		#print(self.repeatEntry.winfo_ismapped())
+	def updateDict(self, name, index, mode):
+		print('Self: ' + str(self) + ' name: ' + str(name) + ' index: ' + str(index) + ' mode: ' + str(mode))
 		RegexGeneration.rulesDict[self.name][1] = str(self.typeValue.get())
 		RegexGeneration.rulesDict[self.name][2] = str(self.repeatValue.get())
 		RegexGeneration.rulesDict[self.name][3] = str(self.terminateValue.get())
 		RegexGeneration.rulesDict[self.name][4] = str(self.charEntryValue.get())
 		RegexGeneration.rulesDict[self.name][5] = str(self.repeatEntryValue.get())
+		print('Char: ' + str(self.repeatEntryValue.get()))
 		RegexGeneration.rulesDict[self.name][6] = str(self.joinValue.get())
 		print(RegexGeneration.rulesDict[self.name])
 
