@@ -637,13 +637,13 @@ class Search:
 
 		# Set up frame
 		self.scrollbar = Scrollbar(self.resultFrameBot, orient=VERTICAL)
-		self.resultbox = Listbox(self.resultFrameBot, selectmode=MULTIPLE, yscrollcommand=self.scrollbar.set)
-		self.scrollbar.config(command=self.resultbox.yview)
+		Search.resultBox = Listbox(self.resultFrameBot, selectmode=MULTIPLE, yscrollcommand=self.scrollbar.set)
+		self.scrollbar.config(command=Search.resultBox.yview)
 		self.scrollbar.pack(side=RIGHT, fill=Y, padx=0, pady=0)
-		self.resultbox.pack(fill=BOTH, expand=1, padx=0, pady=0)
+		Search.resultBox.pack(fill=BOTH, expand=1, padx=0, pady=0)
 
 		# Remove all items from previous list
-		self.resultbox.delete(1, END)
+		Search.resultBox.delete(0, END)
 		# Set called var
 		Search.drawCalled = True
 
@@ -665,7 +665,7 @@ class Search:
 				self.drawResults()
 			
 			# Remove all items from previous list
-			self.resultbox.delete(0, END)
+			Search.resultBox.delete(0, END)
 
 			# Generate permutations based on search terms
 			RegexGeneration.genPerms(RegexGeneration, str(self.searchTerm.get()))
@@ -673,8 +673,8 @@ class Search:
 			
 			# Print results
 			for item in permsFound:
-				if not (item in self.resultbox.get(0, "end")):
-					self.resultbox.insert(END, item)
+				if not (item in Search.resultBox.get(0, "end")):
+					Search.resultBox.insert(END, item)
 		else:
 			tkinter.messagebox.showerror('Error', 'Please enter a term to search for.')
 
@@ -682,10 +682,10 @@ class Search:
 	def switchState(self):
 		if self.selectStateText.get() == 'Deselect All':
 			self.selectStateText.set('Select All')
-			self.resultbox.selection_clear(0, END)
+			Search.resultBox.selection_clear(0, END)
 		else:
 			self.selectStateText.set('Deselect All')
-			self.resultbox.selection_set(0, END)
+			Search.resultBox.selection_set(0, END)
 
 
 	def startSearch(self):
@@ -698,7 +698,7 @@ class Search:
 	def translateSelection(self):
 		# Correlates the currently selected listbox items to their string values using the permsFound list
 		global permsToSearch
-		permsToSearch = self.resultbox.curselection()
+		permsToSearch = Search.resultBox.curselection()
 		permsToSearch = [permsFound[int(item)] for item in permsToSearch]
 
 
@@ -729,6 +729,7 @@ class ExcelHandler(FileSelection, ParamSelection):
 
 	def findPerms(self):
 		global permsFound
+		permsFound = []
 		for rowNum in range (1, ExcelHandler.sheet.max_row + 1):
 			curCell = ExcelHandler.sheet.cell(row=rowNum, column=ExcelHandler.searchCol)
 			for result in RegexGeneration.permutRegex.findall(str(curCell.value)):
@@ -780,14 +781,11 @@ class RegexGeneration:
 			searchStrings = originTerm.split()
 			searchStrings = '([\\-_ /])*'.join(searchStrings)
 			RegexGeneration.permutRegex = re.compile(r'(' + searchStrings + ')+', re.I)
-			RegexGeneration.generatedPerm = searchStrings
-
 		else:
 			searchStrings = originTerm.split()
 			searchStrings = '([\\-_ /])*'.join(searchStrings)
 			searchStrings = originTerm.split('.')
 			searchStrings = '([\\-_ /])*'.join(searchStrings)
-			RegexGeneration.generatedPerm = searchStrings
 			RegexGeneration.permutRegex = re.compile(r'(' + searchStrings + ')+', re.I)
 
 
