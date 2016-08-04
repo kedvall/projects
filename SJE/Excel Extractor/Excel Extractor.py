@@ -589,10 +589,10 @@ class Search:
 		Search.permutBtn.grid(columnspan=2, column=5, row=4, sticky=E)
 		Search.permutBtn.configure(state='disabled')
 
-		Search.startSearchBtn = ttk.Button(Search.searchFrame, text='Start Search', command=self.startSearch, style='startSearchBtn.TButton')
-		Search.startSearchBtn.grid(row=9, sticky=W)
 		Search.selectBtn = ttk.Button(Search.searchFrame, textvariable=self.selectStateText, command=self.switchState, style='selectBtn.TButton')
-		Search.selectBtn.grid(columnspan=5, column=1, row=9)
+		Search.selectBtn.grid(row=9, sticky=W)
+		Search.startSearchBtn = ttk.Button(Search.searchFrame, text='Start Search', command=self.startSearch, style='startSearchBtn.TButton')
+		Search.startSearchBtn.grid(columnspan=5, column=1, row=9)
 		Search.exportBtn = ttk.Button(Search.searchFrame, text='Export Sheet', command=self.exportSheet, style='exportBtn.TButton')
 		Search.exportBtn.grid(columnspan=2, column=6, row=9, sticky=E)
 		Search.startSearchBtn.configure(state='disabled')
@@ -752,7 +752,10 @@ class ExcelHandler(FileSelection, ParamSelection):
 		try:
 			result = RegexGeneration.searchPatternRegex.search(searchCell.value)
 			if result != None:
-				pasteCell.value = result.group()
+				pasteValue = result.group()
+				for char in RegexGeneration.charsToRemove:
+					pasteValue = pasteValue.replace(char, '')
+				pasteCell.value = pasteValue
 		except TypeError:
 			print('TypeError!')
 			return
@@ -765,6 +768,7 @@ class RegexGeneration:
 	def __init__(self):
 		# Set up dictionary for permutation matching
 		RegexGeneration.rulesDict = {}
+		RegexGeneration.charsToRemove = ': '
 
 
 	def genPerms(self, originTerm):
@@ -790,21 +794,17 @@ class RegexGeneration:
 
 		# If mode is char, skip pattern gen
 		if ParamSelection.offsetMode.get() == 'char':
-			print('char')
+			RegexGeneration.initialSearchPattern = '(?<=' + currentTerm + ')([:-_=,. ]*\S{' + str(ParamSelection.offsetPattern.get()) + '})'
+			print(RegexGeneration.initialSearchPattern)
 
 		# Mode is pattern, generate pattern
 		else:
-			print('###########################################################')
 			for row in sorted(RegexGeneration.rulesDict.keys()): # Got row by row through pattern dialog settings
-				setting = RegexGeneration.rulesDict[row] # store setting values for this row into easier to type variable
+				setting = RegexGeneration.rulesDict[row] # store setting values for this row into more readable variable
 
 				pattern = '' # Clear row pattern each row iteration
-				print('## Row: ' + row) # Say what row is being evaluated
-				print('Pattern: ' + pattern)
-				#print('Starting Ptrn: ' + RegexGeneration.initialSearchPattern) # Print the global pattern going into this iteration
 
 				# Evaluate tybeCB field
-				print(setting[1])
 				if setting[1] == 'Any Character':
 					pattern += '.'
 				elif setting[1] == 'Non letter/space':
@@ -817,13 +817,12 @@ class RegexGeneration:
 					pattern += '\d'
 				elif setting[1] == 'Specify Character':
 					pattern += str(setting[4])
-				print('Pattern: ' + pattern)
 
-				# Evaluate terminateCB field
-				#print(setting[3])
 				terminator = '' # Clear pattern terminator each row iteration
+
 				# Check if pattern will repeat x times or if it needs to look for a pattern
 				if setting[2] == 'Repeat Until':
+					# Looking for pattern, evaluate terminateCB field
 					if setting[3] == 'Space Character':
 						terminator = '\s'
 					elif setting[3] == 'Aplhanumeric':
@@ -832,56 +831,52 @@ class RegexGeneration:
 						terminator = '[a-zA-z]'
 					elif setting[3] == 'Digit':
 						terminator = '\d'
-				#print('Terminator: ' + terminator)
 
 				# Evaluate repeatCB field
-				print(setting[2])
 				if setting[2] == 'Repeated':
 					pattern = '(' + pattern + '){' + str(setting[5]) + '}' # Repeat pattern x times
 				elif setting[2] == 'Repeat Until':
-					pattern = '(' + pattern + ')+?' + '(?=' + terminator + ')|(' + pattern + ')+?' + '(?=$)' # Look for terminator pattern
-				print('Pattern: ' + pattern)
+					pattern = '(' + pattern + ')+?' + '(?=' + terminator + ')|(' + pattern + ')+?' + '(?=$)' # Look for terminator pattern and pattern at end of cell
 				
 				# Evaluate joinCB field
-				if len(RegexGeneration.rulesDict.keys()) > 1: # There is more than one row in the pattern gen dialog box
-
-					print('Join: ' + setting[6])
+				if len(RegexGeneration.rulesDict.keys()) > 1: 
+				# There is more than one row in the pattern gen dialog box, join lines
 
 					if setting[6] == 'Then':
-						pattern = '(' + pattern + ')+'
+					# Rows should be one continuous pattern
+						pattern = '(' + pattern + ')+' # Make a group and look for one or more instances of it
 
-						# Check match start
+						# Check where to start looking for a match
 						if PatternDialog.startAfterMatchValue:
-							pattern = '(?<=' + currentTerm + '[:-_=,. ])([:-_=,. ])*' + pattern
+							pattern = '(?<=' + currentTerm + '[:-_=,. ])([:-_=,. ])*' + pattern # Start matching after current term permutation is found. Ignore all [:-_=,. ] until until match is found
 
-						RegexGeneration.initialSearchPattern += pattern
+						RegexGeneration.initialSearchPattern += pattern # Append row pattern to total pattern
 
 					if setting[6] == 'Or':
-						if PatternDialog.startAfterMatchValue:
-							pattern = '(?<=' + currentTerm + '[:-_=,. ])([:-_=,. ])*' + '(' + pattern + ')' + '+|'
-						else:
-							pattern = '(' + pattern + ')' + '+|'
-						RegexGeneration.initialSearchPattern += pattern
+					# Rows should be individual patterns ORed together
 
-					print('Final pattern (M): ' + RegexGeneration.initialSearchPattern)
+						# Check where to start looking for a match
+						if PatternDialog.startAfterMatchValue:
+						# Start matching after current term permutation is found. Ignore all [:-_=,. ] until until match is found
+							pattern = '(?<=' + currentTerm + '[:-_=,. ])([:-_=,. ])*' + '(' + pattern + ')' + '+|' # Make group and search for one or more instance of it. Add | to OR it with next line
+						else:
+							pattern = '(' + pattern + ')' + '+|' # Make group and search for one or more instance of it. Add | to OR it with next line (start matching from beginning)
+
+						RegexGeneration.initialSearchPattern += pattern # Append row pattern to total pattern
 
 				elif len(RegexGeneration.rulesDict.keys()) == 1: # There is one row in the pattern gen dialog box
-					# Check match start
+
+					# Check where to start looking for a match
 					if PatternDialog.startAfterMatchValue:
+					# Start matching after current term permutation is found. Ignore all [:-_=,. ] until until match is found
 						pattern = '(?<=' + currentTerm + '[:-_=,. ])([:-_=,. ])*' + '(' + pattern + ')+'
+					else:
+						pattern = '(' + pattern + ')+' # Make group and search for one or more instance of it
 
-					RegexGeneration.initialSearchPattern = pattern
-					print('Final pattern (S): ' + RegexGeneration.initialSearchPattern)
-
-		print()
+					RegexGeneration.initialSearchPattern = pattern # Set row pattern to final pattern
 
 		# Actually generate the pattern
-		self.generateSearchPattern(self)
-
-
-	def generateSearchPattern(self):
 		RegexGeneration.searchPatternRegex = re.compile(RegexGeneration.initialSearchPattern, re.I)
-		print('Generated pattern: ' + RegexGeneration.searchPatternRegex.pattern)
 
 
 ############################################################################################################################
