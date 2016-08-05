@@ -481,7 +481,7 @@ class RuleDialog:
 
 	def updateDisplay(self):
 		for ID, value in RegexGeneration.rulesDict.items():
-			if 'Specify Character' in value:
+			if 'Specify Pattern' in value:
 				value[0].optionFrameTwo.pack_propagate(True)
 				value[0].charEntry.pack(side=LEFT, anchor=W, padx=5, pady=5)
 			else:

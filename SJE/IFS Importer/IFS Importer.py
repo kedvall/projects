@@ -10,12 +10,11 @@
 
 #************************************ Program Setup ************************************#
 # Import everything
-import sys, os, re, subprocess, getpass, openpyxl, pyautogui, pyperclip, pahk, base64, base64ico
+import sys, os, re, subprocess, getpass, openpyxl, pyautogui, pyperclip, base64, base64ico
 import tkinter.messagebox
 from tkinter import *
 from tkinter import ttk, filedialog
 from openpyxl.cell import get_column_letter, column_index_from_string
-from pahk import Interpreter
 from time import sleep
 
 # Set Up GUI
