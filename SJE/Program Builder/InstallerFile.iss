@@ -36,6 +36,12 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Source: "C:\Users\kedvall\dev\CompanySoftware\SJE\Program Builder\dist\Excel Data Mapper.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\kedvall\dev\CompanySoftware\SJE\Program Builder\dist\Excel Extractor.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\kedvall\dev\CompanySoftware\SJE\Program Builder\dist\IFS Importer.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\kedvall\dev\CompanySoftware\SJE\IFS Importer\helper\ActivateIFS.exe"; DestDir: "{app}\helper"; Flags: ignoreversion
+Source: "C:\Users\kedvall\dev\CompanySoftware\SJE\IFS Importer\helper\ActivateImporter.exe"; DestDir: "{app}\helper"; Flags: ignoreversion
+Source: "C:\Users\kedvall\dev\CompanySoftware\SJE\IFS Importer\helper\ActivateInventoryPart.exe"; DestDir: "{app}\helper"; Flags: ignoreversion
+Source: "C:\Users\kedvall\dev\CompanySoftware\SJE\IFS Importer\helper\FocusControl.exe"; DestDir: "{app}\helper"; Flags: ignoreversion
+Source: "C:\Users\kedvall\dev\CompanySoftware\SJE\IFS Importer\helper\GetControlID.exe"; DestDir: "{app}\helper"; Flags: ignoreversion
+Source: "C:\Users\kedvall\dev\CompanySoftware\SJE\IFS Importer\helper\GetControlValue.exe"; DestDir: "{app}\helper"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

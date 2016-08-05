@@ -410,7 +410,10 @@ class WriteData():
 
 			# Get value of current cell
 			curCell = FileSelection.sheet.cell(row=rowNum, column=column_index_from_string(columnName))
-			pyperclip.copy(str(curCell.value))
+			if curCell.value != None:
+				pyperclip.copy(str(curCell.value))
+			else:
+				pyperclip.copy('')
 
 			### for testing ###
 			if ColumnSelection.clearSV.get() == 'clear':
