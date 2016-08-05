@@ -517,16 +517,19 @@ class ValidateData():
 			curCell = FileSelection.sheet.cell(row=rowNum, column=column_index_from_string(columnName))
 			excelText = str(curCell.value)
 
-			# Compare values
-			if controlText == excelText:
-				# print(IDTag + ' checked. PASS' ### Debugging ###
-				pass
+			# Compare values for non blank cells
+			if curCell != None:
+				if controlText == excelText:
+					# print(IDTag + ' checked. PASS' ### Debugging ###
+					pass
 
-			# Data does not match
+				# Data does not match
+				else:
+					if IDTag not in ColumnSelection.mismatchList:
+						ColumnSelection.mismatchList.append(IDTag)
+					# print('Excel IFS mismatch') ### Debugging ###
 			else:
-				if IDTag not in ColumnSelection.mismatchList:
-					ColumnSelection.mismatchList.append(IDTag)
-				# print('Excel IFS mismatch') ### Debugging ###
+				pass
 
 
 	def completionHandle(self):
