@@ -518,7 +518,7 @@ class ValidateData():
 			excelText = str(curCell.value)
 
 			# Compare values for non blank cells
-			if curCell != None:
+			if excelText != None:
 				if controlText == excelText:
 					# print(IDTag + ' checked. PASS' ### Debugging ###
 					pass
