@@ -5,7 +5,7 @@ module arbiter (
 	req_0,
 	req_1,
 	gnt_0,
-	gnt_1,
+	gnt_1
 );
 
 input clock, reset, req_0, req_1;

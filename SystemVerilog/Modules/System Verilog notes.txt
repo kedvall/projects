@@ -1,0 +1,16 @@
+Data types:
+	- logic, integer, and time have 4 possible states
+	- Known value of 0 or 1
+	- OR don't care (x) or high impedence (z)
+
+Modules:
+	- Primary design unit in SV
+	- Multiple can be combined to form larger design
+	- Module-procedural block pair provides design description
+
+	- module declaration procides external interface to design
+	- contains pinout, interface description, and input-output port definitions
+
+Procedure blocks:
+	- Descrieb behavior of an entity or its structure (gates, wires, etc)
+	- 
