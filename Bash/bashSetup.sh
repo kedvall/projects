@@ -18,21 +18,21 @@ read editor
 
 #Fix "Unable to resolve host" error
 newHost=`cat /etc/hostname`
-if ! grep -Fxq "$newHost" /etc/hosts
+if [ ! grep -Fxq "$newHost" /etc/hosts ];
 then
     echo "
     127.0.0.1   $newHost" >> /etc/hosts
 fi
 
 #Disable the stupid ding noise (tab complete)
-if ! grep -Fxq "set bell-style none" /etc/inputrc
+if [ ! grep -Fxq "set bell-style none" /etc/inputrc ];
 then
     echo "#Disable stupid bell ding
     set bell-style none" >> /etc/inputrc
 fi
 
 #Disable the stupid ding noise (vim)
-if ! grep -Fxq "set visualbell" ~/.vimrc
+if [ ! grep -Fxq "set visualbell" ~/.vimrc ];
 then
     echo "set visualbell" >> ~/.vimrc
 fi
