@@ -767,6 +767,15 @@ void lcd_preheat_pet()
   setWatch(); // heater sanity check timer
 }
 
+void lcd_preheat_A910()
+{
+  setTargetHotend0(A910_PREHEAT_HOTEND_TEMP);
+  setTargetBed(A910_PREHEAT_HPB_TEMP);
+  fanSpeed = 0;
+  lcd_return_to_status();
+  setWatch(); // heater sanity check timer
+}
+
 void lcd_preheat_hips()
 {
   setTargetHotend0(HIPS_PREHEAT_HOTEND_TEMP);
@@ -804,9 +813,10 @@ static void lcd_preheat_menu()
 
   MENU_ITEM(back, MSG_MAIN, lcd_main_menu);
 
-  MENU_ITEM(function, PSTR("ABS  -  " STRINGIFY(ABS_PREHEAT_HOTEND_TEMP) "/" STRINGIFY(ABS_PREHEAT_HPB_TEMP)), lcd_preheat_abs);
   MENU_ITEM(function, PSTR("PLA  -  " STRINGIFY(PLA_PREHEAT_HOTEND_TEMP) "/" STRINGIFY(PLA_PREHEAT_HPB_TEMP)), lcd_preheat_pla);
   MENU_ITEM(function, PSTR("PET  -  " STRINGIFY(PET_PREHEAT_HOTEND_TEMP) "/" STRINGIFY(PET_PREHEAT_HPB_TEMP)), lcd_preheat_pet);
+  MENU_ITEM(function, PSTR("Alloy 910  -  " STRINGIFY(A910_PREHEAT_HOTEND_TEMP) "/" STRINGIFY(A910_PREHEAT_HPB_TEMP)), lcd_preheat_A910);
+  MENU_ITEM(function, PSTR("ABS  -  " STRINGIFY(ABS_PREHEAT_HOTEND_TEMP) "/" STRINGIFY(ABS_PREHEAT_HPB_TEMP)), lcd_preheat_abs);
   MENU_ITEM(function, PSTR("HIPS -  " STRINGIFY(HIPS_PREHEAT_HOTEND_TEMP) "/" STRINGIFY(HIPS_PREHEAT_HPB_TEMP)), lcd_preheat_hips);
   MENU_ITEM(function, PSTR("PP   -  " STRINGIFY(PP_PREHEAT_HOTEND_TEMP) "/" STRINGIFY(PP_PREHEAT_HPB_TEMP)), lcd_preheat_pp);
   MENU_ITEM(function, PSTR("FLEX -  " STRINGIFY(FLEX_PREHEAT_HOTEND_TEMP) "/" STRINGIFY(FLEX_PREHEAT_HPB_TEMP)), lcd_preheat_flex);
