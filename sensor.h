@@ -70,6 +70,7 @@ typedef struct packet {
 #define ACK_FINGER_LIBRARY_CLEAR_FAIL 0x11
 #define ACK_WRONG_PASSWORD 0x13
 #define ACK_IMAGE_GEN_FAIL_INVALID_PRIMARY_IMAGE 0x15
+#define ACK_INVALID_HEADER 0xFF
 
 //Constant defines 
 #define HEADER 0xEF01
