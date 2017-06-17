@@ -3,6 +3,22 @@
 
 // Header file for finger print sensor library
 // Written for R301 Finger print sensor, should work for R30X sensors 
+//#include <stdio.h>
+//#include <stint.h>
+#include "Arduino.h"
+
+//Variables
+uint32_t* packet_addr;
+
+//Packet structure
+typedef struct packet {
+	uint16_t header;
+	uint32_t addr;
+	uint8_t packet_id;
+	uint16_t packet_len;
+	uint8_t packet_data;
+	uint16_t checksum;
+} packet_t;
 
 // Command Defines
 //System Commands
@@ -25,7 +41,7 @@
 #define F_UP_CHAR 0x08
 #define F_DOWN_CHAR 0x09
 #define F_UP_IMG 0x0A
-#define F_DOWN_IMG 0x0B=
+#define F_DOWN_IMG 0x0B
 #define F_DELETE_CHAR 0x0C
 #define F_EMPTY_LIB 0x0D
 #define F_HIGH_SPEED_SEARCH 0x1B
@@ -35,8 +51,7 @@
 #define O_WRITE_NOTEPAD 0x18
 #define O_READ_NOTEPAD 0x19
 
-
-// Acknowledgement Defines
+// Acknowledgment Defines
 #define ACK_COMMAND_EXECUTED 0x00
 #define ACK_RECEIVE_ERROR 0x01
 #define ACK_NO_FINGER 0x02
@@ -55,3 +70,22 @@
 #define ACK_FINGER_LIBRARY_CLEAR_FAIL 0x11
 #define ACK_WRONG_PASSWORD 0x13
 #define ACK_IMAGE_GEN_FAIL_INVALID_PRIMARY_IMAGE 0x15
+
+//Constant defines 
+#define HEADER 0xEF01
+#define ADDR 0xFFFFFFFF
+#define CMD_PKT 0x01
+#define DATA_PKT 0x02
+#define ACK_PKT 0x07
+#define END_PKT 0x08
+#define PACKET_SIZE 12 //Packet size in bytes
+
+//Utility commands
+uint32_t form_packet(uint8_t packet_id, uint16_t packet_len, uint8_t* data_ptr, uint16_t checksum);
+uint8_t send_packet(uint32_t* packet_addr);
+int8_t reack_ack();
+
+//System command prototypes
+uint8_t gen_img(void);
+
+#endif
