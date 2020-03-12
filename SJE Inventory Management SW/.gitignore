@@ -1,0 +1,10 @@
+# pycache folder #
+##################
+SJE/**/__pycache__/
+
+# Files from build #
+####################
+SJE/**/build/
+SJE/**/dist/
+**.spec
+**.exe
