@@ -1,1 +1,0 @@
-^LButton::MsgBox You clicked
