@@ -1,0 +1,36 @@
+Chapter 2 Practice Questions:
+1.	The two boolean values are True and False. They are written with a capital first letter
+2.	The three boolen operators are and, or, and not
+3.	and:
+	False	False	False
+	False	True	False
+	True	False	False
+	True	True	True
+
+	or:
+	False	False	False
+	False	True	True
+	True	False	True
+	True	True	True
+
+	not:
+	False	True
+	True	False
+4.	False
+	False
+	True
+	False
+	False
+	True
+5.	==	!=	>	<	>=	<=
+6.	== (equal to) check whether two values are equal. = (assignment) assigns the value on the right to the variable on the left
+7.	A condition is an expression used in control statements that always evaluates down to a single Boolean value
+8.	print('eggs')
+	print('bacon')
+	print('ham')
+9.	See Ch2Q2.py
+10.	Ctrl + C
+11.	break immediately exists the control structure, continue stops the current iteration and starts at the beginnign of the next loop
+12.	They will all behave the same. The first says to start at default value (0) and go to 10. The second specifies starting at 0, and the third specifies the increment value
+13.	See Ch2Q13.py
+14.	spam.bacon()

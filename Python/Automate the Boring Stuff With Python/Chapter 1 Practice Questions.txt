@@ -1,0 +1,20 @@
+Chapter 1 Practice Questions:
+1.	Op
+	val
+	val
+	op
+	op
+	op
+	val
+2.	var
+	string
+3.	int, float, string
+4.	values and operators
+	evaluate to a single value
+5.	A statement tells the program to do something, an expression evaluates to a single value
+6.	The variables contains 21
+7.	spamspamspam
+	spamspamspam
+8.	A variable can't begin with a number
+9.	int(), float(), str()
+10.	The expressions causes an error because 99 is not a string and python can't automatically convert it

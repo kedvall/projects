@@ -1,0 +1,14 @@
+1.	Functions are advantageous because the limit the scope of variables while allowing you to organize and compartmentalize your code.
+2.	The code in a function executes when it is called
+3.	The def statement followed by a function name and paranthesis creates a function. Ex: def testFunc():
+4.	A function is the code that makes up the function. A function call is when that code is executed
+5.	There is one global scope and as many local scope as functions that create local variables
+6.	Local variable values are forgotten when a function exits
+7.	A return value is the value returned by a function when it completes its execution. It evaluates to a single value and therefore can be used as part of an expression.
+8.	That function returns the defualt value of None
+9.	Global scope can be forced by typing global in front of the variable name you wish to modify
+10.	It is the only value of NoneType data type
+11.	The import areallyourpetsnamederic statement imports the module areallyourpetsnamederic and allows you to use functions in that module
+12.	It could be called using spam.bacon()
+13.	A program can be resilient against errors by using the try and except functions
+14.	The try clause contains the code you want to try to execute that may contain a bug. The except clause contains the possible errors.

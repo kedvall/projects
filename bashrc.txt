@@ -1,0 +1,82 @@
+#################################################
+# Enter your WINDOWS username here!             #
+#################################################
+USERNAME=kedvall
+
+#################################################
+# This bashrc adds the following:               #
+# - Git shortcuts (gp, gpl, ga, gc)             #
+# - Windows folder shortcuts                    #
+# - Sublime editing shortcut                    #
+# - Windows explorer for current dir            #
+# - up command to move "up" X directories       #
+#################################################
+
+
+# Make var for easy access of dev directory
+DEVDIR=/mnt/c/Users/$USERNAME/dev/
+
+# Make sure dev folder exists. Can delete this after first run
+if [ ! -d "$DEVDIR" ]; then
+  mkdir $DEVDIR
+fi
+
+
+#################################################
+# Functions                                     #
+#################################################
+# Function to change start directory
+chDir() { cd $DEVDIR ; }
+
+
+# Funtion to take parameters and open text editor with said parameters
+openEditor() {
+  wstart subl.exe "$@" ;
+}
+
+
+# Simple script to go "up" specified num of directories. Defaults to 1
+up() { cd $(eval printf '../'%.0s {1..$1}) && pwd; }
+
+
+#################################################
+# Aliases                                       #
+#################################################
+# Alias to dev folder
+alias dev="cd "$DEVDIR""
+alias down="cd /mnt/c/Users/"$USERNAME"/Downloads/"
+alias exp="wstart explorer ."
+alias ece="cd /mnt/c/Users/"$USERNAME"/dev/ece391/ece391_share/work"
+alias sub=openEditor
+alias mp3="cd /mnt/c/Users/"$USERNAME"/dev/ece391/ece391_share/work/mp3"
+alias eb="vim ~/.bashrc ; . ~/.bashrc"
+
+
+# Binding to make the instructions for gdb not appear
+alias gdb="gdb -q"
+
+
+# Git alias
+alias gp="git push"
+alias gpl="git pull"
+alias ga="git add --all"
+alias gc="git commit -m'"
+
+
+#################################################
+# Utilities                                     #
+#################################################
+# Shorten directory
+if [ "$color_prompt" = yes ]; then
+    PS1='${debian_chroot:+($debian_chroot)}[\033[01;32m\]\u\[\033[00m\]:\[\033[01;34m\]\W\[\033[00m\]\$ '
+else
+    PS1='${debian_chroot:+($debian_chroot)}\u:\W\$ '
+fi
+
+
+# colored prompt!
+PS1='\e[92;1m\u@\h: \e[96m\W\e[0m\$ '
+
+
+# Start in dev folder
+chDir

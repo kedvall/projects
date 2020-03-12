@@ -1,0 +1,16 @@
+1.	Characters that allow you to type things you normally couldn't in a string
+2.	\n is newline and \t is tab
+3.	\\
+4.	The string is surrounded by "" so python knows ' isn't the end of the string
+5.	By using a multi line string with ''' or """
+6.	- e
+	- Hello
+	- Hello
+	- lo world!
+7.	- HELLO
+	- True
+	- hello
+8.	- ['Remember,', 'remember,', 'the', 'fifth', 'of', 'November.']
+	- There-can-be-only-one.
+9.	rjust(), ljust(), and center() 
+10.	lstrip(), rstrip(), and strip()

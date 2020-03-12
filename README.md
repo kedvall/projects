@@ -1,2 +1,2 @@
-# projects
+# Projects
 Dump of (dead?) projects
